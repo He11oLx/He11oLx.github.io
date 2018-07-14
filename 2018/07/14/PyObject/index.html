@@ -81,19 +81,19 @@
 
 
 
-<meta name="description" content="参考资料 《Python源码剖析》，感谢陈儒先生的著作 python.org，感谢Python社区的成果共享  Interface">
+<meta name="description" content="声明 文中所参考 Python 源码皆来自 CPython3.6.6 文中主要参考陈儒先生的著作，在正文中将不再重复声明  参考资料 《Python源码剖析》，感谢陈儒先生的著作 python.org，感谢Python社区的成果共享  Interface">
 <meta name="keywords" content="Python,源码">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【Python源码剖析】PyObject&#x2F;PyObjectType">
 <meta property="og:url" content="http://he11olx.com/2018/07/14/PyObject/index.html">
 <meta property="og:site_name" content="Lx&#39;s Blog">
-<meta property="og:description" content="参考资料 《Python源码剖析》，感谢陈儒先生的著作 python.org，感谢Python社区的成果共享  Interface">
+<meta property="og:description" content="声明 文中所参考 Python 源码皆来自 CPython3.6.6 文中主要参考陈儒先生的著作，在正文中将不再重复声明  参考资料 《Python源码剖析》，感谢陈儒先生的著作 python.org，感谢Python社区的成果共享  Interface">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://he11olx.com/images/对象类型类型对象_1526094417_19384.png">
-<meta property="og:updated_time" content="2018-07-14T06:14:21.334Z">
+<meta property="og:updated_time" content="2018-07-14T08:23:54.972Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【Python源码剖析】PyObject&#x2F;PyObjectType">
-<meta name="twitter:description" content="参考资料 《Python源码剖析》，感谢陈儒先生的著作 python.org，感谢Python社区的成果共享  Interface">
+<meta name="twitter:description" content="声明 文中所参考 Python 源码皆来自 CPython3.6.6 文中主要参考陈儒先生的著作，在正文中将不再重复声明  参考资料 《Python源码剖析》，感谢陈儒先生的著作 python.org，感谢Python社区的成果共享  Interface">
 <meta name="twitter:image" content="http://he11olx.com/images/对象类型类型对象_1526094417_19384.png">
 
 
@@ -330,7 +330,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-14T12:00:47+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-14T12:00:00+08:00">
                 2018-07-14
               </time>
             
@@ -406,7 +406,11 @@
       
 
       
-        <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+        <h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><ol>
+<li>文中所参考 Python 源码皆来自 CPython3.6.6</li>
+<li>文中主要参考陈儒先生的著作，在正文中将不再重复声明</li>
+</ol>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
 <li>《Python源码剖析》，感谢陈儒先生的著作</li>
 <li><a href="https://docs.python.org/3.6/c-api/index.html" target="_blank" rel="noopener">python.org</a>，感谢Python社区的成果共享</li>
 </ul>
@@ -510,7 +514,7 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/07/13/hello-world/" rel="next" title="博客开通啦">
+              <a href="/2018/07/12/hello-world/" rel="next" title="博客开通啦">
                 <i class="fa fa-chevron-left"></i> 博客开通啦
               </a>
             
@@ -519,6 +523,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/14/Python整数对象/" rel="prev" title="【Python源码剖析】PyLongObject/整数类型">
+                【Python源码剖析】PyLongObject/整数类型 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -609,7 +617,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -631,7 +639,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -664,7 +672,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">1.</span> <span class="nav-text">参考资料</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interface"><span class="nav-number">2.</span> <span class="nav-text">Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyObject"><span class="nav-number">3.</span> <span class="nav-text">PyObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyTypeObject"><span class="nav-number">4.</span> <span class="nav-text">PyTypeObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyType-Type"><span class="nav-number">5.</span> <span class="nav-text">PyType_Type</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyBaseObject-Type"><span class="nav-number">6.</span> <span class="nav-text">PyBaseObject_Type</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#object-VS-type"><span class="nav-number">7.</span> <span class="nav-text">object VS type</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#声明"><span class="nav-number">1.</span> <span class="nav-text">声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">2.</span> <span class="nav-text">参考资料</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interface"><span class="nav-number">3.</span> <span class="nav-text">Interface</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyObject"><span class="nav-number">4.</span> <span class="nav-text">PyObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyTypeObject"><span class="nav-number">5.</span> <span class="nav-text">PyTypeObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyType-Type"><span class="nav-number">6.</span> <span class="nav-text">PyType_Type</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyBaseObject-Type"><span class="nav-number">7.</span> <span class="nav-text">PyBaseObject_Type</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#object-VS-type"><span class="nav-number">8.</span> <span class="nav-text">object VS type</span></a></li></ol></div>
             
 
           </div>
