@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CPython3.6源码,PyCodeObject,EvalFrame," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言本章将通过几个字节码指令，探究 Python 中if及for语句的实现及原理，阅读本章前需了解PyCodeObject/PyFrameObject。 IF控制流（JUMP_*）123456789101112a = 0if a &amp;gt; 0:    b = 3elif a &amp;lt; 0:    b = -3else:    b = 0c = 1co_consts: (0, 3, 1, None,">
+<meta name="keywords" content="CPython3.6源码,PyCodeObject,EvalFrame">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【CPython3.6源码分析】Python 控制字节码执行">
+<meta property="og:url" content="http://he11olx.com/2018/07/21/1.7.Python 控制字节码/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="前言本章将通过几个字节码指令，探究 Python 中if及for语句的实现及原理，阅读本章前需了解PyCodeObject/PyFrameObject。 IF控制流（JUMP_*）123456789101112a = 0if a &amp;gt; 0:    b = 3elif a &amp;lt; 0:    b = -3else:    b = 0c = 1co_consts: (0, 3, 1, None,">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-21T12:35:05.941Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【CPython3.6源码分析】Python 控制字节码执行">
+<meta name="twitter:description" content="前言本章将通过几个字节码指令，探究 Python 中if及for语句的实现及原理，阅读本章前需了解PyCodeObject/PyFrameObject。 IF控制流（JUMP_*）123456789101112a = 0if a &amp;gt; 0:    b = 3elif a &amp;lt; 0:    b = -3else:    b = 0c = 1co_consts: (0, 3, 1, None,">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/07/21/1.7.Python 控制字节码/"/>
+
+
+
+
+
+  <title>【CPython3.6源码分析】Python 控制字节码执行 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.7.Python 控制字节码/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【CPython3.6源码分析】Python 控制字节码执行</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-21T16:00:00+08:00">
+                2018-07-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/21/1.7.Python 控制字节码/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/07/21/1.7.Python 控制字节码/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本章将通过几个字节码指令，探究 Python 中<code>if</code>及<code>for</code>语句的实现及原理，阅读本章前需了解<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a>。</p>
+<h2 id="IF控制流（JUMP-）"><a href="#IF控制流（JUMP-）" class="headerlink" title="IF控制流（JUMP_*）"></a>IF控制流（JUMP_*）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">a = 0</span><br><span class="line"></span><br><span class="line">if a &gt; 0:</span><br><span class="line">    b = 3</span><br><span class="line">elif a &lt; 0:</span><br><span class="line">    b = -3</span><br><span class="line">else:</span><br><span class="line">    b = 0</span><br><span class="line">c = 1</span><br><span class="line"></span><br><span class="line">co_consts: (0, 3, 1, None, -3)</span><br><span class="line">co_names:  (&apos;a&apos;, &apos;b&apos;, &apos;c&apos;)</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">  1           0 LOAD_CONST               0 (0)</span><br><span class="line">              2 STORE_NAME               0 (a)</span><br><span class="line">  3           4 LOAD_NAME                0 (a)</span><br><span class="line">              6 LOAD_CONST               0 (0)</span><br><span class="line">              8 COMPARE_OP               4 (&gt;)         // 执行比较操作</span><br><span class="line">             10 POP_JUMP_IF_FALSE       18  // if POP()== Py_False: JUMPTO(18)</span><br><span class="line">  4          12 LOAD_CONST               1 (3)</span><br><span class="line">             14 STORE_NAME               1 (b)</span><br><span class="line">             16 JUMP_FORWARD            18 (to 36)     // JUMPBY(18)</span><br><span class="line">  5     &gt;&gt;   18 LOAD_NAME                0 (a)</span><br><span class="line">             20 LOAD_CONST               0 (0)</span><br><span class="line">             22 COMPARE_OP               0 (&lt;)</span><br><span class="line">             24 POP_JUMP_IF_FALSE       32// if POP()== Py_False: JUMPTO(32)</span><br><span class="line">  6          26 LOAD_CONST               4 (-3)</span><br><span class="line">             28 STORE_NAME               1 (b)</span><br><span class="line">             30 JUMP_FORWARD             4 (to 36)</span><br><span class="line">  8     &gt;&gt;   32 LOAD_CONST               0 (0)</span><br><span class="line">             34 STORE_NAME               1 (b)</span><br><span class="line">  9     &gt;&gt;   36 LOAD_CONST               2 (1)</span><br><span class="line">             38 STORE_NAME               2 (c)</span><br><span class="line">             40 LOAD_CONST               3 (None)</span><br><span class="line">             42 RETURN_VALUE</span><br><span class="line"></span><br><span class="line">typedef uint16_t _Py_CODEUNIT;    // 2字节</span><br><span class="line">#define JUMPTO(x)    (next_instr = first_instr + (x) / sizeof(_Py_CODEUNIT))</span><br><span class="line">#define JUMPBY(x)       (next_instr += (x) / sizeof(_Py_CODEUNIT))</span><br></pre></td></tr></table></figure>
+<p>可以看出，比较操作，会调用 <code>COMPARE_OP</code>，然后根据结果进行跳转。而大于符号<code>&gt;</code>，在数组 <code>opcode.h/enum cmp_op{}</code>中，索引为4。</p>
+<p>我们知道 first_instr，始终指向字节码开始位置。因此，<code>JUMPTO(18)</code>，最终的结果是，改变下一条 code 指针<code>next_instr</code>的值，实际上就是跳转到索引为 18 的字节码处。<code>JUMPBY(18)</code>相当于在下一条的基础上，跳转偏移量为18。</p>
+<p>这里要说一下还是说一下，为什么要<code>(x) / sizeof(_Py_CODEUNIT)</code>。在前面我们也已经提到，<code>STORE_NAME</code>本身是一个数字，而这个数字是<code>_Py_CODEUNIT</code>形式。所以，每增加一条指令，指针就要移动相应的位置。</p>
+<p>还需要说明的是，这里的<code>JUMP*</code>皆是 Python 用户层面的跳转，影响的是用户代码逻辑。而<code>goto fast_block_end</code>，是在 Python虚拟机层面的跳转，影响的是虚拟机的状态。</p>
+<h3 id="COMPARE-OP"><a href="#COMPARE-OP" class="headerlink" title="COMPARE_OP"></a>COMPARE_OP</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// opcode.h</span></span><br><span class="line"><span class="keyword">enum</span> cmp_op &#123;PyCmp_LT=Py_LT, PyCmp_LE=Py_LE, PyCmp_EQ=Py_EQ, PyCmp_NE=Py_NE,</span><br><span class="line">                PyCmp_GT=Py_GT, PyCmp_GE=Py_GE, PyCmp_IN, PyCmp_NOT_IN,</span><br><span class="line">                PyCmp_IS, PyCmp_IS_NOT, PyCmp_EXC_MATCH, PyCmp_BAD&#125;;</span><br><span class="line"></span><br><span class="line">TARGET(COMPARE_OP) &#123;</span><br><span class="line">    PyObject *right = POP();</span><br><span class="line">    PyObject *left = TOP();</span><br><span class="line">    PyObject *res = cmp_outcome(oparg, left, right);</span><br><span class="line">    Py_DECREF(left);</span><br><span class="line">    Py_DECREF(right);</span><br><span class="line">    SET_TOP(res);</span><br><span class="line">    <span class="keyword">if</span> (res == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">goto</span> error;</span><br><span class="line">    PREDICT(POP_JUMP_IF_FALSE);</span><br><span class="line">    PREDICT(POP_JUMP_IF_TRUE);</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">cmp_outcome(<span class="keyword">int</span> op, PyObject *v, PyObject *w)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> res = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">switch</span> (op) &#123;</span><br><span class="line">    <span class="keyword">case</span> PyCmp_IS:</span><br><span class="line">        res = (v == w);        <span class="comment">// 注意，此处是 PyObject 之间的比较</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> PyCmp_IS_NOT:</span><br><span class="line">        res = (v != w);        <span class="comment">// 而不是 C对象</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    <span class="keyword">case</span> PyCmp_IN:</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    v = res ? Py_True : Py_False;</span><br><span class="line">    Py_INCREF(v);</span><br><span class="line">    <span class="keyword">return</span> v;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从定义中可以看见，in/is 操作也是走 COMPARE_OP 流程。并且返回的是 PyObject。</p>
+<h2 id="FOR控制流"><a href="#FOR控制流" class="headerlink" title="FOR控制流"></a>FOR控制流</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"># demo.py</span><br><span class="line">a = [1, 2, 3, 4]</span><br><span class="line">for i in a:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line">co_consts: (1, 2, 3, 4, None)</span><br><span class="line">co_names: (&apos;a&apos;, &apos;i&apos;, &apos;print&apos;)</span><br><span class="line"></span><br><span class="line">  1           0 LOAD_CONST               0 (1)</span><br><span class="line">              2 LOAD_CONST               1 (2)</span><br><span class="line">              4 LOAD_CONST               2 (3)</span><br><span class="line">              6 LOAD_CONST               3 (4)</span><br><span class="line">              8 BUILD_LIST               4</span><br><span class="line">             10 STORE_NAME               0 (a)</span><br><span class="line"></span><br><span class="line">  2          12 SETUP_LOOP              20 (to 34)</span><br><span class="line">             14 LOAD_NAME                0 (a)</span><br><span class="line">             16 GET_ITER</span><br><span class="line">        &gt;&gt;   18 FOR_ITER                12 (to 32)</span><br><span class="line">             20 STORE_NAME               1 (i)</span><br><span class="line"></span><br><span class="line">  3          22 LOAD_NAME                2 (print)</span><br><span class="line">             24 LOAD_NAME                1 (i)</span><br><span class="line">             26 CALL_FUNCTION            1</span><br><span class="line">             28 POP_TOP</span><br><span class="line">             30 JUMP_ABSOLUTE           18</span><br><span class="line">        &gt;&gt;   32 POP_BLOCK</span><br><span class="line">        &gt;&gt;   34 LOAD_CONST               4 (None)</span><br><span class="line">             36 RETURN_VALUE</span><br><span class="line"></span><br><span class="line">TARGET(SETUP_LOOP)        // 三种方式，都走该函数</span><br><span class="line">TARGET(SETUP_EXCEPT)      // loop/except/finally</span><br><span class="line">TARGET(SETUP_FINALLY) &#123;</span><br><span class="line">    PyFrame_BlockSetup(f, opcode, INSTR_OFFSET() + oparg,</span><br><span class="line">                       STACK_LEVEL());</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面是很重要的循环控制，关于 FrameObject 的操作，自然在<code>frameobject.c</code>。</p>
+<h3 id="SETUP-LOOP（PyFrame-BlockSetup）"><a href="#SETUP-LOOP（PyFrame-BlockSetup）" class="headerlink" title="SETUP_LOOP（PyFrame_BlockSetup）"></a>SETUP_LOOP（PyFrame_BlockSetup）</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> CO_MAXBLOCKS 20 <span class="comment">/* Max static block nesting within a function */</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> b_type;                 <span class="comment">/* what kind of block this is */</span></span><br><span class="line">    <span class="keyword">int</span> b_handler;              <span class="comment">/* where to jump to find handler */</span></span><br><span class="line">    <span class="keyword">int</span> b_level;                <span class="comment">/* value stack level to pop to */</span></span><br><span class="line">&#125; PyTryBlock;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span></span><br><span class="line">PyFrame_BlockSetup(PyFrameObject *f, <span class="keyword">int</span> type, <span class="keyword">int</span> handler, <span class="keyword">int</span> level)</span><br><span class="line">&#123;</span><br><span class="line">    PyTryBlock *b;</span><br><span class="line">    <span class="comment">// index in f_blockstack，在 PyFrame_New 中，初始化为 0</span></span><br><span class="line">    <span class="keyword">if</span> (f-&gt;f_iblock &gt;= CO_MAXBLOCKS)</span><br><span class="line">        Py_FatalError(<span class="string">"XXX block stack overflow"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 在 PyFrameObject 结构体中，被定义为</span></span><br><span class="line"><span class="comment">       PyTryBlock f_blockstack[CO_MAXBLOCKS]</span></span><br><span class="line"><span class="comment">       获取 PyTryBlock，指针 ++  */</span></span><br><span class="line">    b = &amp;f-&gt;f_blockstack[f-&gt;f_iblock++];</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 定义 code block 块类型 ，直接跟 opcode 一致。</span></span><br><span class="line"><span class="comment">       SETUP_*    -&gt;    loop/except/finally    */</span></span><br><span class="line">    b-&gt;b_type = type;              <span class="comment">// block 类型</span></span><br><span class="line">    b-&gt;b_level = level;            <span class="comment">// 保存栈位置</span></span><br><span class="line">    b-&gt;b_handler = handler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的 f 自然是，系统运行时的当前 FrameObject。在数组中获取一个新的 block，并存放相关信息。</p>
+<h3 id="GET-ITER"><a href="#GET-ITER" class="headerlink" title="GET_ITER"></a>GET_ITER</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">         <span class="number">16</span> GET_ITER</span><br><span class="line">    &gt;&gt;   <span class="number">18</span> FOR_ITER                <span class="number">12</span> (to <span class="number">32</span>)</span><br><span class="line"></span><br><span class="line">TARGET(GET_ITER) &#123;</span><br><span class="line">    <span class="comment">/* before: [obj]; after [getiter(obj)] */</span></span><br><span class="line">    PyObject *iterable = TOP();                    <span class="comment">// 出栈</span></span><br><span class="line">    PyObject *iter = PyObject_GetIter(iterable);</span><br><span class="line">    Py_DECREF(iterable);</span><br><span class="line">    SET_TOP(iter);                                 <span class="comment">// 入栈</span></span><br><span class="line">    <span class="keyword">if</span> (iter == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">goto</span> error;</span><br><span class="line">    PREDICT(FOR_ITER);</span><br><span class="line">    PREDICT(CALL_FUNCTION);</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，先从栈顶获取到对象，处理后再推入栈中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// object.h</span></span><br><span class="line"><span class="keyword">typedef</span> PyObject *(*getiterfunc) (PyObject *);</span><br><span class="line"></span><br><span class="line"><span class="comment">// abstract.c.3127</span></span><br><span class="line"><span class="function">PyObject * <span class="title">PyObject_GetIter</span><span class="params">(PyObject *o)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyTypeObject *t = o-&gt;ob_type;</span><br><span class="line">    getiterfunc f = <span class="literal">NULL</span>;</span><br><span class="line">    f = t-&gt;tp_iter;        <span class="comment">// == list_iter</span></span><br><span class="line">    <span class="keyword">if</span> (f == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (PySequence_Check(o))</span><br><span class="line">            <span class="keyword">return</span> PySeqIter_New(o);</span><br><span class="line">        <span class="keyword">return</span> type_error(<span class="string">"'%.200s' object is not iterable"</span>, o);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        PyObject *res = (*f)(o);</span><br><span class="line">        <span class="keyword">if</span> (res != <span class="literal">NULL</span> &amp;&amp; !PyIter_Check(res)) &#123;</span><br><span class="line">            PyErr_Format(PyExc_TypeError,</span><br><span class="line">                         <span class="string">"iter() returned non-iterator "</span></span><br><span class="line">                         <span class="string">"of type '%.100s'"</span>,</span><br><span class="line">                         res-&gt;ob_type-&gt;tp_name);</span><br><span class="line">            Py_DECREF(res);</span><br><span class="line">            res = <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里传入的 <code>Object *o</code>，是上一步获取到的 PyListObject，通过获取 <code>ob_type</code>，调用其类型对象定义的<code>tp_iter</code>方法，即 <code>list_iter</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> PyObject * <span class="title">list_iter</span><span class="params">(PyObject *seq)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    listiterobject *it;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!PyList_Check(seq)) &#123;</span><br><span class="line">        PyErr_BadInternalCall();</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    it = PyObject_GC_New(listiterobject, &amp;PyListIter_Type);</span><br><span class="line">    <span class="keyword">if</span> (it == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    it-&gt;it_index = <span class="number">0</span>;</span><br><span class="line">    Py_INCREF(seq);</span><br><span class="line">    it-&gt;it_seq = (PyListObject *)seq;    <span class="comment">// 赋值</span></span><br><span class="line">    _PyObject_GC_TRACK(it);</span><br><span class="line">    <span class="keyword">return</span> (PyObject *)it;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    Py_ssize_t it_index;</span><br><span class="line">    PyListObject *it_seq; <span class="comment">/* Set to NULL when iterator is exhausted */</span></span><br><span class="line">&#125; listiterobject;</span><br></pre></td></tr></table></figure>
+<p>如上，调用 iter 方法，返回的是一个新的对象，即我们常说的迭代器。</p>
+<h3 id="FOR-ITER"><a href="#FOR-ITER" class="headerlink" title="FOR_ITER"></a>FOR_ITER</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">    &gt;&gt;   18 FOR_ITER                12 (to 32)</span><br><span class="line">         30 JUMP_ABSOLUTE           18</span><br><span class="line"></span><br><span class="line">PREDICTED(FOR_ITER);</span><br><span class="line">TARGET(FOR_ITER) &#123;</span><br><span class="line">    /* before: [iter]; after: [iter, iter()] *or* [] */</span><br><span class="line">    PyObject *iter = TOP();</span><br><span class="line">    PyObject *next = (*iter-&gt;ob_type-&gt;tp_iternext)(iter);</span><br><span class="line">    if (next != NULL) &#123;</span><br><span class="line">        PUSH(next);</span><br><span class="line">        PREDICT(STORE_FAST);</span><br><span class="line">        PREDICT(UNPACK_SEQUENCE);</span><br><span class="line">        DISPATCH();</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过 GET_ITER，将一个栈顶的对象转换成迭代器。如上，调用 PyTypeObject 的<code>tp_iternext</code>方法，获取 next 值，入栈。最终处理 <code>next==NULL</code> 情况。当 for 循环字据执行完成后，执行绝对跳转，从头开始继续执行。</p>
+<h3 id="JUMP-ABSOLUTE"><a href="#JUMP-ABSOLUTE" class="headerlink" title="JUMP_ABSOLUTE"></a>JUMP_ABSOLUTE</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">    &gt;&gt;   <span class="number">18</span> FOR_ITER                <span class="number">12</span> (to <span class="number">32</span>)</span><br><span class="line">         <span class="number">30</span> JUMP_ABSOLUTE           <span class="number">18</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> JUMPTO(x)    (next_instr = first_instr + (x) / sizeof(_Py_CODEUNIT))</span></span><br><span class="line"></span><br><span class="line">PREDICTED(JUMP_ABSOLUTE);</span><br><span class="line">TARGET(JUMP_ABSOLUTE) &#123;</span><br><span class="line">    JUMPTO(oparg);</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>JUMP_ABSOLUTE 18</code> 表示跳转到，距离字节码指令序列的开始向前18个字节处。</p>
+<h3 id="POP-BLOCK（结束循环）"><a href="#POP-BLOCK（结束循环）" class="headerlink" title="POP_BLOCK（结束循环）"></a>POP_BLOCK（结束循环）</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">    &gt;&gt;   <span class="number">18</span> FOR_ITER                <span class="number">12</span> (to <span class="number">32</span>)</span><br><span class="line">    &gt;&gt;   <span class="number">32</span> POP_BLOCK</span><br><span class="line"></span><br><span class="line">TARGET(FOR_ITER) &#123;</span><br><span class="line">    <span class="comment">/* before: [iter]; after: [iter, iter()] *or* [] */</span></span><br><span class="line">    PyObject *iter = TOP();</span><br><span class="line">    PyObject *next = (*iter-&gt;ob_type-&gt;tp_iternext)(iter);</span><br><span class="line">    <span class="keyword">if</span> (next != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (PyErr_Occurred()) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!PyErr_ExceptionMatches(PyExc_StopIteration))</span><br><span class="line">            <span class="keyword">goto</span> error;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (tstate-&gt;c_tracefunc != <span class="literal">NULL</span>)</span><br><span class="line">            call_exc_trace(tstate-&gt;c_tracefunc, tstate-&gt;c_traceobj, tstate, f);</span><br><span class="line">        PyErr_Clear();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* iterator ended normally */</span></span><br><span class="line">    STACKADJ(<span class="number">-1</span>);         <span class="comment">// stack_pointer += n</span></span><br><span class="line">    Py_DECREF(iter);</span><br><span class="line">    JUMPBY(oparg);        <span class="comment">// (next_instr += (x) / sizeof(_Py_CODEUNIT))</span></span><br><span class="line">    PREDICT(POP_BLOCK);</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PREDICTED(POP_BLOCK);</span><br><span class="line">TARGET(POP_BLOCK) &#123;</span><br><span class="line">    PyTryBlock *b = PyFrame_BlockPop(f);</span><br><span class="line">    UNWIND_BLOCK(b);</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// frameobject.c.788</span></span><br><span class="line"><span class="function">PyTryBlock * <span class="title">PyFrame_BlockPop</span><span class="params">(PyFrameObject *f)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyTryBlock *b;</span><br><span class="line">    <span class="keyword">if</span> (f-&gt;f_iblock &lt;= <span class="number">0</span>)</span><br><span class="line">        Py_FatalError(<span class="string">"XXX block stack underflow"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指针 --，返回的是 SETUP_LOOP（PyFrame_BlockSetup) 中获取 TryBlock</span></span><br><span class="line">    b = &amp;f-&gt;f_blockstack[--f-&gt;f_iblock];</span><br><span class="line">    <span class="keyword">return</span> b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> UNWIND_BLOCK(b) \</span></span><br><span class="line">    <span class="keyword">while</span> (STACK_LEVEL() &gt; (b)-&gt;b_level) &#123; \</span><br><span class="line">        PyObject *v = POP(); \</span><br><span class="line">        Py_XDECREF(v); \</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p><code>FOR_ITER</code>在调用时，附带有参数 12，下一条为20，JUMPBY 跳转到32，执行<code>POP_BLOCK</code>。最终，恢复 f_iblock，到循环之前，恢复运行时栈到循环之前。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CPython3-6源码/" rel="tag"># CPython3.6源码</a>
+          
+            <a href="/tags/PyCodeObject/" rel="tag"># PyCodeObject</a>
+          
+            <a href="/tags/EvalFrame/" rel="tag"># EvalFrame</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/21/1.6.Python 一般字节码/" rel="next" title="【CPython3.6源码分析】Python 一般字节码执行">
+                <i class="fa fa-chevron-left"></i> 【CPython3.6源码分析】Python 一般字节码执行
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IF控制流（JUMP-）"><span class="nav-number">2.</span> <span class="nav-text">IF控制流（JUMP_*）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#COMPARE-OP"><span class="nav-number">2.1.</span> <span class="nav-text">COMPARE_OP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FOR控制流"><span class="nav-number">3.</span> <span class="nav-text">FOR控制流</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SETUP-LOOP（PyFrame-BlockSetup）"><span class="nav-number">3.1.</span> <span class="nav-text">SETUP_LOOP（PyFrame_BlockSetup）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GET-ITER"><span class="nav-number">3.2.</span> <span class="nav-text">GET_ITER</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FOR-ITER"><span class="nav-number">3.3.</span> <span class="nav-text">FOR_ITER</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JUMP-ABSOLUTE"><span class="nav-number">3.4.</span> <span class="nav-text">JUMP_ABSOLUTE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#POP-BLOCK（结束循环）"><span class="nav-number">3.5.</span> <span class="nav-text">POP_BLOCK（结束循环）</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">He11oLx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a></div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/07/21/1.7.Python 控制字节码/';
+          this.page.identifier = '2018/07/21/1.7.Python 控制字节码/';
+          this.page.title = '【CPython3.6源码分析】Python 控制字节码执行';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
