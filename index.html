@@ -299,12 +299,201 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.9.Python 函数机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/21/1.9.Python 函数机制/" itemprop="url">【CPython3.6源码分析】Python 函数机制</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-21T22:00:00+08:00">
+                2018-07-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/21/1.9.Python 函数机制/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/07/21/1.9.Python 函数机制/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.python.org/3.6/c-api/function.html" target="_blank" rel="noopener">python.org</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前面我们已经知道 Python 通过PyInterpreterState 对象模拟进程的状态信息，通过 PyThreadState 对象模拟线程的状态信息，通过PyFrameObject 模拟函数调用时的栈帧信息。FrameObject 通过 f_back 指针，形成函数调用的链式结构。那么要实现函数间的调用，就必然存在多个 Frame。</p>
+<h2 id="PyFunctionObject"><a href="#PyFunctionObject" class="headerlink" title="PyFunctionObject"></a>PyFunctionObject</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// funcobject.h.21</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    PyObject *func_code;	<span class="comment">/* A code object, the __code__ attribute */</span></span><br><span class="line">    PyObject *func_globals;	<span class="comment">/* A dictionary (命名空间) */</span></span><br><span class="line">    PyObject *func_defaults;	<span class="comment">/* NULL or a tuple，默认参数*/</span></span><br><span class="line">    PyObject *func_kwdefaults;	<span class="comment">/* NULL or a dict，默认参数 */</span></span><br><span class="line">    PyObject *func_closure;	<span class="comment">/* NULL or a tuple，用于闭包*/</span></span><br><span class="line">    PyObject *func_doc;		<span class="comment">/* The __doc__ attribute, can be anything */</span></span><br><span class="line">    PyObject *func_name;	<span class="comment">/* The __name__ attribute, a string object */</span></span><br><span class="line">    PyObject *func_dict;	<span class="comment">/* The __dict__ attribute, a dict or NULL */</span></span><br><span class="line">    PyObject *func_weakreflist;	<span class="comment">/* List of weak references */</span></span><br><span class="line">    PyObject *func_module;	<span class="comment">/* The __module__ attribute, can be anything */</span></span><br><span class="line">    PyObject *func_annotations;	<span class="comment">/* Annotations, a dict or NULL */</span></span><br><span class="line">    PyObject *func_qualname;    <span class="comment">/* The qualified name */</span></span><br><span class="line">&#125; PyFunctionObject;</span><br></pre></td></tr></table></figure>
+<p>如上，PyFunctionObject 中存放着对应的 CodeObject，除此之外还包含着运行需要的其他信息。这些其他信息，例如命名空间，只有在运行过程中才能获取到。可见 FuncObject 必然是在运行过程中创建的，而 CodeObject 却是在编译时创建的。</p>
+<p><div id="MAKE_FUNCTION-1"></div></p>
+<h2 id="函数创建"><a href="#函数创建" class="headerlink" title="函数创建"></a>函数创建</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">co_names: (<span class="string">'f'</span>,)</span><br><span class="line">co_consts: (&lt;code object f , file <span class="string">"demo.py"</span>, line <span class="number">1</span>&gt;, <span class="string">'f'</span>, <span class="keyword">None</span>)</span><br><span class="line"></span><br><span class="line">  <span class="number">1</span>           <span class="number">0</span> LOAD_CONST               <span class="number">0</span> (&lt;code object f , file <span class="string">"demo.py"</span>, line <span class="number">1</span>&gt;)</span><br><span class="line">              <span class="number">2</span> LOAD_CONST               <span class="number">1</span> (<span class="string">'f'</span>)</span><br><span class="line">              <span class="number">4</span> MAKE_FUNCTION            <span class="number">0</span>    /* 稍稍留意，此处为<span class="number">0</span> */</span><br><span class="line">              <span class="number">6</span> STORE_NAME               <span class="number">0</span> (f)</span><br><span class="line">              <span class="number">8</span> LOAD_CONST               <span class="number">2</span> (<span class="keyword">None</span>)</span><br><span class="line">             <span class="number">10</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<p>在前面我们已经知道，CodeObject 是一种嵌套结构，正如上面的 <code object="" f="">。命名空间 builtin 中的 ‘function’ 对应着 <code>PyFunction_Type</code>。既然已经知道 FuncObject 是动态创建的，那么<code>MAKE_FUNCTION</code>就很值得怀疑。</code></p>
+<p><div id="MAKE_FUNCTION-2"></div></p>
+<h3 id="MAKE-FUNCTION-无参数"><a href="#MAKE-FUNCTION-无参数" class="headerlink" title="MAKE_FUNCTION 无参数"></a>MAKE_FUNCTION 无参数</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">TARGET(MAKE_FUNCTION) &#123;</span><br><span class="line">    PyObject *qualname = POP();</span><br><span class="line">    PyObject *codeobj = POP();</span><br><span class="line">    PyFunctionObject *func = (PyFunctionObject *)</span><br><span class="line">        PyFunction_NewWithQualName(codeobj, f-&gt;f_globals, qualname);</span><br><span class="line"></span><br><span class="line">    ...  <span class="comment">// 根据 oparg, 处理默认值：func_defaults，func_closure等</span></span><br><span class="line">    PUSH((PyObject *)func);</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>果然，从栈中取出名字+CodeObject，然后创建一个新的 FuncObject，封装属性，压入栈中。</p>
+<h3 id="PyFunction-NewWithQualName"><a href="#PyFunction-NewWithQualName" class="headerlink" title="PyFunction_NewWithQualName"></a>PyFunction_NewWithQualName</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// funcobject.c.9</span></span><br><span class="line">PyObject *</span><br><span class="line">PyFunction_NewWithQualName(PyObject *code, PyObject *globals, PyObject *qualname)</span><br><span class="line">&#123;</span><br><span class="line">    PyFunctionObject *op;</span><br><span class="line">    PyObject *doc, *consts, *<span class="keyword">module</span>;</span><br><span class="line"></span><br><span class="line">    op = PyObject_GC_New(PyFunctionObject, &amp;PyFunction_Type);</span><br><span class="line">    ...    <span class="comment">// 封装属性</span></span><br><span class="line">    op-&gt;func_code = code;</span><br><span class="line">    op-&gt;func_globals = globals;</span><br><span class="line">    _PyObject_GC_TRACK(op);</span><br><span class="line">    <span class="keyword">return</span> (PyObject *)op;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，新的 FuncObject 属性封装分别在两个地方进行。完事后下一条指令<code>STORE_NAME</code>将栈顶的FuncObject 移入命名空间 local 中。</p>
+<h2 id="函数执行"><a href="#函数执行" class="headerlink" title="函数执行"></a>函数执行</h2><h3 id="CALL-FUNCTION"><a href="#CALL-FUNCTION" class="headerlink" title="CALL_FUNCTION"></a>CALL_FUNCTION</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// print('1')</span></span><br><span class="line"></span><br><span class="line">co_consts: (<span class="string">'1'</span>, None)</span><br><span class="line">co_names: ('print',)</span><br><span class="line"></span><br><span class="line">  <span class="number">1</span>           <span class="number">0</span> LOAD_NAME                <span class="number">0</span> (print)</span><br><span class="line">              <span class="number">2</span> LOAD_CONST               <span class="number">0</span> (<span class="string">'1'</span>)</span><br><span class="line">              <span class="number">4</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">              <span class="number">6</span> POP_TOP</span><br><span class="line">              <span class="number">8</span> LOAD_CONST               <span class="number">1</span> (None)</span><br><span class="line">             <span class="number">10</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<p>执行函数时，从 local 中加载对象，执行指令<code>CALL_FUNCTION</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">TARGET(CALL_FUNCTION) &#123;</span><br><span class="line">    PyObject **sp, *res;</span><br><span class="line">    PCALL(PCALL_ALL);</span><br><span class="line">    sp = stack_pointer;                        <span class="comment">// 获取到当前 f-&gt;f_stacktop</span></span><br><span class="line">    res = call_function(&amp;sp, oparg, <span class="literal">NULL</span>);     <span class="comment">// 调用函数，同时传入函数参数个数</span></span><br><span class="line">    stack_pointer = sp;                        <span class="comment">// 设置 栈顶</span></span><br><span class="line">    PUSH(res);</span><br><span class="line">    <span class="keyword">if</span> (res == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">goto</span> error;</span><br><span class="line">    &#125;</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在执行<code>CALL_FUNCTION</code>指令时，获得当前运行时栈栈顶指针后，进入<code>call_function</code>。</p>
+<h3 id="call-function"><a href="#call-function" class="headerlink" title="call_function"></a>call_function</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ceval.c.4806</span></span><br><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">call_function(PyObject ***pp_stack, Py_ssize_t oparg, PyObject *kwnames)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 根据栈顶和函数参数个数，计算获取函数</span></span><br><span class="line">    PyObject **pfunc = (*pp_stack) - oparg - <span class="number">1</span>;</span><br><span class="line">    PyObject *func = *pfunc;</span><br><span class="line">    PyObject *x, *w;</span><br><span class="line">    Py_ssize_t nkwargs = (kwnames == <span class="literal">NULL</span>) ? <span class="number">0</span> : PyTuple_GET_SIZE(kwnames);</span><br><span class="line">    Py_ssize_t nargs = oparg - nkwargs;</span><br><span class="line">    PyObject **<span class="built_in">stack</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PyCFunction_Check(func)) &#123;</span><br><span class="line">        <span class="comment">// Py_TYPE(func) == &amp;PyCFunction_Type</span></span><br><span class="line">        PyThreadState *tstate = PyThreadState_GET();</span><br><span class="line"></span><br><span class="line">        PCALL(PCALL_CFUNCTION);    <span class="comment">// pcall[6]++</span></span><br><span class="line"></span><br><span class="line">        <span class="built_in">stack</span> = (*pp_stack) - nargs - nkwargs;</span><br><span class="line">        C_TRACE(x, _PyCFunction_FastCallKeywords(func, <span class="built_in">stack</span>, nargs, kwnames));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// (func)-&gt;ob_type == &amp;PyMethod_Type</span></span><br><span class="line">        <span class="keyword">if</span> (PyMethod_Check(func) &amp;&amp; PyMethod_GET_SELF(func) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="comment">// ((PyMethodObject *)func) -&gt; im_self</span></span><br><span class="line">            PyObject *self = PyMethod_GET_SELF(func);</span><br><span class="line">            PCALL(PCALL_METHOD);</span><br><span class="line">            PCALL(PCALL_BOUND_METHOD);</span><br><span class="line">            Py_INCREF(self);</span><br><span class="line">            <span class="comment">// ((PyMethodObject *)func) -&gt; im_func</span></span><br><span class="line">            func = PyMethod_GET_FUNCTION(func);</span><br><span class="line">            Py_INCREF(func);</span><br><span class="line">            Py_SETREF(*pfunc, self);</span><br><span class="line">            nargs++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            Py_INCREF(func);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">stack</span> = (*pp_stack) - nargs - nkwargs;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (PyFunction_Check(func)) &#123;</span><br><span class="line">            x = fast_function(func, <span class="built_in">stack</span>, nargs, kwnames);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            x = _PyObject_FastCallKeywords(func, <span class="built_in">stack</span>, nargs, kwnames);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Py_DECREF(func);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，代码不长，先是Check_type()，若对应<code>PyMethod_Type</code>，还得调用<code>PyMethod_GET_FUNCTION</code>，获取到最终的 func，并且把self 作为位置参数传递进去。最后，判断Func_Type，进行分发。</p>
+<p>在前面<code>PyObject_GC_New(PyFunctionObject, &amp;PyFunction_Type)</code>中，传入的是<code>PyFunction_Type</code>，将进入到<code>fast_function()</code>。</p>
+<h3 id="fast-function"><a href="#fast-function" class="headerlink" title="fast_function"></a>fast_function</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ceval.c.4916</span></span><br><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">fast_function(PyObject *func, PyObject **<span class="built_in">stack</span>,</span><br><span class="line">              Py_ssize_t nargs, PyObject *kwnames)</span><br><span class="line">&#123;</span><br><span class="line">    PyCodeObject *co = (PyCodeObject *)PyFunction_GET_CODE(func);</span><br><span class="line">    PyObject *globals = PyFunction_GET_GLOBALS(func);    <span class="comment">// func -&gt; func_globals</span></span><br><span class="line">    PyObject *argdefs = PyFunction_GET_DEFAULTS(func);   <span class="comment">// func -&gt; func_defaults</span></span><br><span class="line">    PyObject *kwdefs, *closure, *name, *qualname;</span><br><span class="line">    PyObject **d;</span><br><span class="line">    Py_ssize_t nkwargs = (kwnames == <span class="literal">NULL</span>) ? <span class="number">0</span> : PyTuple_GET_SIZE(kwnames);</span><br><span class="line">    Py_ssize_t nd;</span><br><span class="line"></span><br><span class="line">    assert(PyFunction_Check(func));</span><br><span class="line">    assert(nargs &gt;= <span class="number">0</span>);</span><br><span class="line">    assert(kwnames == <span class="literal">NULL</span> || PyTuple_CheckExact(kwnames));</span><br><span class="line">    assert((nargs == <span class="number">0</span> &amp;&amp; nkwargs == <span class="number">0</span>) || <span class="built_in">stack</span> != <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    PCALL(PCALL_FUNCTION);</span><br><span class="line">    PCALL(PCALL_FAST_FUNCTION);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 处理无需 关键字参数的函数 */</span></span><br><span class="line">    <span class="keyword">if</span> (co-&gt;co_kwonlyargcount == <span class="number">0</span> &amp;&amp; nkwargs == <span class="number">0</span> &amp;&amp;</span><br><span class="line">        co-&gt;co_flags == (CO_OPTIMIZED | CO_NEWLOCALS | CO_NOFREE))</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* 无默认参数，且参数个数刚好满足 func 需要 */</span></span><br><span class="line">        <span class="keyword">if</span> (argdefs == <span class="literal">NULL</span> &amp;&amp; co-&gt;co_argcount == nargs) &#123;</span><br><span class="line">            <span class="keyword">return</span> _PyFunction_FastCall(co, <span class="built_in">stack</span>, nargs, globals);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/* 无参数传递，但 func 每个参数都有默认参数 */</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (nargs == <span class="number">0</span> &amp;&amp; argdefs != <span class="literal">NULL</span></span><br><span class="line">                 &amp;&amp; co-&gt;co_argcount == Py_SIZE(argdefs)) &#123;</span><br><span class="line">            <span class="built_in">stack</span> = &amp;PyTuple_GET_ITEM(argdefs, <span class="number">0</span>);</span><br><span class="line">            <span class="keyword">return</span> _PyFunction_FastCall(co, <span class="built_in">stack</span>, Py_SIZE(argdefs), globals);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 含有关键字参数 */</span></span><br><span class="line">    kwdefs = PyFunction_GET_KW_DEFAULTS(func); <span class="comment">// func -&gt; func_kwdefaults</span></span><br><span class="line">    closure = PyFunction_GET_CLOSURE(func);    <span class="comment">// func -&gt; func_closure</span></span><br><span class="line">    name = ((PyFunctionObject *)func) -&gt; func_name;</span><br><span class="line">    qualname = ((PyFunctionObject *)func) -&gt; func_qualname;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argdefs != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">/* 有参数传递时，需判断个数，以便获取默认参数 */</span></span><br><span class="line">        d = &amp;PyTuple_GET_ITEM(argdefs, <span class="number">0</span>);</span><br><span class="line">        nd = Py_SIZE(argdefs);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        d = <span class="literal">NULL</span>;</span><br><span class="line">        nd = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> _PyEval_EvalCodeWithName((PyObject*)co, globals, (PyObject *)<span class="literal">NULL</span>,</span><br><span class="line">                                    <span class="built_in">stack</span>, nargs,</span><br><span class="line">                                    nkwargs ? &amp;PyTuple_GET_ITEM(kwnames, <span class="number">0</span>) : <span class="literal">NULL</span>,</span><br><span class="line">                                    <span class="built_in">stack</span> + nargs,</span><br><span class="line">                                    nkwargs, <span class="number">1</span>,</span><br><span class="line">                                    d, (<span class="keyword">int</span>)nd, kwdefs,</span><br><span class="line">                                    closure, name, qualname);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    <span class="keyword">int</span> co_argcount;		    <span class="comment">/* 位置参数 *args 个数 */</span></span><br><span class="line">    <span class="keyword">int</span> co_kwonlyargcount;	  <span class="comment">/* #keyword only arguments */</span></span><br><span class="line">    <span class="keyword">int</span> co_nlocals;		      <span class="comment">/* 局部变量个数，包含位置参数 */</span></span><br><span class="line">    PyObject *co_code;		<span class="comment">/* 字节码序列，PyStringObject 形式 */</span></span><br><span class="line">    PyObject *co_consts;	<span class="comment">/* list (所有常量) */</span></span><br><span class="line">    PyObject *co_names;		<span class="comment">/* list of strings (所有符号) */</span></span><br><span class="line">    PyObject *co_varnames;	<span class="comment">/* tuple of strings (局部变量名) */</span></span><br><span class="line">    PyObject *co_freevars;	<span class="comment">/* tuple of strings (闭包所需变量名) */</span></span><br><span class="line">    PyObject *co_cellvars;      <span class="comment">/* tuple of strings</span></span><br><span class="line"><span class="comment">    ...</span></span><br><span class="line"><span class="comment">&#125; PyCodeObject;</span></span><br></pre></td></tr></table></figure>
+<p>如上，CodeObject中含有 block 所需的关键字参数，当不含关键字参数时，调用<code>_PyFunction_FastCall</code>，否则获取到各种参数 ，执行<code>_PyEval_EvalCodeWithName</code>。</p>
+<h3 id="PyFunction-FastCall"><a href="#PyFunction-FastCall" class="headerlink" title="PyFunction_FastCall"></a>PyFunction_FastCall</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ceval.c.4879</span></span><br><span class="line"><span class="keyword">static</span> PyObject*</span><br><span class="line">_PyFunction_FastCall(PyCodeObject *co, PyObject **args, Py_ssize_t nargs,</span><br><span class="line">                     PyObject *globals)</span><br><span class="line">&#123;</span><br><span class="line">    PyFrameObject *f;</span><br><span class="line">    PyThreadState *tstate = PyThreadState_GET();</span><br><span class="line">    PyObject **fastlocals;</span><br><span class="line">    Py_ssize_t i;</span><br><span class="line">    PyObject *result;</span><br><span class="line"></span><br><span class="line">    PCALL(PCALL_FASTER_FUNCTION);</span><br><span class="line">    f = PyFrame_New(tstate, co, globals, <span class="literal">NULL</span>);</span><br><span class="line">    fastlocals = f-&gt;f_localsplus;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nargs; i++) &#123;</span><br><span class="line">        Py_INCREF(*args);</span><br><span class="line">        fastlocals[i] = *args++;</span><br><span class="line">    &#125;</span><br><span class="line">    result = PyEval_EvalFrameEx(f,<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    ++tstate-&gt;recursion_depth;</span><br><span class="line">    Py_DECREF(f);</span><br><span class="line">    --tstate-&gt;recursion_depth;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，创建一个FrameObject，执行CodeObject中的字节码。函数执行完成后，将结果返回到 result中，完成了类似C语言的函数调用过程。关于 PyEval_EvalFrameEx 的执行逻辑，在<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/"> PyCodeObject/PyFrameObject </a>中已经叙述过。</p>
+<p>这里很明显能够观察到，在新的栈帧对象中，执行的是传入的CodeObject中的字节码序列，上下文环境是通过命名空间globals实现。那么函数要调用其他的函数，该怎么实现？很容易想到在<code>fast_function</code>中的含有关键字参数的执行逻辑。</p>
+<h3 id="PyEval-EvalCodeWithName"><a href="#PyEval-EvalCodeWithName" class="headerlink" title="PyEval_EvalCodeWithName"></a>PyEval_EvalCodeWithName</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ceval.c.3888</span></span><br><span class="line">_PyEval_EvalCodeWithName(PyObject *_co, PyObject *globals, PyObject *locals,</span><br><span class="line">           PyObject **args, Py_ssize_t argcount,</span><br><span class="line">           PyObject **kwnames, PyObject **kwargs,</span><br><span class="line">           Py_ssize_t kwcount, <span class="keyword">int</span> kwstep,</span><br><span class="line">           PyObject **defs, Py_ssize_t defcount,</span><br><span class="line">           PyObject *kwdefs, PyObject *closure,</span><br><span class="line">           PyObject *name, PyObject *qualname)</span><br><span class="line">&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">/* Create the frame */</span></span><br><span class="line">    f = PyFrame_New(tstate, co, globals, locals);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Create a dictionary for keyword parameters (**kwags) */</span></span><br><span class="line">    <span class="comment">/* Copy positional arguments into local variables */</span></span><br><span class="line">    <span class="comment">/* Pack other positional arguments into the *args argument */</span></span><br><span class="line">    <span class="comment">/* Handle keyword arguments passed as two strided arrays */</span></span><br><span class="line">    <span class="comment">/* Check the number of positional arguments */</span></span><br><span class="line">    <span class="comment">/* Add missing positional arguments (copy default values from defs) */</span></span><br><span class="line">    <span class="comment">/* Add missing keyword arguments (copy default values from kwdefs) */</span></span><br><span class="line">    <span class="comment">/* Allocate and initialize storage for cell vars, and copy free</span></span><br><span class="line"><span class="comment">       vars into frame. */</span></span><br><span class="line">   <span class="comment">/* Copy closure variables to free variables */</span></span><br><span class="line">   <span class="comment">/* Handle generator/coroutine/asynchronous generator */</span></span><br><span class="line"></span><br><span class="line">    retval = PyEval_EvalFrameEx(f,<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，不管有参数无参数，最终都是创建栈帧对象，在新的上下文环境执行被调函数字节码指令。唯一的区别仅在于，对被调函数可能存在的参数进行处理，其中涉及到可变参数，默认参数，闭包参数等。详细内容可以阅读源码。</p>
+<p>这里要提一句，判断函数是否含有可变参数，是通过 CodeObject-&gt;co_flags 字段实现。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#define CO_VARARGS	0x0004            /* CodeObject 存在可变位置参数  *args */</span><br><span class="line">#define CO_VARKEYWORDS	0x0008        /* CodeObject 存在可变关键字参数 **kwargs */</span><br><span class="line"></span><br><span class="line">/* Create a dictionary for keyword parameters (**kwags) */</span><br><span class="line">if (co-&gt;co_flags &amp; CO_VARKEYWORDS) &#123; ... &#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="函数参数"><a href="#函数参数" class="headerlink" title="函数参数"></a>函数参数</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">def fun(a, b=3):</span><br><span class="line">    pass</span><br><span class="line"></span><br><span class="line">fun(1)</span><br><span class="line">  3          10 LOAD_NAME                0 (fun)</span><br><span class="line">             12 LOAD_CONST               3 (1)</span><br><span class="line">             14 CALL_FUNCTION            1</span><br><span class="line"></span><br><span class="line">fun(1, 2)</span><br><span class="line">  3          10 LOAD_NAME                0 (fun)</span><br><span class="line">             12 LOAD_CONST               3 (1)</span><br><span class="line">             14 LOAD_CONST               4 (2)</span><br><span class="line">             16 CALL_FUNCTION            2</span><br><span class="line"></span><br><span class="line">fun(1, b=2)</span><br><span class="line">  3          10 LOAD_NAME                0 (fun)</span><br><span class="line">             12 LOAD_CONST               3 (1)</span><br><span class="line">             14 LOAD_CONST               4 (2)</span><br><span class="line">             16 LOAD_CONST               5 ((&apos;b&apos;,))</span><br><span class="line">             18 CALL_FUNCTION_KW         2</span><br></pre></td></tr></table></figure>
+<p>由上可见，函数的参数是位置参数还是关键字参数，是跟参数的传递方式有关，而与定义无关。函数的参数通过指令<code>LOAD_*</code>压入栈中，那么问题来了，上面的例子中<code>b=3</code>是如何生效的？</p>
+<h3 id="MAKE-FUNCTION-带参数"><a href="#MAKE-FUNCTION-带参数" class="headerlink" title="MAKE_FUNCTION 带参数"></a>MAKE_FUNCTION 带参数</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">def fun(a, b=3):</span><br><span class="line">    pass</span><br><span class="line"></span><br><span class="line">  1           0 LOAD_CONST               6 ((3,))</span><br><span class="line">              2 LOAD_CONST               1 (&lt;code object fun, file &quot;demo.py&quot;, line 1&gt;)</span><br><span class="line">              4 LOAD_CONST               2 (&apos;fun&apos;)</span><br><span class="line">              6 MAKE_FUNCTION            1    /* 注意此处 */</span><br></pre></td></tr></table></figure>
+<p>此处，指令序列<code>MAKE_FUNCTION</code>比我们在<a href="#MAKE_FUNCTION-1">函数创建</a>中用到的，多了一个参数 1。所以，是时候来看下在<a href="#MAKE_FUNCTION-2">MAKE_FUNCTION</a>中，我们注释的那一段内容了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">TARGET(MAKE_FUNCTION) &#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// 根据 oparg, 处理默认值：func_defaults，func_closure等</span></span><br><span class="line">    <span class="keyword">if</span> (oparg &amp; <span class="number">0x08</span>) &#123;</span><br><span class="line">        assert(PyTuple_CheckExact(TOP()));</span><br><span class="line">        func -&gt;func_closure = POP();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (oparg &amp; <span class="number">0x04</span>) &#123;</span><br><span class="line">        assert(PyDict_CheckExact(TOP()));</span><br><span class="line">        func-&gt;func_annotations = POP();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (oparg &amp; <span class="number">0x02</span>) &#123;</span><br><span class="line">        assert(PyDict_CheckExact(TOP()));</span><br><span class="line">        func-&gt;func_kwdefaults = POP();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (oparg &amp; <span class="number">0x01</span>) &#123;</span><br><span class="line">        assert(PyTuple_CheckExact(TOP()));</span><br><span class="line">        func-&gt;func_defaults = POP();</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>真相很明显了，默认参数、函数注解、闭包属性，都各自从栈顶POP，放入 FuncObj 属性中。下面就来看一个实际的例子。</p>
+<h3 id="MAKE-FUNCTION-13"><a href="#MAKE-FUNCTION-13" class="headerlink" title="MAKE_FUNCTION 13"></a>MAKE_FUNCTION 13</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">// demo.py</span><br><span class="line">def f():</span><br><span class="line">    clu = &apos;clu&apos;</span><br><span class="line">    def c(a:int = 1):</span><br><span class="line">        print(clu)</span><br><span class="line"></span><br><span class="line">co = compile(open(&apos;demo.py&apos;).read(),&apos;demo.py&apos;,&apos;exec&apos;); import dis; f = co.co_consts[0]; dis.dis(f)</span><br><span class="line"></span><br><span class="line">  2           0 LOAD_CONST               1 (&apos;clu&apos;)</span><br><span class="line">              2 STORE_DEREF              0 (clu)</span><br><span class="line">  3           4 LOAD_CONST               6 ((1,))</span><br><span class="line">              6 LOAD_GLOBAL              0 (int)</span><br><span class="line">              8 LOAD_CONST               3 ((&apos;a&apos;,))</span><br><span class="line">             10 BUILD_CONST_KEY_MAP      1</span><br><span class="line">             12 LOAD_CLOSURE             0 (clu)</span><br><span class="line">             14 BUILD_TUPLE              1</span><br><span class="line">             16 LOAD_CONST               4 (&lt;code object c , file &quot;demo.py&quot;, line 3&gt;)</span><br><span class="line">             18 LOAD_CONST               5 (&apos;f.&lt;locals&gt;.c&apos;)</span><br><span class="line">             20 MAKE_FUNCTION           13    /* 注意此处，13 = 8+4+1*/</span><br><span class="line">             22 STORE_FAST               0 (c)</span><br></pre></td></tr></table></figure>
+<p>如上，在<code>def c</code>中，同时用到了3种。那么问题来了剩下的<code>func_kwdefaults</code>如何实现？留给大家思考。哈~欢迎留言~</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.8.Python 异常控制/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -465,7 +654,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -623,7 +812,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -782,7 +971,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -945,7 +1134,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -1108,7 +1297,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -1273,7 +1462,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -1431,7 +1620,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -1596,7 +1785,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
       <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -1743,162 +1932,13 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/12/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="He11oLx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lx's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/12/hello-world/" itemprop="url">博客开通啦</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-12T00:00:00+08:00">
-                2018-07-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/日常/" itemprop="url" rel="index">
-                    <span itemprop="name">日常</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/07/12/hello-world/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/12/hello-world/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>在时间、成本、道德约束等各种抉择下，最终还是选择了github.io。嗯，安心写博客。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+  </nav>
+
 
 
           </div>
@@ -1932,7 +1972,7 @@
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
               <img class="site-author-image" itemprop="image"
-                src="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
                 alt="He11oLx" />
             
               <p class="site-author-name" itemprop="name">He11oLx</p>
@@ -1946,7 +1986,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-count">11</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1968,7 +2008,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">12</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -1978,6 +2018,22 @@
 
           
 
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
           
 
           
