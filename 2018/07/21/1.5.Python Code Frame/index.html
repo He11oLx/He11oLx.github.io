@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Python,PyCodeObject,PyFrameObject," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="参考 《Python源码剖析》—— 陈儒 PEP3147  前言事实上，Python虽然是解释型语言，但也需要经过 源文件 -&amp;gt;  编译 -&amp;gt;  可执行文件  -&amp;gt;  执行整个过程。12345javac Example.java  -&amp;gt; Example.classjava Example.class   -&amp;gt; 输出python Example.py    -&amp;gt;">
+<meta name="keywords" content="Python,PyCodeObject,PyFrameObject">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Python源码剖析】PyCodeObject&#x2F;PyFrameObject">
+<meta property="og:url" content="http://he11olx.com/2018/07/21/1.5.Python Code Frame/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考 《Python源码剖析》—— 陈儒 PEP3147  前言事实上，Python虽然是解释型语言，但也需要经过 源文件 -&amp;gt;  编译 -&amp;gt;  可执行文件  -&amp;gt;  执行整个过程。12345javac Example.java  -&amp;gt; Example.classjava Example.class   -&amp;gt; 输出python Example.py    -&amp;gt;">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://www.python.org/m/dev/peps/pep-3147/pep-3147-1.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/07/21/P8bLGT.png">
+<meta property="og:image" content="https://s1.ax1x.com/2018/07/21/P8b7aq.png">
+<meta property="og:updated_time" content="2018-07-21T12:19:52.786Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Python源码剖析】PyCodeObject&#x2F;PyFrameObject">
+<meta name="twitter:description" content="参考 《Python源码剖析》—— 陈儒 PEP3147  前言事实上，Python虽然是解释型语言，但也需要经过 源文件 -&amp;gt;  编译 -&amp;gt;  可执行文件  -&amp;gt;  执行整个过程。12345javac Example.java  -&amp;gt; Example.classjava Example.class   -&amp;gt; 输出python Example.py    -&amp;gt;">
+<meta name="twitter:image" content="https://www.python.org/m/dev/peps/pep-3147/pep-3147-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/07/21/1.5.Python Code Frame/"/>
+
+
+
+
+
+  <title>【Python源码剖析】PyCodeObject/PyFrameObject | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.5.Python Code Frame/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【Python源码剖析】PyCodeObject/PyFrameObject</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-21T08:00:00+08:00">
+                2018-07-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/21/1.5.Python Code Frame/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/07/21/1.5.Python Code Frame/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>《Python源码剖析》—— 陈儒</li>
+<li><a href="https://www.python.org/dev/peps/pep-3147/" target="_blank" rel="noopener">PEP3147</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>事实上，Python虽然是解释型语言，但也需要经过 源文件 -&gt;  编译 -&gt;  可执行文件  -&gt;  执行整个过程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">javac Example.java  -&gt; Example.class</span><br><span class="line">java Example.class   -&gt; 输出</span><br><span class="line"></span><br><span class="line">python Example.py    -&gt;  创建或加载 PyCodeObject    -&gt;    输出</span><br><span class="line">保存PyCodeObject到    -&gt;  Example.pyc</span><br></pre></td></tr></table></figure></p>
+<p>如上，编译器在编译产生 code 后由虚拟机执行。Python 与 Java 不同之处在于 Python 的虚拟机是一种抽象层次更高的虚拟机。 在 编译结束后，Python 会将 code 对象所包含的的信息存储在 pyc 文件内，下次运行直接加载 pyc 里的 code 对象到内存。</p>
+<p>Python 解释器(interpreter)，同时拥有编译器和虚拟机的身份。具体流程参见<img src="https://www.python.org/m/dev/peps/pep-3147/pep-3147-1.png" alt="PEP3147">PyCodeObject 包含 Python 虚拟机所需要的信息，而 pyc 就是其在硬盘实体化后的载体。<br><a id="more"></a></p>
+<h2 id="PyCodeObject"><a href="#PyCodeObject" class="headerlink" title="PyCodeObject"></a>PyCodeObject</h2><p>PyCodeObject，同样是 Python 对象，也继承 PyObject_HEAD。对于 Python 源代码中的任一 Code Block 都会创建一个 CodeObject 与之对应。一个新的命名空间，是一个 Code Block。类、函数、module都对应一个新的命名空间。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    <span class="keyword">int</span> co_argcount;		    <span class="comment">/* 位置参数 *args 个数 */</span></span><br><span class="line">    <span class="keyword">int</span> co_kwonlyargcount;	  <span class="comment">/* #keyword only arguments */</span></span><br><span class="line">    <span class="keyword">int</span> co_nlocals;		      <span class="comment">/* 局部变量个数，包含位置参数 */</span></span><br><span class="line">    <span class="keyword">int</span> co_stacksize;		    <span class="comment">/* 需要的栈空间 */</span></span><br><span class="line">    <span class="keyword">int</span> co_flags;		        <span class="comment">/* 对block进行划分，详见 inspect.rst */</span></span><br><span class="line">    <span class="keyword">int</span> co_firstlineno;     <span class="comment">/* 对应 .py 的起始行 */</span></span><br><span class="line">    PyObject *co_code;		<span class="comment">/* 字节码序列，PyStringObject 形式 */</span></span><br><span class="line">    PyObject *co_consts;	<span class="comment">/* list (所有常量) */</span></span><br><span class="line">    PyObject *co_names;		<span class="comment">/* list of strings (所有符号) */</span></span><br><span class="line">    PyObject *co_varnames;	<span class="comment">/* tuple of strings (局部变量名) */</span></span><br><span class="line">    PyObject *co_freevars;	<span class="comment">/* tuple of strings (闭包所需变量名) */</span></span><br><span class="line">    PyObject *co_cellvars;      <span class="comment">/* tuple of strings</span></span><br><span class="line"><span class="comment">                                   (嵌套函数所需的局部变量名) */</span></span><br><span class="line">    <span class="comment">/* 除了 co_name，余下都不用于 hash 或 比较。</span></span><br><span class="line"><span class="comment">       为了回溯和debug，保留行号和名字。</span></span><br><span class="line"><span class="comment">       否则，会不断的 覆盖已有的同名 func/lambda</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> *co_cell2arg; <span class="comment">/* Maps cell vars which are arguments. */</span></span><br><span class="line">    PyObject *co_filename;	<span class="comment">/* unicode (.py 文件名) */</span></span><br><span class="line">    PyObject *co_name;		<span class="comment">/* unicode (函数名/类名/模块名) */</span></span><br><span class="line">    PyObject *co_lnotab;	<span class="comment">/* string (encoding addr&lt;-&gt;lineno mapping</span></span><br><span class="line"><span class="comment">                                     字节码指令与 .py 行号的对应关系) */</span></span><br><span class="line">    <span class="keyword">void</span> *co_zombieframe;     <span class="comment">/* for optimization only (see frameobject.c) */</span></span><br><span class="line">    PyObject *co_weakreflist; <span class="comment">/* to support weakrefs to code objects */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Scratch space for extra data relating to the code object. */</span></span><br><span class="line">    <span class="keyword">void</span> *co_extra;</span><br><span class="line">&#125; PyCodeObject;</span><br></pre></td></tr></table></figure>
+<p>需要注意的是，co_lnotab 记录行号，在实际中是记录增量值。</p>
+<h2 id="生成"><a href="#生成" class="headerlink" title="生成"></a>生成</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>src = open(<span class="string">'demo.py'</span>).read()</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>co = compile(src,<span class="string">'demo.py'</span>,<span class="string">'exec'</span>)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>co</span><br><span class="line">&lt;code object &lt;module&gt; at <span class="number">0x000002942853DD20</span>, file <span class="string">"demo.py"</span>, line <span class="number">1</span>&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>type(co)</span><br><span class="line">&lt;<span class="class"><span class="keyword">class</span> '<span class="title">code</span>'&gt;</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">co</span>.<span class="title">co_consts</span></span></span><br><span class="line"><span class="class"><span class="params">(&lt;code object A , file <span class="string">"demo.py"</span>, line <span class="number">1</span>&gt;, <span class="string">'A'</span>, &lt;code object fun, file <span class="string">"demo.py"</span>, line <span class="number">5</span>&gt;, <span class="string">'fun'</span>, None)</span></span></span><br><span class="line">&gt;&gt;&gt; cls_A = co.co_consts[0]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>type(cls_A)</span><br><span class="line">&lt;<span class="class"><span class="keyword">class</span> '<span class="title">code</span>'&gt;</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">co</span>.<span class="title">co_names</span></span></span><br><span class="line"><span class="class"><span class="params">(<span class="string">'A'</span>, <span class="string">'fun'</span>, <span class="string">'a'</span>)</span></span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">co</span>.<span class="title">co_filename</span></span></span><br><span class="line"><span class="class">'<span class="title">demo</span>.<span class="title">py</span>'</span></span><br><span class="line"><span class="class">&gt;&gt;&gt; <span class="title">cls_A</span>.<span class="title">co_filename</span></span></span><br><span class="line"><span class="class">'<span class="title">demo</span>.<span class="title">py</span>'</span></span><br></pre></td></tr></table></figure>
+<p>可见，PyObjectObject 通过 co_consts 字段，实现了嵌套。</p>
+<h2 id="字节码"><a href="#字节码" class="headerlink" title="字节码"></a>字节码</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// opcode.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> POP_TOP                   1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ROT_TWO                   2</span></span><br><span class="line">    ...</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HAVE_ARGUMENT            90</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> HAS_ARG(op) ((op) &gt;= HAVE_ARGUMENT)</span></span><br></pre></td></tr></table></figure>
+<p><code>opcode.h</code>中定义了所有的字节码指令，判断是否需要参数是根据<code>HAVE_ARGUMENT</code>宏来简单判断</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>cls_A</span><br><span class="line">&lt;code object A , file <span class="string">"demo.py"</span>, line <span class="number">1</span>&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> dis</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>dis.dis(cls_A)</span><br><span class="line">  <span class="number">1</span>           <span class="number">0</span> LOAD_NAME                <span class="number">0</span> (__name__)</span><br><span class="line">              <span class="number">2</span> STORE_NAME               <span class="number">1</span> (__module__)</span><br><span class="line">              <span class="number">4</span> LOAD_CONST               <span class="number">0</span> (<span class="string">'A'</span>)</span><br><span class="line">              <span class="number">6</span> STORE_NAME               <span class="number">2</span> (__qualname__)</span><br><span class="line"></span><br><span class="line">  <span class="number">2</span>           <span class="number">8</span> LOAD_CONST               <span class="number">1</span> (<span class="keyword">None</span>)</span><br><span class="line">             <span class="number">10</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<p>dis 工具能很好的解析字节码：</p>
+<ul>
+<li>第一列：字节码对应源码中的行号</li>
+<li>第二列：当前字节码指令在 co_code 中的偏移位置</li>
+<li>第三列：当前字节码指令</li>
+<li>第四列：oparg，指令参数</li>
+<li>最后一列：当前字节码指令的参数实际内容</li>
+</ul>
+<h2 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h2><p><img src="https://s1.ax1x.com/2018/07/21/P8bLGT.png" alt="x86运行时栈帧"></p>
+<p>Python 解释器，本身拥有一套运行时的栈帧。但要执行源代码中的函数调用，却不是通过系统栈帧实现。在前文介绍 PyObject 时也发现，所有的 Object 都是存储在堆中。PyCodeObject 包含了运行时需要的信息，而其本身也存储在堆中。</p>
+<p>因此，Python 在初始化后，会创建一个执行环境。发生函数调用时，会再次创建一个执行环境，并加载新的 PyCodeObject。这个执行环境，就是 PyFrameObject。关于函数调用的内容，会在 Pythn函数机制 中讲到。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Stack frames 快速的创建和释放，下面是一些加速手段：</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   1. Hold a single "zombie" frame on each code object.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   In zombie mode, 不持有 对象引用，但以下字段依然有效：</span></span><br><span class="line"><span class="comment">     * ob_type, ob_size, f_code, f_valuestack;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     * f_locals, f_trace,</span></span><br><span class="line"><span class="comment">       f_exc_type, f_exc_value, f_exc_traceback are NULL;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">     * f_localsplus does not require re-allocation and</span></span><br><span class="line"><span class="comment">       the local variables in f_localsplus are NULL.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">   2. 共享池技术 free list，池中的 FrameObject，只有以下字段有效：</span></span><br><span class="line"><span class="comment">        ob_type             == &amp;Frametype</span></span><br><span class="line"><span class="comment">        f_back              next item on free list, or NULL</span></span><br><span class="line"><span class="comment">        f_stacksize         size of value stack</span></span><br><span class="line"><span class="comment">        ob_size             size of localsplus</span></span><br><span class="line"><span class="comment">        Note that the value and block stacks are preserved.</span></span><br><span class="line"><span class="comment">        不同于整数对象池，此处的 frame object 是具有内存空间的。</span></span><br><span class="line"><span class="comment">        PyFrame_MAXFREELIST(200) 限制了最大 free_list 数目</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>共享池真是无处不在…</p>
+<h2 id="PyFrameObject"><a href="#PyFrameObject" class="headerlink" title="PyFrameObject"></a>PyFrameObject</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// frameobject.h.11</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="keyword">int</span> b_type;                 <span class="comment">/* what kind of block this is */</span></span><br><span class="line">    <span class="keyword">int</span> b_handler;              <span class="comment">/* where to jump to find handler */</span></span><br><span class="line">    <span class="keyword">int</span> b_level;                <span class="comment">/* value stack level to pop to */</span></span><br><span class="line">&#125; PyTryBlock;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">frame</span> &#123;</span></span><br><span class="line">    PyObject_VAR_HEAD</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">frame</span> *<span class="title">f_back</span>;</span>      <span class="comment">/* previous frame, or NULL */</span></span><br><span class="line">    PyCodeObject *f_code;       <span class="comment">/* PyCodeObject 对象 */</span></span><br><span class="line"></span><br><span class="line">    PyObject *f_builtins;       <span class="comment">/* builtin symbol table (PyDictObject) */</span></span><br><span class="line">    PyObject *f_globals;        <span class="comment">/* global symbol table (PyDictObject) */</span></span><br><span class="line">    PyObject *f_locals;         <span class="comment">/* local symbol table (any mapping) */</span></span><br><span class="line"></span><br><span class="line">    PyObject **f_valuestack;    <span class="comment">/* 运行时栈 栈底 */</span></span><br><span class="line">    PyObject **f_stacktop;      <span class="comment">/* 运行时栈 栈顶 */</span></span><br><span class="line"></span><br><span class="line">    PyObject *f_trace;          <span class="comment">/* Trace function */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 用于 generator 交换错误信息 */</span></span><br><span class="line">    PyObject *f_exc_type, *f_exc_value, *f_exc_traceback;</span><br><span class="line">    <span class="comment">/* Borrowed reference to a generator, or NULL */</span></span><br><span class="line">    PyObject *f_gen;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> f_lasti;                <span class="comment">/* 上一条字节码指令在 f_code 中的偏移位置 */</span></span><br><span class="line">    <span class="keyword">int</span> f_lineno;               <span class="comment">/* 当前字节码，对应源代码行号</span></span><br><span class="line"><span class="comment">                                   通过 PyFrame_GetLineNumber() 调用*/</span></span><br><span class="line">    <span class="keyword">int</span> f_iblock;               <span class="comment">/* index in f_blockstack */</span></span><br><span class="line">    <span class="keyword">char</span> f_executing;           <span class="comment">/* whether the frame is still executing */</span></span><br><span class="line">    PyTryBlock f_blockstack[CO_MAXBLOCKS]; <span class="comment">/* for try and loop blocks */</span></span><br><span class="line">    PyObject *f_localsplus[<span class="number">1</span>];  <span class="comment">/* locals+stack, dynamically sized */</span></span><br><span class="line">&#125; PyFrameObject;</span><br></pre></td></tr></table></figure>
+<p>f_back 表明 FrameObject 被组成链式结构，可以回溯，形成类似栈帧一样的结构。</p>
+<h2 id="PyFrame-New"><a href="#PyFrame-New" class="headerlink" title="PyFrame_New"></a>PyFrame_New</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line">PyFrameObject *</span><br><span class="line">PyFrame_New(PyThreadState *tstate, PyCodeObject *code, PyObject *globals,</span><br><span class="line">            PyObject *locals)</span><br><span class="line">&#123;</span><br><span class="line">    PyFrameObject *back = tstate-&gt;frame;</span><br><span class="line">    PyFrameObject *f;</span><br><span class="line">    PyObject *builtins;</span><br><span class="line">    Py_ssize_t i;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 存在函数调用</span></span><br><span class="line">    <span class="keyword">if</span> (back == <span class="literal">NULL</span> || back-&gt;f_globals != globals) &#123;</span><br><span class="line">        <span class="comment">// 获取 builtins  （略）</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* share the globals、 builtins.</span></span><br><span class="line"><span class="comment">           Save a lookup and a call. */</span></span><br><span class="line">        builtins = back-&gt;f_builtins;</span><br><span class="line">        assert(builtins != <span class="literal">NULL</span>);</span><br><span class="line">        Py_INCREF(builtins);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 尝试利用 zombieframe</span></span><br><span class="line">    <span class="keyword">if</span> (code-&gt;co_zombieframe != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        f = code-&gt;co_zombieframe;</span><br><span class="line">        code-&gt;co_zombieframe = <span class="literal">NULL</span>;</span><br><span class="line">        _Py_NewReference((PyObject *)f);</span><br><span class="line">        assert(f-&gt;f_code == code);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        Py_ssize_t extras, ncells, nfrees;</span><br><span class="line">        ncells = PyTuple_GET_SIZE(code-&gt;co_cellvars); <span class="comment">// 嵌套函数，局部变量</span></span><br><span class="line">        nfrees = PyTuple_GET_SIZE(code-&gt;co_freevars); <span class="comment">// 嵌套函数，闭包变量名</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// Frame 所需动态内存大小</span></span><br><span class="line">        extras = code-&gt;co_stacksize + \        <span class="comment">// 运行，栈空间（系统级）</span></span><br><span class="line">                 code-&gt;co_nlocals + \          <span class="comment">// 局部变量个数</span></span><br><span class="line">                 ncells + \</span><br><span class="line">                 nfrees;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (free_list == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            f = PyObject_GC_NewVar(PyFrameObject, &amp;PyFrame_Type, extras);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            assert(numfree &gt; <span class="number">0</span>);</span><br><span class="line">            <span class="comment">// 熟悉的套路， 链表，而不是数组</span></span><br><span class="line">            --numfree;</span><br><span class="line">            f = free_list;</span><br><span class="line">            free_list = free_list-&gt;f_back;</span><br><span class="line">            <span class="keyword">if</span> (Py_SIZE(f) &lt; extras) &#123;</span><br><span class="line">                <span class="comment">// 触发 resize 调整大小</span></span><br><span class="line">                PyFrameObject *new_f = PyObject_GC_Resize(PyFrameObject, </span><br><span class="line">                                                          f, extras);</span><br><span class="line">                f = new_f;</span><br><span class="line">            &#125;</span><br><span class="line">            _Py_NewReference((PyObject *)f);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 封装属性</span></span><br><span class="line">        f-&gt;f_code = code;</span><br><span class="line">        <span class="comment">// 此处，计算初始化时的栈顶</span></span><br><span class="line">        extras = code-&gt;co_nlocals + ncells + nfrees;</span><br><span class="line">        f-&gt;f_valuestack = f-&gt;f_localsplus + extras;    <span class="comment">// 栈底</span></span><br><span class="line">        <span class="keyword">for</span> (i=<span class="number">0</span>; i&lt;extras; i++)</span><br><span class="line">            f-&gt;f_localsplus[i] = <span class="literal">NULL</span>;</span><br><span class="line">        f-&gt;f_locals = <span class="literal">NULL</span>;</span><br><span class="line">        f-&gt;f_trace = <span class="literal">NULL</span>;</span><br><span class="line">        f-&gt;f_exc_type = f-&gt;f_exc_value = f-&gt;f_exc_traceback = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//封装属性</span></span><br><span class="line">    f-&gt;f_stacktop = f-&gt;f_valuestack;    <span class="comment">// 初始化的 Frame，栈顶==栈底</span></span><br><span class="line">    f-&gt;f_builtins = builtins;</span><br><span class="line">    Py_XINCREF(back);</span><br><span class="line">    f-&gt;f_back = back;</span><br><span class="line">    Py_INCREF(code);</span><br><span class="line">    Py_INCREF(globals);</span><br><span class="line">    f-&gt;f_globals = globals;</span><br><span class="line">    <span class="comment">// 处理 f-&gt;f_locals (略)</span></span><br><span class="line">    f-&gt;f_lasti = <span class="number">-1</span>;</span><br><span class="line">    f-&gt;f_lineno = code-&gt;co_firstlineno;</span><br><span class="line">    f-&gt;f_iblock = <span class="number">0</span>;</span><br><span class="line">    f-&gt;f_executing = <span class="number">0</span>;</span><br><span class="line">    f-&gt;f_gen = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    _PyObject_GC_TRACK(f);</span><br><span class="line">    <span class="keyword">return</span> f;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建 FrameObject 时，多创建了一部分作为运行时的栈空间。具体参考代码和下图：<br><img src="https://s1.ax1x.com/2018/07/21/P8b7aq.png" alt="新创建的FrameObject对象内存占用"></p>
+<h2 id="获取FrameObject"><a href="#获取FrameObject" class="headerlink" title="获取FrameObject"></a>获取FrameObject</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">// <span class="keyword">import</span> sys; sys._getframe()</span><br><span class="line"><span class="keyword">import</span> inspect</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">f</span><span class="params">()</span>:</span></span><br><span class="line">    frame = inspect.currentframe()</span><br><span class="line">    print(<span class="string">f"Current fun: <span class="subst">&#123;frame.f_code.co_name&#125;</span>"</span>)</span><br><span class="line">    caller = frame.f_back</span><br><span class="line">    print(<span class="string">f"Caller fun: <span class="subst">&#123;caller.f_code.co_name&#125;</span>"</span>)</span><br><span class="line">    print(<span class="string">f"Caller's local: <span class="subst">&#123;caller.f_locals&#125;</span>"</span>)</span><br><span class="line">    print(<span class="string">f"Caller's global: <span class="subst">&#123;caller.f_globals.keys()&#125;</span>"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">c</span><span class="params">()</span>:</span></span><br><span class="line">    l = <span class="number">1</span></span><br><span class="line">    m = <span class="number">2</span></span><br><span class="line">    f()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show</span><span class="params">()</span>:</span></span><br><span class="line">    c()</span><br></pre></td></tr></table></figure>
+<p>结果显示，在被调用者中，完全可以通过 frame 链，获取到调用者的相关信息：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">show()</span><br><span class="line">Current fun: f</span><br><span class="line">Caller fun: c</span><br><span class="line">Caller fun: c</span><br><span class="line">Caller&apos;s local: &#123;&apos;m&apos;: 2, &apos;l&apos;: 1&#125;</span><br><span class="line">Caller&apos;s global: dict_keys([..., &apos;inspect&apos;, &apos;f&apos;, &apos;c&apos;, &apos;show&apos;])</span><br></pre></td></tr></table></figure></p>
+<h2 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h2><p>Python 具有静态作用域，支持嵌套作用域，名字访问时按照LEGB规则访问属性。</p>
+<p>Python 自身定义了一个 builtin 作用域，module 对应一个全局作用域 global，函数对应 local 作用域。这三个组成了LGB顺序查找模式。E 为 encloseing 的缩写，代表直接外围作用域，适用于函数闭包。</p>
+<p>用名字访问时，用户代码的终点是 module，而 module 是在 import 编译完成时就已经确定了，所以永远不可能访问到其他 module 的相同名字，不会越界。</p>
+<p>因为最内嵌套作用域的原因，决定 Python 行为的更多是代码出现的位置，而非执行的时间。</p>
+<h2 id="PyEval-EvalFrameEx"><a href="#PyEval-EvalFrameEx" class="headerlink" title="PyEval_EvalFrameEx"></a>PyEval_EvalFrameEx</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ceval.c.750</span></span><br><span class="line">PyObject *</span><br><span class="line">PyEval_EvalFrameEx(PyFrameObject *f, <span class="keyword">int</span> throwflag)</span><br><span class="line">&#123;</span><br><span class="line">    PyThreadState *tstate = PyThreadState_GET();</span><br><span class="line">    <span class="keyword">return</span> tstate-&gt;interp-&gt;eval_frame(f, throwflag);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// pystate.c.70</span></span><br><span class="line"><span class="function">PyInterpreterState * <span class="title">PyInterpreterState_New</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    interp-&gt;eval_frame = _PyEval_EvalFrameDefault;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ceval.c.757</span></span><br><span class="line">PyObject *</span><br><span class="line">_PyEval_EvalFrameDefault(PyFrameObject *f, <span class="keyword">int</span> throwflag)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> opcode;        <span class="comment">/* Current opcode */</span></span><br><span class="line">    <span class="keyword">int</span> oparg;         <span class="comment">/* Current opcode argument, if any */</span></span><br><span class="line">    <span class="keyword">enum</span> why_code why; <span class="comment">/* Reason for block stack unwind */</span></span><br><span class="line">    </span><br><span class="line">    PyThreadState *tstate = PyThreadState_GET();</span><br><span class="line">    ...</span><br><span class="line">    tstate-&gt;frame = f;        <span class="comment">// 设置线程状态中的栈帧对象</span></span><br><span class="line">    co = f-&gt;f_code;</span><br><span class="line">    names = co-&gt;co_names;</span><br><span class="line">    consts = co-&gt;co_consts;</span><br><span class="line">    fastlocals = f-&gt;f_localsplus;</span><br><span class="line">    freevars = f-&gt;f_localsplus + co-&gt;co_nlocals;</span><br><span class="line">    first_instr = (_Py_CODEUNIT *) PyBytes_AS_STRING(co-&gt;co_code);</span><br><span class="line">    next_instr = first_instr;</span><br><span class="line">    stack_pointer = f-&gt;f_stacktop;</span><br><span class="line">    f-&gt;f_stacktop = <span class="literal">NULL</span>;       <span class="comment">/* remains NULL unless yield suspends frame */</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// ceval.c.1144</span></span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="comment">// ceval.c.1267</span></span><br><span class="line">        <span class="keyword">switch</span> (opcode) &#123;</span><br><span class="line">            TARGET(LOAD_FAST)  &#123; ... &#125;</span><br><span class="line">            TARGET(LOAD_CONST) &#123; ... &#125;</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a href="https://www.python.org/dev/peps/pep-0523/" target="_blank" rel="noopener">PEP 523</a>中引入了 <code>_PyEval_EvalFrameDefault</code>，具体的逻辑都在其中。在 for 循环中，不断遍历字节码序列，然后 switch 执行。遍历过程中：</p>
+<ul>
+<li>first_instr，始终指向字节码开始位置</li>
+<li>next_inster，始终指向下一条待执行的位置（因参数影响，位置不固定）</li>
+<li>frame.f_lasti，始终指向已经执行的上一条的位置</li>
+</ul>
+<p>通过判断 why/why_not 字段，决定循环的状态。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Status code for main loop (reason for stack unwind) */</span></span><br><span class="line"><span class="keyword">enum</span> why_code &#123;</span><br><span class="line">        WHY_NOT =       <span class="number">0x0001</span>, <span class="comment">/* No error */</span></span><br><span class="line">        WHY_EXCEPTION = <span class="number">0x0002</span>, <span class="comment">/* Exception occurred */</span></span><br><span class="line">        WHY_RETURN =    <span class="number">0x0008</span>, <span class="comment">/* 'return' statement */</span></span><br><span class="line">        WHY_BREAK =     <span class="number">0x0010</span>, <span class="comment">/* 'break' statement */</span></span><br><span class="line">        WHY_CONTINUE =  <span class="number">0x0020</span>, <span class="comment">/* 'continue' statement */</span></span><br><span class="line">        WHY_YIELD =     <span class="number">0x0040</span>, <span class="comment">/* 'yield' operator */</span></span><br><span class="line">        WHY_SILENCED =  <span class="number">0x0080</span>  <span class="comment">/* Exception silenced by 'with' */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/PyCodeObject/" rel="tag"># PyCodeObject</a>
+          
+            <a href="/tags/PyFrameObject/" rel="tag"># PyFrameObject</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/15/1.4.Python字典对象/" rel="next" title="【Python源码剖析】PyDictObject">
+                <i class="fa fa-chevron-left"></i> 【Python源码剖析】PyDictObject
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">2.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyCodeObject"><span class="nav-number">3.</span> <span class="nav-text">PyCodeObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成"><span class="nav-number">4.</span> <span class="nav-text">生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字节码"><span class="nav-number">5.</span> <span class="nav-text">字节码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#栈帧"><span class="nav-number">6.</span> <span class="nav-text">栈帧</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyFrameObject"><span class="nav-number">7.</span> <span class="nav-text">PyFrameObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyFrame-New"><span class="nav-number">8.</span> <span class="nav-text">PyFrame_New</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#获取FrameObject"><span class="nav-number">9.</span> <span class="nav-text">获取FrameObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#作用域"><span class="nav-number">10.</span> <span class="nav-text">作用域</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyEval-EvalFrameEx"><span class="nav-number">11.</span> <span class="nav-text">PyEval_EvalFrameEx</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">He11oLx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a></div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/07/21/1.5.Python Code Frame/';
+          this.page.identifier = '2018/07/21/1.5.Python Code Frame/';
+          this.page.title = '【Python源码剖析】PyCodeObject/PyFrameObject';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

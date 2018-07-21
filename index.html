@@ -299,7 +299,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/15/Python字典对象/">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.5.Python Code Frame/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
@@ -318,7 +318,170 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/15/Python字典对象/" itemprop="url">【Python源码剖析】PyDictObject</a></h2>
+                <a class="post-title-link" href="/2018/07/21/1.5.Python Code Frame/" itemprop="url">【Python源码剖析】PyCodeObject/PyFrameObject</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-21T08:00:00+08:00">
+                2018-07-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/21/1.5.Python Code Frame/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/07/21/1.5.Python Code Frame/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>《Python源码剖析》—— 陈儒</li>
+<li><a href="https://www.python.org/dev/peps/pep-3147/" target="_blank" rel="noopener">PEP3147</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>事实上，Python虽然是解释型语言，但也需要经过 源文件 -&gt;  编译 -&gt;  可执行文件  -&gt;  执行整个过程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">javac Example.java  -&gt; Example.class</span><br><span class="line">java Example.class   -&gt; 输出</span><br><span class="line"></span><br><span class="line">python Example.py    -&gt;  创建或加载 PyCodeObject    -&gt;    输出</span><br><span class="line">保存PyCodeObject到    -&gt;  Example.pyc</span><br></pre></td></tr></table></figure></p>
+<p>如上，编译器在编译产生 code 后由虚拟机执行。Python 与 Java 不同之处在于 Python 的虚拟机是一种抽象层次更高的虚拟机。 在 编译结束后，Python 会将 code 对象所包含的的信息存储在 pyc 文件内，下次运行直接加载 pyc 里的 code 对象到内存。</p>
+<p>Python 解释器(interpreter)，同时拥有编译器和虚拟机的身份。具体流程参见<img src="https://www.python.org/m/dev/peps/pep-3147/pep-3147-1.png" alt="PEP3147">PyCodeObject 包含 Python 虚拟机所需要的信息，而 pyc 就是其在硬盘实体化后的载体。<br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/07/21/1.5.Python Code Frame/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/15/1.4.Python字典对象/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/15/1.4.Python字典对象/" itemprop="url">【Python源码剖析】PyDictObject</a></h2>
         
 
         <div class="post-meta">
@@ -371,9 +534,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/15/Python字典对象/#comments" itemprop="discussionUrl">
+                <a href="/2018/07/15/1.4.Python字典对象/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/15/Python字典对象/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/07/15/1.4.Python字典对象/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -411,7 +574,7 @@
 <p>因此，对搜索的效率要求及其苛刻。因而采用的 HashTable(散列表)，在最优情况下能达到O(1)。散列表的基本思想是，将键映射为一个整数，把整数作为索引访问内存。主要逻辑是：查询键值 ——散列函数 hash function —— 散列值 hash value —— 内存区域 —— 查询结果——散列冲突。Python 处理散列冲突的问题，采用的是 开放定址法。删除探测链上元素，采用的是伪删除。<br>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/15/Python字典对象/#more" rel="contents">
+            <a class="btn" href="/2018/07/15/1.4.Python字典对象/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -462,7 +625,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/15/Python列表对象/">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/15/1.3.Python列表对象/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
@@ -481,7 +644,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/15/Python列表对象/" itemprop="url">【Python源码剖析】PyListObject</a></h2>
+                <a class="post-title-link" href="/2018/07/15/1.3.Python列表对象/" itemprop="url">【Python源码剖析】PyListObject</a></h2>
         
 
         <div class="post-meta">
@@ -534,9 +697,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/15/Python列表对象/#comments" itemprop="discussionUrl">
+                <a href="/2018/07/15/1.3.Python列表对象/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/15/Python列表对象/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/07/15/1.3.Python列表对象/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -576,7 +739,7 @@
 <li>具有索引容错功能
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/15/Python列表对象/#more" rel="contents">
+            <a class="btn" href="/2018/07/15/1.3.Python列表对象/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -627,7 +790,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/15/Python字符对象/">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/15/1.2.Python字符对象/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
@@ -646,7 +809,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/15/Python字符对象/" itemprop="url">【Python源码剖析】PyBytesObject/PyUnicodeObject</a></h2>
+                <a class="post-title-link" href="/2018/07/15/1.2.Python字符对象/" itemprop="url">【Python源码剖析】PyBytesObject/PyUnicodeObject</a></h2>
         
 
         <div class="post-meta">
@@ -699,9 +862,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/15/Python字符对象/#comments" itemprop="discussionUrl">
+                <a href="/2018/07/15/1.2.Python字符对象/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/15/Python字符对象/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/07/15/1.2.Python字符对象/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -734,7 +897,7 @@
 <p>按照 CPython3的<a href="https://docs.python.org/3/c-api/concrete.html" target="_blank" rel="noopener">文档</a>显示：Sequence Objects下辖 Bytes Objects、Unicode Objects。自<a href="https://www.python.org/dev/peps/pep-0393/" target="_blank" rel="noopener">PEP393</a>之后，Unicode Type 变成了层次化的结构，用以减少内存占用。<br>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/15/Python字符对象/#more" rel="contents">
+            <a class="btn" href="/2018/07/15/1.2.Python字符对象/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -785,7 +948,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/14/Python整数对象/">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/14/1.1.Python整数对象/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
@@ -804,7 +967,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/14/Python整数对象/" itemprop="url">【Python源码剖析】PyLongObject/整数类型</a></h2>
+                <a class="post-title-link" href="/2018/07/14/1.1.Python整数对象/" itemprop="url">【Python源码剖析】PyLongObject/整数类型</a></h2>
         
 
         <div class="post-meta">
@@ -857,9 +1020,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/14/Python整数对象/#comments" itemprop="discussionUrl">
+                <a href="/2018/07/14/1.1.Python整数对象/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/14/Python整数对象/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/07/14/1.1.Python整数对象/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -899,7 +1062,7 @@
 <h2 id="PyLongObject"><a href="#PyLongObject" class="headerlink" title="PyLongObject"></a>PyLongObject</h2><p>在 Python2 中，存在 PyIntObject 和 PyLongObject 两种类型。前者是一个定长对象，后者是一个变长对象。Python3中 只存在后者。在 Python2 的结构体中 定义的是 long ob_ival，而 Python3 中定义的是只有1个元素的数组。<br>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/14/Python整数对象/#more" rel="contents">
+            <a class="btn" href="/2018/07/14/1.1.Python整数对象/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -950,7 +1113,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/14/PyObject/">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/14/1.0.PyObject/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
@@ -969,7 +1132,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/14/PyObject/" itemprop="url">【Python源码剖析】PyObject/PyObjectType</a></h2>
+                <a class="post-title-link" href="/2018/07/14/1.0.PyObject/" itemprop="url">【Python源码剖析】PyObject/PyObjectType</a></h2>
         
 
         <div class="post-meta">
@@ -1022,9 +1185,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/14/PyObject/#comments" itemprop="discussionUrl">
+                <a href="/2018/07/14/1.0.PyObject/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/14/PyObject/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/07/14/1.0.PyObject/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1064,7 +1227,7 @@
 <h2 id="Interface"><a href="#Interface" class="headerlink" title="Interface"></a>Interface</h2>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/14/PyObject/#more" rel="contents">
+            <a class="btn" href="/2018/07/14/1.0.PyObject/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1305,7 +1468,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1327,7 +1490,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
