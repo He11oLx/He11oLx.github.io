@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CPython3.6源码,try-except," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="参考 《Python源码剖析》—— 陈儒  前言本章将通过字节码指令，探究 Python 中try-except等异常控制语句的实现及原理。阅读本章前需了解PyCodeObject/PyFrameObject。 开局一张陈儒先生著作《Python 源码剖析》中的附图：">
+<meta name="keywords" content="CPython3.6源码,try-except">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【CPython3.6源码分析】Python 异常控制">
+<meta property="og:url" content="http://he11olx.com/2018/07/21/1.8.Python 异常控制/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考 《Python源码剖析》—— 陈儒  前言本章将通过字节码指令，探究 Python 中try-except等异常控制语句的实现及原理。阅读本章前需了解PyCodeObject/PyFrameObject。 开局一张陈儒先生著作《Python 源码剖析》中的附图：">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://s1.ax1x.com/2018/07/21/P8bHI0.png">
+<meta property="og:updated_time" content="2018-07-21T12:43:18.300Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【CPython3.6源码分析】Python 异常控制">
+<meta name="twitter:description" content="参考 《Python源码剖析》—— 陈儒  前言本章将通过字节码指令，探究 Python 中try-except等异常控制语句的实现及原理。阅读本章前需了解PyCodeObject/PyFrameObject。 开局一张陈儒先生著作《Python 源码剖析》中的附图：">
+<meta name="twitter:image" content="https://s1.ax1x.com/2018/07/21/P8bHI0.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/07/21/1.8.Python 异常控制/"/>
+
+
+
+
+
+  <title>【CPython3.6源码分析】Python 异常控制 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.8.Python 异常控制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【CPython3.6源码分析】Python 异常控制</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-21T18:00:00+08:00">
+                2018-07-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/21/1.8.Python 异常控制/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/07/21/1.8.Python 异常控制/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>《Python源码剖析》—— 陈儒</li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本章将通过字节码指令，探究 Python 中<code>try-except</code>等异常控制语句的实现及原理。阅读本章前需了解<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a>。</p>
+<p>开局一张陈儒先生著作《Python 源码剖析》中的附图：<br><img src="https://s1.ax1x.com/2018/07/21/P8bHI0.png" alt="异常机制流程图"><br><a id="more"></a></p>
+<h2 id="1-0"><a href="#1-0" class="headerlink" title="1/0"></a>1/0</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1/0</span><br><span class="line"></span><br><span class="line">co_consts:  (1, 0, None)</span><br><span class="line"></span><br><span class="line">  1           0 LOAD_CONST               0 (1)</span><br><span class="line">              2 LOAD_CONST               1 (0)</span><br><span class="line">              4 BINARY_TRUE_DIVIDE</span><br><span class="line">              6 POP_TOP</span><br><span class="line">              8 LOAD_CONST               2 (None)</span><br><span class="line">             10 RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<p>其他的先不谈，先来看上面的字节码。4+6 就是一个<code>/</code>运算。很明显，重点落在<code>BINARY_TRUE_DIVIDE</code>中。</p>
+<h2 id="BINARY-TRUE-DIVIDE"><a href="#BINARY-TRUE-DIVIDE" class="headerlink" title="BINARY_TRUE_DIVIDE"></a>BINARY_TRUE_DIVIDE</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BINARY_TRUE_DIVIDE       27</span></span><br><span class="line"></span><br><span class="line">TARGET(BINARY_TRUE_DIVIDE) &#123;</span><br><span class="line">    PyObject *divisor = POP();</span><br><span class="line">    PyObject *dividend = TOP();</span><br><span class="line">    PyObject *quotient = PyNumber_TrueDivide(dividend, divisor);</span><br><span class="line">    Py_DECREF(dividend);</span><br><span class="line">    Py_DECREF(divisor);</span><br><span class="line">    SET_TOP(quotient);</span><br><span class="line">    <span class="keyword">if</span> (quotient == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">goto</span> error;</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PyNumber_TrueDivide -&gt; binary_op(v, w, NB_SLOT(nb_true_divide), <span class="string">"/"</span>)</span><br><span class="line">-&gt; binary_op1(v, w, op_slot)</span><br><span class="line">-&gt; v-&gt;ob_type-&gt;tp_as_number[op_slot](v, w)</span><br><span class="line">-&gt; long_true_divide(v, w)</span><br></pre></td></tr></table></figure>
+<p><code>1/0</code>最终进入到<code>longobject.c</code>中去执行，源码中有很长一段关于除法运算的注释，有兴趣可以看看。我们这里只关注异常处理的部分。</p>
+<h2 id="long-true-divide"><a href="#long-true-divide" class="headerlink" title="long_true_divide"></a>long_true_divide</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// longobject.c.long_true_divide</span></span><br><span class="line"><span class="keyword">if</span> (Py_ABS(Py_SIZE(b)) == <span class="number">0</span>) &#123;</span><br><span class="line">    PyErr_SetString(PyExc_ZeroDivisionError,</span><br><span class="line">                    <span class="string">"division by zero"</span>);</span><br><span class="line">    <span class="keyword">goto</span> error;</span><br><span class="line">&#125;</span><br><span class="line">overflow:</span><br><span class="line">    PyErr_SetString(PyExc_OverflowError,</span><br><span class="line">         <span class="string">"integer division result too large for a float"</span>);</span><br><span class="line">error:</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br></pre></td></tr></table></figure>
+<p>在前面的部分中，其实我们已经看见了 Python 关于故障报错的处理方式，<code>ZeroDivisionError</code>同样是通过这种方式实现。那么，问题来了，这个<code>PyExc_ZeroDivisionError</code>又是个什么东西？</p>
+<h3 id="PyErrorObject"><a href="#PyErrorObject" class="headerlink" title="PyErrorObject"></a>PyErrorObject</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// pyport.h</span></span><br><span class="line"><span class="function">define <span class="title">PyAPI_DATA</span><span class="params">(RTYPE)</span> <span class="keyword">extern</span> RTYPE</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="comment">// pyerrors.h</span></span></span><br><span class="line"><span class="function"><span class="title">PyAPI_DATA</span><span class="params">(PyObject *)</span> PyExc_ZeroDivisionError</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyException_HEAD</span><br><span class="line">&#125; PyBaseExceptionObject;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyException_HEAD</span><br><span class="line">    PyObject *msg;</span><br><span class="line">    PyObject *filename;</span><br><span class="line">    PyObject *lineno;</span><br><span class="line">    PyObject *offset;</span><br><span class="line">    PyObject *text;</span><br><span class="line">    PyObject *print_file_and_line;</span><br><span class="line">&#125; PySyntaxErrorObject;</span><br><span class="line"></span><br><span class="line">PyAPI_FUNC(<span class="keyword">void</span>) PyErr_SetString(</span><br><span class="line">    PyObject *exception,</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *<span class="built_in">string</span>   <span class="comment">/* decoded from utf-8 */</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>果然，一切皆为对象。<code>long_true_divide</code> 似乎就干了两件事，<code>SetString&amp;Return NULL</code>。<code>BINARY_TRUE_DIVIDE</code>先把结果入栈<code>SET_TOP()</code>，判断结果为空，goto error。</p>
+<h2 id="goto-error"><a href="#goto-error" class="headerlink" title="goto error"></a>goto error</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">error:</span><br><span class="line">    why = WHY_EXCEPTION;    <span class="comment">// !!!</span></span><br><span class="line">    <span class="comment">/* Log traceback info. */</span></span><br><span class="line">    PyTraceBack_Here(f);</span><br><span class="line"></span><br><span class="line">fast_block_end:</span><br><span class="line">    <span class="comment">/* Unwind stacks if a (pseudo) exception occurred */</span></span><br><span class="line">    <span class="keyword">while</span> (why != WHY_NOT &amp;&amp; f-&gt;f_iblock &gt; <span class="number">0</span>) &#123;</span><br><span class="line">           ...</span><br><span class="line">    &#125; <span class="comment">/* unwind stack */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* End the loop if we still have an error (or return) */</span></span><br><span class="line">    <span class="keyword">if</span> (why != WHY_NOT)</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">&#125; <span class="comment">/* main loop */</span></span><br></pre></td></tr></table></figure>
+<p>emmm，代码很长。从上面的轮廓可以看见，在 error 中 TraceBack。在 fast_block_end 中，尝试在栈链上逐级捕捉错误。否则，最终退出循环，结束程序。</p>
+<h2 id="PyTraceBack-Here"><a href="#PyTraceBack-Here" class="headerlink" title="PyTraceBack_Here"></a>PyTraceBack_Here</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// traceback.c.133</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">PyTraceBack_Here</span><span class="params">(PyFrameObject *frame)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyObject *exc, *val, *tb, *newtb;</span><br><span class="line">    <span class="comment">/* 先保存，后清空 */</span></span><br><span class="line">    PyErr_Fetch(&amp;exc, &amp;val, &amp;tb);</span><br><span class="line">    <span class="comment">// 构建新的 traceback，形成链表</span></span><br><span class="line">    newtb = (PyObject *)newtracebackobject((PyTracebackObject *)tb,frame);</span><br><span class="line">    <span class="comment">// 将新的异常对象存储到线程状态对象中</span></span><br><span class="line">    PyErr_Restore(exc, val, newtb);</span><br><span class="line">    Py_XDECREF(tb);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，代码很简单，将 Frame 的错误信息保存起来，构建一个新的 tb，插入到原有的链中。</p>
+<h3 id="PyErr-Fetch"><a href="#PyErr-Fetch" class="headerlink" title="PyErr_Fetch"></a>PyErr_Fetch</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// errors.c.339</span></span><br><span class="line"><span class="keyword">void</span></span><br><span class="line">PyErr_Fetch(PyObject **p_type, PyObject **p_value, PyObject **p_traceback)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 保存线程异常对象，并清空</span></span><br><span class="line">    PyThreadState *tstate = PyThreadState_GET();</span><br><span class="line"></span><br><span class="line">    *p_type = tstate-&gt;curexc_type;</span><br><span class="line">    *p_value = tstate-&gt;curexc_value;</span><br><span class="line">    *p_traceback = tstate-&gt;curexc_traceback;</span><br><span class="line"></span><br><span class="line">    tstate-&gt;curexc_type = <span class="literal">NULL</span>;</span><br><span class="line">    tstate-&gt;curexc_value = <span class="literal">NULL</span>;</span><br><span class="line">    tstate-&gt;curexc_traceback = <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="newtracebackobject"><a href="#newtracebackobject" class="headerlink" title="newtracebackobject"></a>newtracebackobject</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// traceback.c.111</span></span><br><span class="line"><span class="keyword">static</span> PyTracebackObject *</span><br><span class="line">newtracebackobject(PyTracebackObject *next, PyFrameObject *frame)</span><br><span class="line">&#123;</span><br><span class="line">    PyTracebackObject *tb;</span><br><span class="line">    ...</span><br><span class="line">    tb = PyObject_GC_New(PyTracebackObject, &amp;PyTraceBack_Type);</span><br><span class="line">    <span class="keyword">if</span> (tb != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        Py_XINCREF(next);</span><br><span class="line">        tb-&gt;tb_next = next;        <span class="comment">// 关键步骤，链表插入</span></span><br><span class="line">        Py_XINCREF(frame);</span><br><span class="line">        tb-&gt;tb_frame = frame;</span><br><span class="line">        tb-&gt;tb_lasti = frame-&gt;f_lasti;</span><br><span class="line">        tb-&gt;tb_lineno = PyFrame_GetLineNumber(frame);</span><br><span class="line">        PyObject_GC_Track(tb);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> tb;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="try-except"><a href="#try-except" class="headerlink" title="try-except"></a>try-except</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="number">1</span> / <span class="number">0</span></span><br><span class="line"><span class="keyword">except</span> ZeroDivisionError:</span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">co_consts: (<span class="number">1</span>, <span class="number">0</span>, <span class="keyword">None</span>)</span><br><span class="line">co_names: (<span class="string">'ZeroDivisionError'</span>,)</span><br><span class="line"></span><br><span class="line">  <span class="number">1</span>           <span class="number">0</span> SETUP_EXCEPT            <span class="number">12</span> (to <span class="number">14</span>)</span><br><span class="line">/* 在FOR控制流中已经提到，等效于 SETUP_LOOP，构建一个 TryBlock</span><br><span class="line">   PyFrame_BlockSetup(</span><br><span class="line">        PyFrameObject * = f,</span><br><span class="line">        int type = opcode = SETUP_EXCEPT,</span><br><span class="line">        int handler = INSTR_OFFSET() + oparg = <span class="number">14</span>,</span><br><span class="line">        int level = STACK_LEVEL() = stack_pointer - f-&gt;f_valuestack</span><br><span class="line">   )</span><br><span class="line">   b = &amp;f-&gt;f_blockstack[f-&gt;f_iblock++];    对b 进行赋值;</span><br><span class="line">*/</span><br><span class="line"></span><br><span class="line">  <span class="number">2</span>           <span class="number">2</span> LOAD_CONST               <span class="number">0</span> (<span class="number">1</span>)</span><br><span class="line">              <span class="number">4</span> LOAD_CONST               <span class="number">1</span> (<span class="number">0</span>)</span><br><span class="line">              <span class="number">6</span> BINARY_TRUE_DIVIDE</span><br><span class="line">/* PyErr_SetString(PyExc_ZeroDivisionError);</span><br><span class="line">   SET_TOP(NULL);</span><br><span class="line">   goto error;</span><br><span class="line">   PyTraceBack_Here();</span><br><span class="line">   goto fast_block_end;</span><br><span class="line">*/</span><br><span class="line"></span><br><span class="line">              <span class="number">8</span> POP_TOP</span><br><span class="line">             <span class="number">10</span> POP_BLOCK</span><br><span class="line">             <span class="number">12</span> JUMP_FORWARD            <span class="number">20</span> (to <span class="number">34</span>)    // JUMPBY(<span class="number">20</span>)</span><br><span class="line">  <span class="number">3</span>     &gt;&gt;   <span class="number">14</span> DUP_TOP</span><br><span class="line">             <span class="number">16</span> LOAD_NAME                <span class="number">0</span> (ZeroDivisionError)</span><br><span class="line">             <span class="number">18</span> COMPARE_OP              <span class="number">10</span> (exception match)</span><br><span class="line">             <span class="number">20</span> POP_JUMP_IF_FALSE       <span class="number">32</span></span><br><span class="line">             <span class="number">22</span> POP_TOP</span><br><span class="line">             <span class="number">24</span> POP_TOP</span><br><span class="line">             <span class="number">26</span> POP_TOP</span><br><span class="line">  <span class="number">4</span>          <span class="number">28</span> POP_EXCEPT</span><br><span class="line">             <span class="number">30</span> JUMP_FORWARD             <span class="number">2</span> (to <span class="number">34</span>)</span><br><span class="line">        &gt;&gt;   <span class="number">32</span> END_FINALLY</span><br><span class="line">        &gt;&gt;   <span class="number">34</span> LOAD_CONST               <span class="number">2</span> (<span class="keyword">None</span>)</span><br><span class="line">             <span class="number">36</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<p>前面关于<code>goto error</code>的问题，我们先放一放，先看一段字节码指令。一段<code>try-except</code>的代码，编译结果高达30+行，即使是<code>try 1/1</code>结果也是30+行。</p>
+<p>前面我们已经知道<code>1/0</code> 对应 <code>6+8</code>。如果顺序执行，字节码12，就直接跳转到字节码34，结束程序，这显然是不可能的。那么必然，在<code>BINARY_TRUE_DIVIDE</code>中会发生些什么。想起来没有？对，<code>goto erorr</code>！接下来就到了<code>fast_block_end</code>。</p>
+<h2 id="fast-block-end"><a href="#fast-block-end" class="headerlink" title="fast_block_end"></a>fast_block_end</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line">why = WHY_EXCEPTION;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (why != WHY_NOT &amp;&amp; f-&gt;f_iblock &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">/* Peek at the current block */</span></span><br><span class="line">    PyTryBlock *b = &amp;f-&gt;f_blockstack[f-&gt;f_iblock - <span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Now we have to pop the block. */</span></span><br><span class="line">    f-&gt;f_iblock--;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (b-&gt;b_type == EXCEPT_HANDLER) &#123;   <span class="comment">// == 257</span></span><br><span class="line">        UNWIND_EXCEPT_HANDLER(b);</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    UNWIND_BLOCK(b);</span><br><span class="line">    <span class="keyword">if</span> (b-&gt;b_type == SETUP_LOOP &amp;&amp; why == WHY_BREAK) &#123;</span><br><span class="line">        why = WHY_NOT;</span><br><span class="line">        JUMPTO(b-&gt;b_handler);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (why == WHY_EXCEPTION &amp;&amp; (b-&gt;b_type == SETUP_EXCEPT</span><br><span class="line">        || b-&gt;b_type == SETUP_FINALLY)) &#123;</span><br><span class="line">        <span class="comment">// 判断是否在 try-except 块中</span></span><br><span class="line">        PyObject *exc, *val, *tb;</span><br><span class="line">        <span class="keyword">int</span> handler = b-&gt;b_handler;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 在FOR控制流 SETUP_LOOP 中有提到</span></span><br><span class="line"><span class="comment">           从数组中获取一个新的 TryBlock，并放入信息</span></span><br><span class="line"><span class="comment">           PyFrame_BlockSetup(</span></span><br><span class="line"><span class="comment">                 PyFrameObject * = f,</span></span><br><span class="line"><span class="comment">                 int type = EXCEPT_HANDLER,</span></span><br><span class="line"><span class="comment">                 int handler = -1,</span></span><br><span class="line"><span class="comment">                 int level = STACK_LEVEL() = stack_pointer - f-&gt;f_valuestack</span></span><br><span class="line"><span class="comment">           )</span></span><br><span class="line"><span class="comment">           构建一个新的 block 用于处理异常</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">        PyFrame_BlockSetup(f, EXCEPT_HANDLER, <span class="number">-1</span>, STACK_LEVEL());</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 在 PyTraceBack_Here 中，已经构建了一个新的 tb</span></span><br><span class="line"><span class="comment">           此处，将异常信息压栈</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">        PUSH(tstate-&gt;exc_traceback);</span><br><span class="line">        PUSH(tstate-&gt;exc_value);</span><br><span class="line">        <span class="keyword">if</span> (tstate-&gt;exc_type != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            PUSH(tstate-&gt;exc_type);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            Py_INCREF(Py_None);</span><br><span class="line">            PUSH(Py_None);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 先保存，后清空 线程异常对象 */</span></span><br><span class="line">        PyErr_Fetch(&amp;exc, &amp;val, &amp;tb);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 详见 errors.c。</span></span><br><span class="line"><span class="comment">           递归调用 PyErr_NormalizeExceptionEx()</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">        PyErr_NormalizeException(&amp;exc, &amp;val, &amp;tb);</span><br><span class="line">        <span class="keyword">if</span> (tb != <span class="literal">NULL</span>)</span><br><span class="line">            PyException_SetTraceback(val, tb);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            PyException_SetTraceback(val, Py_None);</span><br><span class="line">        Py_INCREF(exc);</span><br><span class="line">        tstate-&gt;exc_type = exc;</span><br><span class="line">        Py_INCREF(val);</span><br><span class="line">        tstate-&gt;exc_value = val;</span><br><span class="line">        tstate-&gt;exc_traceback = tb;</span><br><span class="line">        <span class="keyword">if</span> (tb == <span class="literal">NULL</span>)</span><br><span class="line">            tb = Py_None;</span><br><span class="line">        Py_INCREF(tb);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 压入运行时栈 */</span></span><br><span class="line">        PUSH(tb);</span><br><span class="line">        PUSH(val);</span><br><span class="line">        PUSH(exc);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 结束异常发现阶段，跳转到 handler，进行异常处理 */</span></span><br><span class="line">        why = WHY_NOT;</span><br><span class="line">        JUMPTO(handler);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (b-&gt;b_type == SETUP_FINALLY) &#123;</span><br><span class="line">        <span class="keyword">if</span> (why &amp; (WHY_RETURN | WHY_CONTINUE))</span><br><span class="line">            PUSH(retval);</span><br><span class="line">        PUSH(PyLong_FromLong((<span class="keyword">long</span>)why));</span><br><span class="line">        why = WHY_NOT;</span><br><span class="line">        JUMPTO(b-&gt;b_handler);</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="comment">/* unwind stack */</span></span><br></pre></td></tr></table></figure>
+<p>程序抛出故障，将沿着 tb 链，逐级寻找一个 try-except<code>最终找到一个</code>except<code>，将跳转到 handler，否则直接退出程序，显示栈中压入的错误信息。而这个hander，是跟字节码</code>SETUP_EXCEPT/SETUP_FINALLY`对应的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">1           0 SETUP_EXCEPT            12 (to 14)</span><br><span class="line">...</span><br><span class="line">3     &gt;&gt;   14 DUP_TOP</span><br><span class="line">           16 LOAD_NAME                0 (ZeroDivisionError)</span><br><span class="line">           18 COMPARE_OP              10 (exception match)</span><br><span class="line">           20 POP_JUMP_IF_FALSE       32</span><br><span class="line">           22 POP_TOP</span><br><span class="line">           24 POP_TOP</span><br><span class="line">           26 POP_TOP</span><br><span class="line">4          28 POP_EXCEPT</span><br><span class="line">           30 JUMP_FORWARD             2 (to 34)</span><br><span class="line">      &gt;&gt;   32 END_FINALLY</span><br><span class="line">      &gt;&gt;   34 LOAD_CONST               2 (None)</span><br><span class="line">           36 RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<p>在随后的字节码指令中，进行异常比较。若异常匹配，将POP三连，扔掉栈中的异常信息  跳转到正常代码。当异常不匹配时，直接跳转到<code>END_FINALLY</code>。</p>
+<h2 id="END-FINALLY"><a href="#END-FINALLY" class="headerlink" title="END_FINALLY"></a>END_FINALLY</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">PREDICTED(END_FINALLY);</span><br><span class="line">TARGET(END_FINALLY) &#123;</span><br><span class="line">    PyObject *status = POP();</span><br><span class="line">    <span class="keyword">if</span> (PyLong_Check(status)) &#123;</span><br><span class="line">        ... <span class="comment">// 处理 with 上下文</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (PyExceptionClass_Check(status)) &#123;</span><br><span class="line">        PyObject *exc = POP();</span><br><span class="line">        PyObject *tb = POP();</span><br><span class="line">        PyErr_Restore(status, exc, tb);</span><br><span class="line">        why = WHY_EXCEPTION;</span><br><span class="line">        <span class="keyword">goto</span> fast_block_end;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (status != Py_None) &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    Py_DECREF(status);</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>异常不匹配，意味着异常并未被成功捕捉，需要再次进行抛出。<code>END_FINALLY</code>就是干这个的。如上，在判断语句中，能够清除的发现，将异常对象从栈中取出，重新放回线程状态对象中。再次设置 why 的状态，Python 虚拟机重新进入<code>异常发生状态</code>。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CPython3-6源码/" rel="tag"># CPython3.6源码</a>
+          
+            <a href="/tags/try-except/" rel="tag"># try-except</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/21/1.7.Python 控制字节码/" rel="next" title="【CPython3.6源码分析】Python 控制字节码执行">
+                <i class="fa fa-chevron-left"></i> 【CPython3.6源码分析】Python 控制字节码执行
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://avatars3.githubusercontent.com/u/41121010?s=460&v=4"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">2.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-0"><span class="nav-number">3.</span> <span class="nav-text">1/0</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BINARY-TRUE-DIVIDE"><span class="nav-number">4.</span> <span class="nav-text">BINARY_TRUE_DIVIDE</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#long-true-divide"><span class="nav-number">5.</span> <span class="nav-text">long_true_divide</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyErrorObject"><span class="nav-number">5.1.</span> <span class="nav-text">PyErrorObject</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#goto-error"><span class="nav-number">6.</span> <span class="nav-text">goto error</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyTraceBack-Here"><span class="nav-number">7.</span> <span class="nav-text">PyTraceBack_Here</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyErr-Fetch"><span class="nav-number">7.1.</span> <span class="nav-text">PyErr_Fetch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#newtracebackobject"><span class="nav-number">7.2.</span> <span class="nav-text">newtracebackobject</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#try-except"><span class="nav-number">8.</span> <span class="nav-text">try-except</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fast-block-end"><span class="nav-number">9.</span> <span class="nav-text">fast_block_end</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#END-FINALLY"><span class="nav-number">10.</span> <span class="nav-text">END_FINALLY</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">He11oLx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a></div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/07/21/1.8.Python 异常控制/';
+          this.page.identifier = '2018/07/21/1.8.Python 异常控制/';
+          this.page.title = '【CPython3.6源码分析】Python 异常控制';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
