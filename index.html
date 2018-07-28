@@ -76,6 +76,8 @@
 
 
 
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
 
 
 
@@ -299,6 +301,329 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/28/1.11.Python 自定义类/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/28/1.11.Python 自定义类/" itemprop="url">【CPython3.6源码分析】Python 自定义类</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-28T18:00:00+08:00">
+                2018-07-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/28/1.11.Python 自定义类/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/07/28/1.11.Python 自定义类/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>-《Python源码剖析》—— 陈儒</p>
+<ul>
+<li><a href="https://www.python.org/dev/peps/pep-3115/" target="_blank" rel="noopener">PEP3115</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在上一讲，我们谈到了内置类的初始化工作，其中最主要的逻辑落在 PyType_Ready 中。本讲，我们将主要查看用户自定义类及实例化，在 Python 中的实现过程。<br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/07/28/1.11.Python 自定义类/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/28/1.10.Python 类机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/28/1.10.Python 类机制/" itemprop="url">【CPython3.6源码分析】Python 类机制</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-28T12:00:00+08:00">
+                2018-07-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/28/1.10.Python 类机制/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/07/28/1.10.Python 类机制/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>-《Python源码剖析》—— 陈儒</p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在<a href="https://he11olx.com/2018/07/14/1.0.PyObject/">PyObject/PyObjectType</a>，我们已经看到过，PyObject、PyTypeObject、PyType_Type、PyBaseObject_Type。</p>
+<p>下面通过几个例子来具体描述关系：</p>
+<ul>
+<li>实例，通过<code>isinstance()</code>方法，检查其 ob_type 是否一致。</li>
+<li>子类，通过<code>issubclass()</code>方法，检查其 bases 是否存在继承关系。
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/07/28/1.10.Python 类机制/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.9.Python 函数机制/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -404,9 +729,9 @@
         
           <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li><a href="https://docs.python.org/3.6/c-api/function.html" target="_blank" rel="noopener">python.org</a></li>
+<li><a href="https://github.com/python/cpython/blob/3.6/Doc/library/dis.rst" target="_blank" rel="noopener">dis.rst</a></li>
 </ul>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前面我们已经知道 Python 通过PyInterpreterState 对象模拟进程的状态信息，通过 PyThreadState 对象模拟线程的状态信息，通过PyFrameObject 模拟函数调用时的栈帧信息。FrameObject 通过 f_back 指针，形成函数调用的链式结构。那么要实现函数间的调用，就必然存在多个 Frame。</p>
-<h2 id="PyFunctionObject"><a href="#PyFunctionObject" class="headerlink" title="PyFunctionObject"></a>PyFunctionObject</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// funcobject.h.21</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    PyObject *func_code;	<span class="comment">/* A code object, the __code__ attribute */</span></span><br><span class="line">    PyObject *func_globals;	<span class="comment">/* A dictionary (命名空间) */</span></span><br><span class="line">    PyObject *func_defaults;	<span class="comment">/* NULL or a tuple，默认参数*/</span></span><br><span class="line">    PyObject *func_kwdefaults;	<span class="comment">/* NULL or a dict，默认参数 */</span></span><br><span class="line">    PyObject *func_closure;	<span class="comment">/* NULL or a tuple，用于闭包*/</span></span><br><span class="line">    PyObject *func_doc;		<span class="comment">/* __doc__ attribute, can be anything */</span></span><br><span class="line">    PyObject *func_name;	<span class="comment">/* __name__ attribute, a string object */</span></span><br><span class="line">    PyObject *func_dict;	<span class="comment">/* __dict__ attribute, a dict or NULL */</span></span><br><span class="line">    PyObject *func_weakreflist;	<span class="comment">/* List of weak references */</span></span><br><span class="line">    PyObject *func_module;	<span class="comment">/* __module__ attribute, can be anything */</span></span><br><span class="line">    PyObject *func_annotations;	<span class="comment">/* Annotations, a dict or NULL */</span></span><br><span class="line">    PyObject *func_qualname;    <span class="comment">/* The qualified name */</span></span><br><span class="line">&#125; PyFunctionObject;</span><br></pre></td></tr></table></figure>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前面我们已经知道 Python 通过PyInterpreterState 对象模拟进程的状态信息，通过 PyThreadState 对象模拟线程的状态信息，通过PyFrameObject 模拟函数调用时的栈帧信息。FrameObject 通过 f_back 指针，形成函数调用的链式结构。那么要实现函数间的调用，就必然存在多个 Frame。<br>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2018/07/21/1.9.Python 函数机制/#more" rel="contents">
@@ -566,8 +891,7 @@
           <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li>《Python源码剖析》—— 陈儒</li>
 </ul>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本章将通过字节码指令，探究 Python 中<code>try-except</code>等异常控制语句的实现及原理。阅读本章前需了解<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a>。</p>
-<p>开局一张陈儒先生著作《Python 源码剖析》中的附图：<br><img src="https://s1.ax1x.com/2018/07/21/P8bHI0.png" alt="异常机制流程图"><br>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本章将通过字节码指令，探究 Python 中<code>try-except</code>等异常控制语句的实现及原理。阅读本章前需了解<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a>。<br>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2018/07/21/1.8.Python 异常控制/#more" rel="contents">
@@ -724,8 +1048,7 @@
 
       
         
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本章将通过几个字节码指令，探究 Python 中<code>if</code>及<code>for</code>语句的实现及原理，阅读本章前需了解<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a>。</p>
-<h2 id="IF控制流（JUMP-）"><a href="#IF控制流（JUMP-）" class="headerlink" title="IF控制流（JUMP_*）"></a>IF控制流（JUMP_*）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">a = 0</span><br><span class="line"></span><br><span class="line">if a &gt; 0:</span><br><span class="line">    b = 3</span><br><span class="line">elif a &lt; 0:</span><br><span class="line">    b = -3</span><br><span class="line">else:</span><br><span class="line">    b = 0</span><br><span class="line">c = 1</span><br><span class="line"></span><br><span class="line">co_consts: (0, 3, 1, None, -3)</span><br><span class="line">co_names:  (&apos;a&apos;, &apos;b&apos;, &apos;c&apos;)</span><br></pre></td></tr></table></figure>
+          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本章将通过几个字节码指令，探究 Python 中<code>if</code>及<code>for</code>语句的实现及原理，阅读本章前需了解<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a>。<br>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="/2018/07/21/1.7.Python 控制字节码/#more" rel="contents">
@@ -883,6 +1206,9 @@
       
         
           <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本章将通过几个常用的字节码指令，来了解 Python 字节码指令执行的逻辑。阅读本章前需了解<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a>。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://github.com/python/cpython/blob/3.6/Doc/library/dis.rst" target="_blank" rel="noopener">dis.rst</a></li>
+</ul>
 <h2 id="前情提要"><a href="#前情提要" class="headerlink" title="前情提要"></a>前情提要</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">_PyEval_EvalFrameDefault(PyFrameObject *f, <span class="keyword">int</span> throwflag)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// ceval.c.1144</span></span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="comment">// ceval.c.1267</span></span><br><span class="line">        <span class="keyword">switch</span> (opcode) &#123;</span><br><span class="line">            TARGET(LOAD_FAST)  &#123; ... &#125;</span><br><span class="line">            TARGET(LOAD_CONST) &#123; ... &#125;</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>在前面我们提到，解释器会在 <code>_PyEval_EvalFrameDefault</code>进入<code>for(;;)</code>死循环，不断加载字节码指令，并执行。<br>
           <!--noindex-->
@@ -1574,336 +1900,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/14/1.1.Python整数对象/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="He11oLx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lx's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/14/1.1.Python整数对象/" itemprop="url">【CPython3.6源码分析】PyLongObject</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-14T17:00:00+08:00">
-                2018-07-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Python/" itemprop="url" rel="index">
-                    <span itemprop="name">Python</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/07/14/1.1.Python整数对象/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/14/1.1.Python整数对象/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><ol>
-<li>文中所参考 Python 源码皆来自 CPython3.6.6</li>
-<li>文中所指 “前文”，皆指本人博客中【Python源码分析】中的系列文章</li>
-</ol>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li>《Python源码剖析》，感谢陈儒先生的著作</li>
-<li><a href="https://docs.python.org/3/c-api/long.html" target="_blank" rel="noopener">Python.org-Integer Objects</a>，感谢Python社区的成果共享</li>
-</ul>
-<h2 id="PyLongObject"><a href="#PyLongObject" class="headerlink" title="PyLongObject"></a>PyLongObject</h2><p>在 Python2 中，存在 PyIntObject 和 PyLongObject 两种类型。前者是一个定长对象，后者是一个变长对象。Python3中 只存在后者。在 Python2 的结构体中 定义的是 long ob_ival，而 Python3 中定义的是只有1个元素的数组。<br>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/07/14/1.1.Python整数对象/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/14/1.0.PyObject/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="He11oLx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lx's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/14/1.0.PyObject/" itemprop="url">【CPython3.6源码分析】PyObject/PyObjectType</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-14T12:00:00+08:00">
-                2018-07-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Python/" itemprop="url" rel="index">
-                    <span itemprop="name">Python</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/07/14/1.0.PyObject/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/14/1.0.PyObject/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><ol>
-<li>文中所参考 Python 源码皆来自 CPython3.6.6</li>
-<li>文中主要参考陈儒先生的著作，在正文中将不再重复声明</li>
-</ol>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li>《Python源码剖析》，感谢陈儒先生的著作</li>
-<li><a href="https://docs.python.org/3.6/c-api/index.html" target="_blank" rel="noopener">python.org</a>，感谢Python社区的成果共享</li>
-</ul>
-<h2 id="Interface"><a href="#Interface" class="headerlink" title="Interface"></a>Interface</h2>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/07/14/1.0.PyObject/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1958,7 +1954,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1980,7 +1976,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -1988,6 +1984,13 @@
 
           </nav>
 
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
           
 
           

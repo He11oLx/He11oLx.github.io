@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Lx&#39;s Blog</title>
+  
+  <subtitle>Hello world!</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://he11olx.com/"/>
+  <updated>2018-07-28T09:57:36.519Z</updated>
+  <id>http://he11olx.com/</id>
+  
+  <author>
+    <name>He11oLx</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>【CPython3.6源码分析】Python 自定义类</title>
+    <link href="http://he11olx.com/2018/07/28/1.11.Python%20%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB/"/>
+    <id>http://he11olx.com/2018/07/28/1.11.Python 自定义类/</id>
+    <published>2018-07-28T10:00:00.000Z</published>
+    <updated>2018-07-28T09:57:36.519Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;p&gt;-《Python源码剖析》—— 陈儒&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-3115/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP3115&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;在上一讲，我们谈到了内置类的初始化工作，其中最主要的逻辑落在 PyType_Ready 中。本讲，我们将主要查看用户自定义类及实例化，在 Python 中的实现过程。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="类机制" scheme="http://he11olx.com/tags/%E7%B1%BB%E6%9C%BA%E5%88%B6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】Python 类机制</title>
+    <link href="http://he11olx.com/2018/07/28/1.10.Python%20%E7%B1%BB%E6%9C%BA%E5%88%B6/"/>
+    <id>http://he11olx.com/2018/07/28/1.10.Python 类机制/</id>
+    <published>2018-07-28T04:00:00.000Z</published>
+    <updated>2018-07-28T09:57:42.518Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;p&gt;-《Python源码剖析》—— 陈儒&lt;/p&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;在&lt;a href=&quot;https://he11olx.com/2018/07/14/1.0.PyObject/&quot;&gt;PyObject/PyObjectType&lt;/a&gt;，我们已经看到过，PyObject、PyTypeObject、PyType_Type、PyBaseObject_Type。&lt;/p&gt;
+&lt;p&gt;下面通过几个例子来具体描述关系：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;实例，通过&lt;code&gt;isinstance()&lt;/code&gt;方法，检查其 ob_type 是否一致。&lt;/li&gt;
+&lt;li&gt;子类，通过&lt;code&gt;issubclass()&lt;/code&gt;方法，检查其 bases 是否存在继承关系。
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="类机制" scheme="http://he11olx.com/tags/%E7%B1%BB%E6%9C%BA%E5%88%B6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】Python 函数机制</title>
+    <link href="http://he11olx.com/2018/07/21/1.9.Python%20%E5%87%BD%E6%95%B0%E6%9C%BA%E5%88%B6/"/>
+    <id>http://he11olx.com/2018/07/21/1.9.Python 函数机制/</id>
+    <published>2018-07-21T14:00:00.000Z</published>
+    <updated>2018-07-28T09:59:47.753Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3.6/c-api/function.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;python.org&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/python/cpython/blob/3.6/Doc/library/dis.rst&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;dis.rst&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;在前面我们已经知道 Python 通过PyInterpreterState 对象模拟进程的状态信息，通过 PyThreadState 对象模拟线程的状态信息，通过PyFrameObject 模拟函数调用时的栈帧信息。FrameObject 通过 f_back 指针，形成函数调用的链式结构。那么要实现函数间的调用，就必然存在多个 Frame。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="PyFunctionObject" scheme="http://he11olx.com/tags/PyFunctionObject/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】Python 异常控制</title>
+    <link href="http://he11olx.com/2018/07/21/1.8.Python%20%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6/"/>
+    <id>http://he11olx.com/2018/07/21/1.8.Python 异常控制/</id>
+    <published>2018-07-21T10:00:00.000Z</published>
+    <updated>2018-07-28T09:59:47.747Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;《Python源码剖析》—— 陈儒&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;本章将通过字节码指令，探究 Python 中&lt;code&gt;try-except&lt;/code&gt;等异常控制语句的实现及原理。阅读本章前需了解&lt;a href=&quot;https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/&quot;&gt;PyCodeObject/PyFrameObject&lt;/a&gt;。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="try-except" scheme="http://he11olx.com/tags/try-except/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】Python 控制字节码执行</title>
+    <link href="http://he11olx.com/2018/07/21/1.7.Python%20%E6%8E%A7%E5%88%B6%E5%AD%97%E8%8A%82%E7%A0%81/"/>
+    <id>http://he11olx.com/2018/07/21/1.7.Python 控制字节码/</id>
+    <published>2018-07-21T08:00:00.000Z</published>
+    <updated>2018-07-28T09:59:47.759Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;本章将通过几个字节码指令，探究 Python 中&lt;code&gt;if&lt;/code&gt;及&lt;code&gt;for&lt;/code&gt;语句的实现及原理，阅读本章前需了解&lt;a href=&quot;https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/&quot;&gt;PyCodeObject/PyFrameObject&lt;/a&gt;。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="PyCodeObject" scheme="http://he11olx.com/tags/PyCodeObject/"/>
+    
+      <category term="EvalFrame" scheme="http://he11olx.com/tags/EvalFrame/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】Python 一般字节码执行</title>
+    <link href="http://he11olx.com/2018/07/21/1.6.Python%20%E4%B8%80%E8%88%AC%E5%AD%97%E8%8A%82%E7%A0%81/"/>
+    <id>http://he11olx.com/2018/07/21/1.6.Python 一般字节码/</id>
+    <published>2018-07-21T04:00:00.000Z</published>
+    <updated>2018-07-26T13:53:18.891Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;本章将通过几个常用的字节码指令，来了解 Python 字节码指令执行的逻辑。阅读本章前需了解&lt;a href=&quot;https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/&quot;&gt;PyCodeObject/PyFrameObject&lt;/a&gt;。&lt;/p&gt;
+&lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/python/cpython/blob/3.6/Doc/library/dis.rst&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;dis.rst&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前情提要&quot;&gt;&lt;a href=&quot;#前情提要&quot; class=&quot;headerlink&quot; title=&quot;前情提要&quot;&gt;&lt;/a&gt;前情提要&lt;/h2&gt;&lt;figure class=&quot;highlight c&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;_PyEval_EvalFrameDefault(PyFrameObject *f, &lt;span class=&quot;keyword&quot;&gt;int&lt;/span&gt; throwflag)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;comment&quot;&gt;// ceval.c.1144&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;for&lt;/span&gt; (;;) &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;comment&quot;&gt;// ceval.c.1267&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;switch&lt;/span&gt; (opcode) &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;            TARGET(LOAD_FAST)  &amp;#123; ... &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;            TARGET(LOAD_CONST) &amp;#123; ... &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;            ...&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&amp;#125;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;在前面我们提到，解释器会在 &lt;code&gt;_PyEval_EvalFrameDefault&lt;/code&gt;进入&lt;code&gt;for(;;)&lt;/code&gt;死循环，不断加载字节码指令，并执行。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="PyCodeObject" scheme="http://he11olx.com/tags/PyCodeObject/"/>
+    
+      <category term="EvalFrame" scheme="http://he11olx.com/tags/EvalFrame/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】PyCodeObject/PyFrameObject</title>
+    <link href="http://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/"/>
+    <id>http://he11olx.com/2018/07/21/1.5.Python Code Frame/</id>
+    <published>2018-07-21T00:00:00.000Z</published>
+    <updated>2018-07-26T14:17:06.300Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;《Python源码剖析》—— 陈儒&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-3147/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP3147&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;事实上，Python虽然是解释型语言，但也需要经过 源文件 -&amp;gt;  编译 -&amp;gt;  可执行文件  -&amp;gt;  执行整个过程。&lt;br&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;javac Example.java  -&amp;gt; Example.class&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;java Example.class   -&amp;gt; 输出&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;python Example.py    -&amp;gt;  创建或加载 PyCodeObject    -&amp;gt;    输出&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;保存PyCodeObject到    -&amp;gt;  Example.pyc&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;如上，编译器在编译产生 code 后由虚拟机执行。Python 与 Java 不同之处在于 Python 的虚拟机是一种抽象层次更高的虚拟机。 在 编译结束后，Python 会将 code 对象所包含的的信息存储在 pyc 文件内，下次运行直接加载 pyc 里的 code 对象到内存。&lt;/p&gt;
+&lt;p&gt;Python 解释器(interpreter)，同时拥有编译器和虚拟机的身份。具体流程参见&lt;img src=&quot;https://www.python.org/m/dev/peps/pep-3147/pep-3147-1.png&quot; alt=&quot;PEP3147&quot;&gt;PyCodeObject 包含 Python 虚拟机所需要的信息，而 pyc 就是其在硬盘实体化后的载体。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="PyCodeObject" scheme="http://he11olx.com/tags/PyCodeObject/"/>
+    
+      <category term="PyFrameObject" scheme="http://he11olx.com/tags/PyFrameObject/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】PyDictObject</title>
+    <link href="http://he11olx.com/2018/07/15/1.4.Python%E5%AD%97%E5%85%B8%E5%AF%B9%E8%B1%A1/"/>
+    <id>http://he11olx.com/2018/07/15/1.4.Python字典对象/</id>
+    <published>2018-07-15T14:00:00.000Z</published>
+    <updated>2018-07-21T12:35:05.992Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3.6/c-api/dict.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;python.org文档&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0412/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP412&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;《Python源码剖析》—— 陈儒&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;Interface&quot;&gt;&lt;a href=&quot;#Interface&quot; class=&quot;headerlink&quot; title=&quot;Interface&quot;&gt;&lt;/a&gt;Interface&lt;/h2&gt;&lt;p&gt;Python官网把 PyDictObject 归类与 &lt;code&gt;Concrete Objects Layer&lt;/code&gt;，享受同样待遇的还有&lt;code&gt;PySetObject&lt;/code&gt;。在前面 PythonUnicodeObject 中，我们已经见到了 PythonDict 的运用，即共享机制 interned。在 Python 世界里，字典被用于建立字节码的运行环境，用来存放变量名和变量值，意味着做任何操作几乎都要设计到 PythonDict，&lt;/p&gt;
+&lt;p&gt;因此，对搜索的效率要求及其苛刻。因而采用的 HashTable(散列表)，在最优情况下能达到O(1)。散列表的基本思想是，将键映射为一个整数，把整数作为索引访问内存。主要逻辑是：查询键值 ——散列函数 hash function —— 散列值 hash value —— 内存区域 —— 查询结果——散列冲突。Python 处理散列冲突的问题，采用的是 开放定址法。删除探测链上元素，采用的是伪删除。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="PyDictObject" scheme="http://he11olx.com/tags/PyDictObject/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】PyListObject</title>
+    <link href="http://he11olx.com/2018/07/15/1.3.Python%E5%88%97%E8%A1%A8%E5%AF%B9%E8%B1%A1/"/>
+    <id>http://he11olx.com/2018/07/15/1.3.Python列表对象/</id>
+    <published>2018-07-15T04:00:00.000Z</published>
+    <updated>2018-07-21T12:35:06.013Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3.6/c-api/list.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;python.org文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;interface&quot;&gt;&lt;a href=&quot;#interface&quot; class=&quot;headerlink&quot; title=&quot;interface&quot;&gt;&lt;/a&gt;interface&lt;/h2&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;Another generally useful object type is a list of object pointers.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;This is a mutable type: the list items can be changed, and items can be&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;added or removed.  Out-of-range indices or non-list objects are ignored.&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;老套路，开局一段注释：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;对象指针列表&lt;/li&gt;
+&lt;li&gt;可以增删改查&lt;/li&gt;
+&lt;li&gt;具有索引容错功能
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="PyListObject" scheme="http://he11olx.com/tags/PyListObject/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】PyBytesObject/PyUnicodeObject</title>
+    <link href="http://he11olx.com/2018/07/15/1.2.Python%E5%AD%97%E7%AC%A6%E5%AF%B9%E8%B1%A1/"/>
+    <id>http://he11olx.com/2018/07/15/1.2.Python字符对象/</id>
+    <published>2018-07-14T16:00:00.000Z</published>
+    <updated>2018-07-21T12:35:06.020Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h1 id=&quot;interface&quot;&gt;&lt;a href=&quot;#interface&quot; class=&quot;headerlink&quot; title=&quot;interface&quot;&gt;&lt;/a&gt;interface&lt;/h1&gt;&lt;p&gt;众所周知，Python2 中存在 str、bytes、unicode，Python3中只存在 str、bytes，然而却并不表示相同的含义，Python3中的 str 即Python2中的 unicode。&lt;/p&gt;
+&lt;p&gt;按照 CPython3的&lt;a href=&quot;https://docs.python.org/3/c-api/concrete.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;文档&lt;/a&gt;显示：Sequence Objects下辖 Bytes Objects、Unicode Objects。自&lt;a href=&quot;https://www.python.org/dev/peps/pep-0393/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP393&lt;/a&gt;之后，Unicode Type 变成了层次化的结构，用以减少内存占用。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="PyBytesObject" scheme="http://he11olx.com/tags/PyBytesObject/"/>
+    
+      <category term="PyUnicodeObject" scheme="http://he11olx.com/tags/PyUnicodeObject/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】PyLongObject</title>
+    <link href="http://he11olx.com/2018/07/14/1.1.Python%E6%95%B4%E6%95%B0%E5%AF%B9%E8%B1%A1/"/>
+    <id>http://he11olx.com/2018/07/14/1.1.Python整数对象/</id>
+    <published>2018-07-14T09:00:00.000Z</published>
+    <updated>2018-07-21T12:35:05.932Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;声明&quot;&gt;&lt;a href=&quot;#声明&quot; class=&quot;headerlink&quot; title=&quot;声明&quot;&gt;&lt;/a&gt;声明&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;文中所参考 Python 源码皆来自 CPython3.6.6&lt;/li&gt;
+&lt;li&gt;文中所指 “前文”，皆指本人博客中【Python源码分析】中的系列文章&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;《Python源码剖析》，感谢陈儒先生的著作&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/c-api/long.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Python.org-Integer Objects&lt;/a&gt;，感谢Python社区的成果共享&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;PyLongObject&quot;&gt;&lt;a href=&quot;#PyLongObject&quot; class=&quot;headerlink&quot; title=&quot;PyLongObject&quot;&gt;&lt;/a&gt;PyLongObject&lt;/h2&gt;&lt;p&gt;在 Python2 中，存在 PyIntObject 和 PyLongObject 两种类型。前者是一个定长对象，后者是一个变长对象。Python3中 只存在后者。在 Python2 的结构体中 定义的是 long ob_ival，而 Python3 中定义的是只有1个元素的数组。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+      <category term="PyLongObject" scheme="http://he11olx.com/tags/PyLongObject/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【CPython3.6源码分析】PyObject/PyObjectType</title>
+    <link href="http://he11olx.com/2018/07/14/1.0.PyObject/"/>
+    <id>http://he11olx.com/2018/07/14/1.0.PyObject/</id>
+    <published>2018-07-14T04:00:00.000Z</published>
+    <updated>2018-07-21T12:35:05.961Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;声明&quot;&gt;&lt;a href=&quot;#声明&quot; class=&quot;headerlink&quot; title=&quot;声明&quot;&gt;&lt;/a&gt;声明&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;文中所参考 Python 源码皆来自 CPython3.6.6&lt;/li&gt;
+&lt;li&gt;文中主要参考陈儒先生的著作，在正文中将不再重复声明&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;《Python源码剖析》，感谢陈儒先生的著作&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3.6/c-api/index.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;python.org&lt;/a&gt;，感谢Python社区的成果共享&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;Interface&quot;&gt;&lt;a href=&quot;#Interface&quot; class=&quot;headerlink&quot; title=&quot;Interface&quot;&gt;&lt;/a&gt;Interface&lt;/h2&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>博客开通啦</title>
+    <link href="http://he11olx.com/2018/07/12/hello-world/"/>
+    <id>http://he11olx.com/2018/07/12/hello-world/</id>
+    <published>2018-07-11T16:00:00.000Z</published>
+    <updated>2018-07-14T08:24:17.239Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;
+        
+      
+    
+    </summary>
+    
+      <category term="日常" scheme="http://he11olx.com/categories/%E6%97%A5%E5%B8%B8/"/>
+    
+    
+      <category term="起风了" scheme="http://he11olx.com/tags/%E8%B5%B7%E9%A3%8E%E4%BA%86/"/>
+    
+  </entry>
+  
+</feed>
