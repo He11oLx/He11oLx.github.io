@@ -70,7 +70,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="目录," />
 
 
 
@@ -83,17 +83,18 @@
 
 
 
-<meta name="description" content="Emmm...罪过">
-<meta name="keywords" content="Web&#x2F;Python&#x2F;Code">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Lx&#39;s Blog">
-<meta property="og:url" content="http://he11olx.com/tags/PyBytesObject/index.html">
+<meta name="description" content="参考本文的参考资料主要来源于三处：  陈儒先生所著《Python 源码剖析》，且文章中多次引用书中图片，在此统一声明，文章中将不再重复说明。 GitHub 源码，对应 CPython 3.6 版本。 PEP 提案，各章节单独列出。  声明《源码剖析》对应 Py2.5，本文对应 Py3.6。两个版本除了在类机制上差别较大，其余部分皆整体类似，细节不同。 文章中出现的前文，皆指同系列中的文章。上面，皆">
+<meta name="keywords" content="目录">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CPython3.6源码分析——系列文章目录及介绍">
+<meta property="og:url" content="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1. 目录/index.html">
 <meta property="og:site_name" content="Lx&#39;s Blog">
-<meta property="og:description" content="Emmm...罪过">
+<meta property="og:description" content="参考本文的参考资料主要来源于三处：  陈儒先生所著《Python 源码剖析》，且文章中多次引用书中图片，在此统一声明，文章中将不再重复说明。 GitHub 源码，对应 CPython 3.6 版本。 PEP 提案，各章节单独列出。  声明《源码剖析》对应 Py2.5，本文对应 Py3.6。两个版本除了在类机制上差别较大，其余部分皆整体类似，细节不同。 文章中出现的前文，皆指同系列中的文章。上面，皆">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-08-05T08:43:31.990Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Lx&#39;s Blog">
-<meta name="twitter:description" content="Emmm...罪过">
+<meta name="twitter:title" content="CPython3.6源码分析——系列文章目录及介绍">
+<meta name="twitter:description" content="参考本文的参考资料主要来源于三处：  陈儒先生所著《Python 源码剖析》，且文章中多次引用书中图片，在此统一声明，文章中将不再重复说明。 GitHub 源码，对应 CPython 3.6 版本。 PEP 提案，各章节单独列出。  声明《源码剖析》对应 Py2.5，本文对应 Py3.6。两个版本除了在类机制上差别较大，其余部分皆整体类似，细节不同。 文章中出现的前文，皆指同系列中的文章。上面，皆">
 
 
 
@@ -123,13 +124,13 @@
 
 
 
-  <link rel="canonical" href="http://he11olx.com/tags/PyBytesObject/"/>
+  <link rel="canonical" href="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1. 目录/"/>
 
 
 
 
 
-  <title>标签: PyBytesObject | Lx's Blog</title>
+  <title>CPython3.6源码分析——系列文章目录及介绍 | Lx's Blog</title>
   
 
 
@@ -148,7 +149,7 @@
     
   
 
-  <div class="container sidebar-position-left ">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -286,54 +287,217 @@
           <div id="content" class="content">
             
 
-  
-  
-  
-  <div class="post-block tag">
+  <div id="posts" class="posts-expand">
+    
 
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h2>PyBytesObject<small>标签</small>
-        </h2>
-      </div>
+  
 
-      
-        
+  
+  
+  
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1. 目录/">
 
-      <h3 class="post-title">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/2018/07/15/1.CPython3.6源码分析/1.2.Python字符对象/" itemprop="url">
-              
-                <span itemprop="name">【CPython3.6源码分析】PyBytesObject/PyUnicodeObject</span>
-              
-            </a>
         
-      </h3>
+          <h2 class="post-title" itemprop="name headline">CPython3.6源码分析——系列文章目录及介绍</h2>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2018-07-15T00:00:00+08:00"
-              content="2018-07-15" >
-          07-15
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <i class="fa fa-thumb-tack"></i>
+              <font color=7D26CD>[置顶]</font>
+              <span class="post-meta-divider">|</span>
+            
 
-    </header>
-  </article>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-05T22:00:00+08:00">
+                2018-08-05
+              </time>
+            
 
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/08/05/1.CPython3.6源码分析/1. 目录/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/08/05/1.CPython3.6源码分析/1. 目录/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p>本文的参考资料主要来源于三处：</p>
+<ol>
+<li>陈儒先生所著《Python 源码剖析》，且文章中多次引用书中图片，在此统一声明，文章中将不再重复说明。</li>
+<li>GitHub 源码，对应 CPython 3.6 版本。</li>
+<li>PEP 提案，各章节单独列出。</li>
+</ol>
+<h2 id="声明"><a href="#声明" class="headerlink" title="声明"></a>声明</h2><p>《源码剖析》对应 Py2.5，本文对应 Py3.6。两个版本除了在类机制上差别较大，其余部分皆整体类似，细节不同。</p>
+<p>文章中出现的<code>前文</code>，皆指同系列中的文章。<code>上面</code>，皆指同篇文章中的内容。文章中的注释内容，来源于源码和官网文档。文章中的源码，皆根据情况进行了删减、更改，读者需配合源码自行脑补。</p>
+<p>欢迎读者留言(Mail: he11o76120 at gmail)，指出错误，共同交流。</p>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ul>
+<li><a href="https://he11olx.com/2018/07/14/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.0.PyObject/">PyObject/PyObjectType</a></li>
+<li><a href="https://he11olx.com/2018/07/14/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.1.Python%E6%95%B4%E6%95%B0%E5%AF%B9%E8%B1%A1/">PyLongObject</a></li>
+<li><a href="https://he11olx.com/2018/07/15/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.2.Python%E5%AD%97%E7%AC%A6%E5%AF%B9%E8%B1%A1/">PyBytesObject/PyUnicodeObject</a></li>
+<li><a href="https://he11olx.com/2018/07/15/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.3.Python%E5%88%97%E8%A1%A8%E5%AF%B9%E8%B1%A1/">PyListObject</a></li>
+<li><a href="https://he11olx.com/2018/07/15/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.4.Python%E5%AD%97%E5%85%B8%E5%AF%B9%E8%B1%A1/">PyDictObject</a></li>
+<li><a href="https://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a></li>
+<li><a href="https://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.6.Python%20%E4%B8%80%E8%88%AC%E5%AD%97%E8%8A%82%E7%A0%81/">Python 一般字节码执行</a></li>
+<li><a href="https://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.7.Python%20%E6%8E%A7%E5%88%B6%E5%AD%97%E8%8A%82%E7%A0%81/">Python 控制字节码执行</a></li>
+<li><a href="https://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.8.Python%20%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6/">Python 异常控制</a></li>
+<li><a href="https://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.9.Python%20%E5%87%BD%E6%95%B0%E6%9C%BA%E5%88%B6/">Python 函数机制</a></li>
+<li><a href="https://he11olx.com/2018/07/28/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.10.Python%20%E7%B1%BB%E6%9C%BA%E5%88%B6/">Python 类机制</a></li>
+<li><a href="http://https://he11olx.com/2018/07/28/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.11.Python%20%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB/" target="_blank" rel="noopener">Python 自定义类</a></li>
+<li><a href="https://he11olx.com/2018/08/04/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.12.Python%20%E7%8E%AF%E5%A2%83%E5%88%9D%E5%A7%8B%E5%8C%96/">Python 环境初始化</a></li>
+<li><a href="https://he11olx.com/2018/08/04/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.13.Python%20%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%9C%BA%E5%88%B6/">Python 多线程机制</a></li>
+<li><a href="https://he11olx.com/2018/08/05/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.14.Python%20%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">Python 内存管理机制</a></li>
+<li><a href="https://he11olx.com/2018/08/05/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.15.%20Python%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">Python 垃圾回收</a></li>
+</ul>
 
       
     </div>
+    
+    
+    
 
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/目录/" rel="tag"># 目录</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/" rel="next" title="【CPython3.6源码分析】Python 垃圾回收">
+                <i class="fa fa-chevron-left"></i> 【CPython3.6源码分析】Python 垃圾回收
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -341,6 +505,20 @@
 
 
           
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
 
         </div>
         
@@ -361,8 +539,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -449,6 +636,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#声明"><span class="nav-number">2.</span> <span class="nav-text">声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#目录"><span class="nav-number">3.</span> <span class="nav-text">目录</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -595,6 +798,10 @@ PV: <span id="busuanzi_value_site_uv"></span>
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
@@ -612,6 +819,18 @@ PV: <span id="busuanzi_value_site_uv"></span>
       <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
     
 
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1. 目录/';
+          this.page.identifier = '2018/08/05/1.CPython3.6源码分析/1. 目录/';
+          this.page.title = 'CPython3.6源码分析——系列文章目录及介绍';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
     
 
   
