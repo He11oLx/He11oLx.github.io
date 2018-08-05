@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CPython3.6源码,内存管理," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="前言垃圾回收一般分为两个阶段：  垃圾检测，从所有已分配的内存中识别出可以回收和不可以回收的内存 垃圾回收，是系统从掌握在检测阶段标识出的可回收内存  Python 基于古老的引用计数，必须在每次分配和释放内存时，加入 计数 的动作。引用计数，其特点和缺点都很明显  优点：实时性，发生在整个程序运行期间 缺点：循环引用  Python 为了解决循环引用，引入了标记清除和分代收集两种技术。">
+<meta name="keywords" content="CPython3.6源码,内存管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【CPython3.6源码分析】Python 垃圾回收">
+<meta property="og:url" content="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="前言垃圾回收一般分为两个阶段：  垃圾检测，从所有已分配的内存中识别出可以回收和不可以回收的内存 垃圾回收，是系统从掌握在检测阶段标识出的可回收内存  Python 基于古老的引用计数，必须在每次分配和释放内存时，加入 计数 的动作。引用计数，其特点和缺点都很明显  优点：实时性，发生在整个程序运行期间 缺点：循环引用  Python 为了解决循环引用，引入了标记清除和分代收集两种技术。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-08-05T07:15:43.640Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【CPython3.6源码分析】Python 垃圾回收">
+<meta name="twitter:description" content="前言垃圾回收一般分为两个阶段：  垃圾检测，从所有已分配的内存中识别出可以回收和不可以回收的内存 垃圾回收，是系统从掌握在检测阶段标识出的可回收内存  Python 基于古老的引用计数，必须在每次分配和释放内存时，加入 计数 的动作。引用计数，其特点和缺点都很明显  优点：实时性，发生在整个程序运行期间 缺点：循环引用  Python 为了解决循环引用，引入了标记清除和分代收集两种技术。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/"/>
+
+
+
+
+
+  <title>【CPython3.6源码分析】Python 垃圾回收 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【CPython3.6源码分析】Python 垃圾回收</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-05T18:00:00+08:00">
+                2018-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>垃圾回收一般分为两个阶段：</p>
+<ul>
+<li>垃圾检测，从所有已分配的内存中识别出可以回收和不可以回收的内存</li>
+<li>垃圾回收，是系统从掌握在检测阶段标识出的可回收内存</li>
+</ul>
+<p>Python 基于古老的引用计数，必须在每次分配和释放内存时，加入 计数 的动作。<br>引用计数，其特点和缺点都很明显</p>
+<ul>
+<li>优点：实时性，发生在整个程序运行期间</li>
+<li>缺点：循环引用</li>
+</ul>
+<p>Python 为了解决循环引用，引入了标记清除和分代收集两种技术。<br><a id="more"></a></p>
+<h2 id="标记清除"><a href="#标记清除" class="headerlink" title="标记清除"></a>标记清除</h2><p>标记清除（Mark——Sweep）同样遵循垃圾回收的两个阶段，其工作过程如下：</p>
+<ol>
+<li>寻找根对象(root object)的集合，即全局引用和函数栈中的引用。这些引用都是不可删除的。</li>
+<li>从根对象出发，沿着集合中的对象的每一个引用，都是可到达的(reachable)，这些对象都是不可删除的</li>
+<li>检测完成后，能区分出可删除和不可删除的。</li>
+</ol>
+<p>整体上，就是遍历一张有向图。节点为对象，边为对象间的引用。利用BFS/DFS，遍历所有出度，利用三色标记，区分出可到达，最终找到孤立的节点，即可删除对象。</p>
+<p>标记清除，主要是为了打破循环引用存在，而针对 PyLongObject、PyUnicodeObject，等对象是不可能出现循环引用的。因此，只需要检查 container 对象。所以 Python 将所有 container 对象组织成一个双向链表。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">PyObject *  <span class="title">PyList_New</span><span class="params">(Py_ssize_t size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyListObject *op;</span><br><span class="line">        ...</span><br><span class="line">    op = PyObject_GC_New(PyListObject, &amp;PyList_Type);</span><br><span class="line">        ...</span><br><span class="line">    _PyObject_GC_TRACK(op);</span><br><span class="line">    <span class="keyword">return</span> (PyObject *) op;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看容器对象 PyListObject，可以发现创建对象是通过<code>PyObject_GC_New</code>。创建完对象后，通过宏<code>_PyObject_GC_TRACK</code>，把对象放入 containner 链表中。</p>
+<h3 id="PyObject-GC-New"><a href="#PyObject-GC-New" class="headerlink" title="PyObject_GC_New"></a>PyObject_GC_New</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// objimpl.h.252</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">union</span> _gc_head &#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="keyword">union</span> _gc_head *gc_next;</span><br><span class="line">        <span class="keyword">union</span> _gc_head *gc_prev;</span><br><span class="line">        Py_ssize_t gc_refs;</span><br><span class="line">    &#125; gc;</span><br><span class="line">    <span class="keyword">double</span> dummy;  <span class="comment">/* force worst-case alignment */</span></span><br><span class="line">&#125; PyGC_Head;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyObject * _PyObject_GC_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">size_t</span> basicsize)</span><br><span class="line">&#123;</span><br><span class="line">    PyObject *op;</span><br><span class="line">    PyGC_Head *g;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 分配内存</span></span><br><span class="line">    <span class="keyword">size_t</span> size = <span class="keyword">sizeof</span>(PyGC_Head) + basicsize;</span><br><span class="line">    <span class="keyword">if</span> (use_calloc)</span><br><span class="line">        g = (PyGC_Head *)PyObject_Calloc(<span class="number">1</span>, size);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        g = (PyGC_Head *)PyObject_Malloc(size);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 初始化 gc.gc_refs</span></span><br><span class="line">    g-&gt;gc.gc_refs = <span class="number">0</span>;</span><br><span class="line">    _PyGCHead_SET_REFS(g, GC_UNTRACKED);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 分代收集</span></span><br><span class="line">    generations[<span class="number">0</span>].count++; <span class="comment">/* number of allocated GC objects */</span></span><br><span class="line">    <span class="keyword">if</span> (generations[<span class="number">0</span>].count &gt; generations[<span class="number">0</span>].threshold &amp;&amp;</span><br><span class="line">        enabled &amp;&amp;</span><br><span class="line">        generations[<span class="number">0</span>].threshold &amp;&amp;</span><br><span class="line">        !collecting &amp;&amp;</span><br><span class="line">        !PyErr_Occurred()) &#123;</span><br><span class="line">        collecting = <span class="number">1</span>;</span><br><span class="line">        collect_generations();</span><br><span class="line">        collecting = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 根据 g 地址，找到 ob 地址</span></span><br><span class="line">    <span class="comment">// #define AS_GC(o) ((PyGC_Head *)(o)-1)</span></span><br><span class="line">    <span class="comment">// #define FROM_GC(g) ((PyObject *)(((PyGC_Head *)g)+1))</span></span><br><span class="line">    op = FROM_GC(g);</span><br><span class="line">    <span class="keyword">return</span> op;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以发现，在创建对象时，同时申请了两块内存，PyGC_Head + PyListObject。最终还是调用的上一节上到的 <code>PyObject_Malloc</code>。在 object 和 gc head 之间，通过宏进行地址转换。注意其中的<code>SET_REFS(g, GC_UNTRACKED);</code>。</p>
+<h3 id="PyObject-GC-TRACK"><a href="#PyObject-GC-TRACK" class="headerlink" title="_PyObject_GC_TRACK"></a>_PyObject_GC_TRACK</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _PyObject_GC_TRACK(o) do &#123; \</span></span><br><span class="line">    PyGC_Head *g = AS_GC(o); \</span><br><span class="line">    <span class="keyword">if</span> (_PyGCHead_REFS(g) != _PyGC_REFS_UNTRACKED) \</span><br><span class="line">        Py_FatalError(<span class="string">"GC object already tracked"</span>); \</span><br><span class="line">    _PyGCHead_SET_REFS(g, _PyGC_REFS_REACHABLE); \</span><br><span class="line">    g-&gt;gc.gc_next = _PyGC_generation0; \</span><br><span class="line">    g-&gt;gc.gc_prev = _PyGC_generation0-&gt;gc.gc_prev; \</span><br><span class="line">    g-&gt;gc.gc_prev-&gt;gc.gc_next = g; \</span><br><span class="line">    _PyGC_generation0-&gt;gc.gc_prev = g; \</span><br><span class="line">    &#125; <span class="keyword">while</span> (<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _PyObject_GC_UNTRACK(o) do &#123; \</span></span><br><span class="line">    ... \</span><br><span class="line">    _PyGCHead_SET_REFS(g, _PyGC_REFS_UNTRACKED);</span><br></pre></td></tr></table></figure>
+<p>如上，通过两个指针，构成了双向链表。当创建 List 对象后，就把其挂载到链表上。并且可以发现<code>_PyGC_generation0</code>始终指向链表头。注意其中的<code>SET_REFS()</code>。</p>
+<h2 id="分代收集"><a href="#分代收集" class="headerlink" title="分代收集"></a>分代收集</h2><p>研究表明：无论任何语言开发的任何程序，都存在一定比例(80%-98%)的内存块生存期比较短，而另一些生存期特别长。</p>
+<p>分代搜集，以空间换时间，是支撑 JAVA 的关键技术。其总体思想是：<br>将系统中的所有内存块根据其存活时间划分为不同的集合，每个集合称为一个代，垃圾收集的频率与代的存活时间成反比。</p>
+<ol>
+<li>若内存块 M 经过3次垃圾收集后依然存活，就将M划分到集合A中</li>
+<li>新创建的对象，都划分到集合B中</li>
+<li>一段时间后，B 中也有一批存活的对象，将其划分到A中</li>
+<li>集合 A 因收集频率低，会存在一些已经被销毁的对象尸体（空间换时间）</li>
+</ol>
+<p>在 Python 中，总共有三个代。<br>上面的 GC_TRACK 中，存在的变量 _PyGC_generation0 即是一个内部指针，指向 第0代 的内存块集合。</p>
+<h3 id="generations"><a href="#generations" class="headerlink" title="generations"></a>generations</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">gc_generation</span> &#123;</span></span><br><span class="line">    PyGC_Head head;</span><br><span class="line">    <span class="keyword">int</span> threshold;</span><br><span class="line">    <span class="keyword">int</span> count;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 一个代，就是一个链表</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NUM_GENERATIONS 3</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> GEN_HEAD(n) (&amp;generations[n].head)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* linked lists of container objects */</span></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">gc_generation</span> <span class="title">generations</span>[<span class="title">NUM_GENERATIONS</span>] = &#123;</span></span><br><span class="line">    <span class="comment">/* PyGC_Head,                               threshold,      count */</span></span><br><span class="line">    &#123;&#123;&#123;GEN_HEAD(<span class="number">0</span>), GEN_HEAD(<span class="number">0</span>), <span class="number">0</span>&#125;&#125;,           <span class="number">700</span>,            <span class="number">0</span>&#125;,</span><br><span class="line">    &#123;&#123;&#123;GEN_HEAD(<span class="number">1</span>), GEN_HEAD(<span class="number">1</span>), <span class="number">0</span>&#125;&#125;,           <span class="number">10</span>,             <span class="number">0</span>&#125;,</span><br><span class="line">    &#123;&#123;&#123;GEN_HEAD(<span class="number">2</span>), GEN_HEAD(<span class="number">2</span>), <span class="number">0</span>&#125;&#125;,           <span class="number">10</span>,             <span class="number">0</span>&#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">PyGC_Head *_PyGC_generation0 = GEN_HEAD(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p>如上，Python 内部维护这一个 3个对象的数组generations。通过这个数组，控制着三条可收集对象链表，这就是 Python 分代收集的三个代。<br>上面的 GC_TRACK 中，存在的变量 _PyGC_generation0 即是一个内部指针，指向 第0代 的内存块集合。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> PyObject * _PyObject_GC_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">size_t</span> basicsize)</span><br><span class="line">&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">/* 增加 0 代 count */</span></span><br><span class="line">    generations[<span class="number">0</span>].count++;</span><br><span class="line">    <span class="comment">// 判断是否触发 回收条件</span></span><br><span class="line">    <span class="keyword">if</span> (generations[<span class="number">0</span>].count &gt; generations[<span class="number">0</span>].threshold &amp;&amp;</span><br><span class="line">        enabled &amp;&amp;</span><br><span class="line">        generations[<span class="number">0</span>].threshold &amp;&amp;</span><br><span class="line">        !collecting &amp;&amp;</span><br><span class="line">        !PyErr_Occurred()) &#123;</span><br><span class="line">        collecting = <span class="number">1</span>;</span><br><span class="line">        collect_generations();</span><br><span class="line">        collecting = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>PyObject_GC_Alloc</code>，我们能看见，每次创建完对象会先进程收集检测。然后才再宏中加入到<code>_PyGC_generation0</code>链上。一旦满足判断条件，就会调用<code>collect_generations</code>开始回收。</p>
+<h3 id="collect-generations"><a href="#collect-generations" class="headerlink" title="collect_generations"></a>collect_generations</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> Py_ssize_t <span class="title">collect_generations</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    Py_ssize_t n = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i = NUM_GENERATIONS<span class="number">-1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">        <span class="keyword">if</span> (generations[i].count &gt; generations[i].threshold) &#123;</span><br><span class="line">            <span class="keyword">if</span> (i == NUM_GENERATIONS - <span class="number">1</span> <span class="comment">// 最大代，直接回收</span></span><br><span class="line">                &amp;&amp; long_lived_pending &lt; long_lived_total / <span class="number">4</span>)</span><br><span class="line">                <span class="comment">// 默认 0, 0</span></span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            <span class="comment">// 执行回收</span></span><br><span class="line">            n = collect_with_callback(i);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从上面的代码，能看出回收策略：</p>
+<ul>
+<li>回收操作是由第一代触发</li>
+<li>通过两个参数，long_lived_*，决定第三代是否执行回收</li>
+<li>回收从 old-&gt;new，只要执行一次回收，就会 break，不在执行其他代</li>
+</ul>
+<h2 id="collect"><a href="#collect" class="headerlink" title="collect"></a>collect</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Invoke progress callbacks to notify clients that garbage collection</span></span><br><span class="line"><span class="comment"> * is starting or stopping</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">static</span> Py_ssize_t</span><br><span class="line">collect_with_callback(<span class="keyword">int</span> generation)</span><br><span class="line">&#123;</span><br><span class="line">    Py_ssize_t result, collected, uncollectable;</span><br><span class="line">    invoke_gc_callback(<span class="string">"start"</span>, generation, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    result = collect(generation, &amp;collected, &amp;uncollectable, <span class="number">0</span>);</span><br><span class="line">    invoke_gc_callback(<span class="string">"stop"</span>, generation, collected, uncollectable);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>显然，大头都在 <code>collect</code>源码中。</p>
+<h3 id="collect-源码"><a href="#collect-源码" class="headerlink" title="collect 源码"></a>collect 源码</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> Py_ssize_t</span><br><span class="line">collect(<span class="keyword">int</span> generation, Py_ssize_t *n_collected, Py_ssize_t *n_uncollectable,</span><br><span class="line">        <span class="keyword">int</span> nofail)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    Py_ssize_t m = <span class="number">0</span>; <span class="comment">/* # objects collected */</span></span><br><span class="line">    Py_ssize_t n = <span class="number">0</span>; <span class="comment">/* # unreachable objects that couldn't be collected */</span></span><br><span class="line">    PyGC_Head *young; <span class="comment">/* the generation we are examining */</span></span><br><span class="line">    PyGC_Head *old; <span class="comment">/* next older generation */</span></span><br><span class="line">    PyGC_Head unreachable; <span class="comment">/* non-problematic unreachable trash */</span></span><br><span class="line">    PyGC_Head finalizers;  <span class="comment">/* objects with, &amp; reachable from, __del__ */</span></span><br><span class="line">    PyGC_Head *gc;</span><br><span class="line">    _PyTime_t t1 = <span class="number">0</span>;   <span class="comment">/* initialize to prevent a compiler warning */</span></span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">gc_generation_stats</span> *<span class="title">stats</span> = &amp;<span class="title">generation_stats</span>[<span class="title">generation</span>];</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 1. 老代.count+1，当代+年轻代.count=0 */</span></span><br><span class="line">    <span class="keyword">if</span> (generation+<span class="number">1</span> &lt; NUM_GENERATIONS)</span><br><span class="line">        generations[generation+<span class="number">1</span>].count += <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt;= generation; i++)</span><br><span class="line">        generations[i].count = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 2. 将年轻代链表，合并到当前代 */</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; generation; i++) &#123;</span><br><span class="line">        <span class="comment">/* gc_list_merge(PyGC_Head *from, PyGC_Head *to)</span></span><br><span class="line"><span class="comment">           append list `from` onto list `to`;</span></span><br><span class="line"><span class="comment">           `from` becomes an empty list</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">        gc_list_merge(GEN_HEAD(i), GEN_HEAD(generation));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* handy references */</span></span><br><span class="line">    young = GEN_HEAD(generation);</span><br><span class="line">    <span class="keyword">if</span> (generation &lt; NUM_GENERATIONS<span class="number">-1</span>)</span><br><span class="line">        old = GEN_HEAD(generation+<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        old = young;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3. 通过下面两步，在链表上进行打破循环的的模拟，寻找 root object</span></span><br><span class="line">    <span class="comment">// 3.1. Set all gc_refs = ob_refcnt.</span></span><br><span class="line">    update_refs(young);</span><br><span class="line">    <span class="comment">// 3.2. 从 gc_refs 中减去内部引用。gc_refs&gt;0，表示 reachable</span></span><br><span class="line">    subtract_refs(young);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 4.Move the unreachable objects from young to unreachable. */</span></span><br><span class="line">    gc_list_init(&amp;unreachable);</span><br><span class="line">    move_unreachable(young, &amp;unreachable);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 5.如果可能，将当代中的 reachable 合并到更老代中</span></span><br><span class="line">    <span class="keyword">if</span> (young != old) &#123;</span><br><span class="line">        <span class="keyword">if</span> (generation == NUM_GENERATIONS - <span class="number">2</span>) &#123;</span><br><span class="line">            long_lived_pending += gc_list_size(young);</span><br><span class="line">        &#125;</span><br><span class="line">        gc_list_merge(young, old);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* We only untrack dicts in full collections, to avoid quadratic</span></span><br><span class="line"><span class="comment">           dict build-up. See issue #14775. */</span></span><br><span class="line">        untrack_dicts(young);</span><br><span class="line">        long_lived_pending = <span class="number">0</span>;</span><br><span class="line">        long_lived_total = gc_list_size(young);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 6.收集含有 tp_finalize(__del__) 的对象，放入 finalizers：PEP-442 */</span></span><br><span class="line">    gc_list_init(&amp;finalizers);</span><br><span class="line">    move_legacy_finalizers(&amp;unreachable, &amp;finalizers);</span><br><span class="line">    <span class="comment">/* 被 finalizers 引用的对象，也不能直接删除，也放入 finalizers */</span></span><br><span class="line">    move_legacy_finalizer_reachable(&amp;finalizers);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 7. 处理弱引用，尝试调用 callback 函数 */</span></span><br><span class="line">    m += handle_weakrefs(&amp;unreachable, old);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 8. 尝试调用 tp_finalize 方法，完成回收前的 用户定义工作 */</span></span><br><span class="line">    finalize_garbage(&amp;unreachable);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (check_garbage(&amp;unreachable)) &#123;</span><br><span class="line">        revive_garbage(&amp;unreachable);</span><br><span class="line">        gc_list_merge(&amp;unreachable, old);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* 9. 尝试调用 tp_clear 方法，打破循环引用 */</span></span><br><span class="line">        delete_garbage(&amp;unreachable, old);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 10.将含有 tp_finalize(__del__) 的对象，放入 old 代 */</span></span><br><span class="line">    handle_legacy_finalizers(&amp;finalizers, old);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 11.释放所有的 free list */</span></span><br><span class="line">    <span class="keyword">if</span> (generation == NUM_GENERATIONS<span class="number">-1</span>) &#123;</span><br><span class="line">        clear_freelists();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="collect-简略"><a href="#collect-简略" class="headerlink" title="collect 简略"></a>collect 简略</h3><p>大致 collect 过程：</p>
+<ol>
+<li>老代.count+1，当代+年轻代.count=0</li>
+<li>将 年轻代，合并到当前代中</li>
+<li>在当前代链表上，寻找 root object</li>
+<li>遍历当前代，生成 unreachable 链表</li>
+<li>将当代 reachable 合并到更老的 代中</li>
+<li>遍历 unreachable 链表，收集含有 <strong>del</strong>的对象，以及这些对象所引用的对象，放入 finalizers</li>
+<li>处理弱引用 weakref，尝试调用回调</li>
+<li>尝试调用 tp_finalize 方法，完成回收前的 用户定义工作</li>
+<li>尝试调用 tp_clear 方法，打破循环引用</li>
+<li>将含有 tp_finalize(<strong>del</strong>) 的对象，放入 old 代</li>
+<li>释放所有的 free list。</li>
+</ol>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Python 垃圾回收最主要的方式是通过对象的引用计数实现，只要 ref 降为0，就触发操作。为了避免频繁的操作带来性能问题，Python 中大量使用内存池计数。从系统层面的 arena-&gt;pool-&gt;block，到对象层面的各种对象池共享机制。</p>
+<p>为了解决循环引用，Python 又引入了标记清除和分代收集两种技术。将可能出现循环引用的对象，通通关联到  generations 上。用三个元素，来表示三个不同的代。在每次创建对象时，根据 分代数量，判断是否需要进行分代回收。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CPython3-6源码/" rel="tag"># CPython3.6源码</a>
+          
+            <a href="/tags/内存管理/" rel="tag"># 内存管理</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/" rel="next" title="【CPython3.6源码分析】Python 内存管理机制">
+                <i class="fa fa-chevron-left"></i> 【CPython3.6源码分析】Python 内存管理机制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#标记清除"><span class="nav-number">2.</span> <span class="nav-text">标记清除</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyObject-GC-New"><span class="nav-number">2.1.</span> <span class="nav-text">PyObject_GC_New</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyObject-GC-TRACK"><span class="nav-number">2.2.</span> <span class="nav-text">_PyObject_GC_TRACK</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分代收集"><span class="nav-number">3.</span> <span class="nav-text">分代收集</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#generations"><span class="nav-number">3.1.</span> <span class="nav-text">generations</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#collect-generations"><span class="nav-number">3.2.</span> <span class="nav-text">collect_generations</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#collect"><span class="nav-number">4.</span> <span class="nav-text">collect</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#collect-源码"><span class="nav-number">4.1.</span> <span class="nav-text">collect 源码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#collect-简略"><span class="nav-number">4.2.</span> <span class="nav-text">collect 简略</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">5.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">He11oLx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a></div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/';
+          this.page.identifier = '2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/';
+          this.page.title = '【CPython3.6源码分析】Python 垃圾回收';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

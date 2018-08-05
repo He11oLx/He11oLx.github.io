@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CPython3.6源码," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="参考 Before Python Initialization  前言一步步走来，我们已经了解了 Python对象机制，字节码执行机制，函数调用，类实例创建机制。这些内容都是在 Python 环境已经初始化完成后，才进行的工作。那么是时候看看，运行环境初始化，都干了些什么。  main1234567891011121314151617181920212223242526272829// pytho">
+<meta name="keywords" content="CPython3.6源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【CPython3.6源码分析】Python 环境初始化">
+<meta property="og:url" content="http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考 Before Python Initialization  前言一步步走来，我们已经了解了 Python对象机制，字节码执行机制，函数调用，类实例创建机制。这些内容都是在 Python 环境已经初始化完成后，才进行的工作。那么是时候看看，运行环境初始化，都干了些什么。  main1234567891011121314151617181920212223242526272829// pytho">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4focrce781ti4obv1vd61osna.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4fpcmonel1te1s0117am1kva.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4fqgv21s69g753o81agg1073a.png-w.jpg">
+<meta property="og:updated_time" content="2018-08-05T07:29:20.964Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【CPython3.6源码分析】Python 环境初始化">
+<meta name="twitter:description" content="参考 Before Python Initialization  前言一步步走来，我们已经了解了 Python对象机制，字节码执行机制，函数调用，类实例创建机制。这些内容都是在 Python 环境已经初始化完成后，才进行的工作。那么是时候看看，运行环境初始化，都干了些什么。  main1234567891011121314151617181920212223242526272829// pytho">
+<meta name="twitter:image" content="http://t1.aixinxi.net/o_1ck4focrce781ti4obv1vd61osna.png-w.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/"/>
+
+
+
+
+
+  <title>【CPython3.6源码分析】Python 环境初始化 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【CPython3.6源码分析】Python 环境初始化</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-04T12:00:00+08:00">
+                2018-08-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.python.org/3/c-api/init.html" target="_blank" rel="noopener">Before Python Initialization</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>一步步走来，我们已经了解了 Python对象机制，字节码执行机制，函数调用，类实例创建机制。这些内容都是在 Python 环境已经初始化完成后，才进行的工作。那么是时候看看，运行环境初始化，都干了些什么。</p>
+<p><span id="main"></span></p>
+<h2 id="main"><a href="#main" class="headerlink" title="main"></a>main</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// python.c.18</span></span><br><span class="line"><span class="keyword">int</span></span><br><span class="line">main(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)&#123;</span><br><span class="line">    ...</span><br><span class="line">    res = Py_Main(argc, argv_copy);</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Modules/main.c.348</span></span><br><span class="line"><span class="keyword">int</span></span><br><span class="line">Py_Main(<span class="keyword">int</span> argc, <span class="keyword">wchar_t</span> **argv)&#123;</span><br><span class="line">    ...</span><br><span class="line">    Py_Initialize();</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">if</span> (command) &#123;</span><br><span class="line">        sts = run_command(command, &amp;cf);</span><br><span class="line">        PyMem_RawFree(command);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">module</span>) &#123;</span><br><span class="line">        sts = (RunModule(<span class="keyword">module</span>, <span class="number">1</span>) != <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">/* 处理 fp、filename */</span></span><br><span class="line">        sts = run_file(fp, filename, &amp;cf);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> sts <span class="comment">/* 0 正常退出，1 异常退出，2 参数列表不正确 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到，跟普通的 C 程序一样，通过入口 main 进入到 Py_Main，在调用<code>Py_Initialize</code>进行初始化，然后根据参数列表进行分发。</p>
+<a id="more"></a>
+<h2 id="Py-Initialize"><a href="#Py-Initialize" class="headerlink" title="Py_Initialize"></a>Py_Initialize</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">void Py_Initialize()</span><br><span class="line"></span><br><span class="line">    Initialize the Python interpreter. In an application embedding Python, this should be called before using any other Python/C API functions</span><br><span class="line"></span><br><span class="line">    This initializes the table of loaded modules (sys.modules),</span><br><span class="line">    and creates the fundamental modules builtins, __main__ and sys.</span><br><span class="line">    It also initializes the module search path (sys.path).</span><br><span class="line">    It does not set sys.argv; use PySys_SetArgvEx() for that.</span><br></pre></td></tr></table></figure>
+<p>在 Python 初始化以前，只能调用少量的 C API。调用 Py_Initialize() 将完成对环境的初始化。其中很重要的是创建 models <code>builtins, __main__ and sys</code> 等内置 modules。<code>PyInitialize</code>最终调用<code>_Py_InitializeEx_Private</code>。</p>
+<h3 id="PyRandom-Init"><a href="#PyRandom-Init" class="headerlink" title="_PyRandom_Init"></a>_PyRandom_Init</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Py_Initialize -&gt; Py_InitializeEx(1) -&gt; _Py_InitializeEx_Private(1, 1)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span></span><br><span class="line">_Py_InitializeEx_Private(<span class="keyword">int</span> install_sigs, <span class="keyword">int</span> install_importlib)</span><br><span class="line">&#123;</span><br><span class="line">    PyInterpreterState *interp;</span><br><span class="line">    PyThreadState *tstate;</span><br><span class="line">    PyObject *bimod, *sysmod, *pstderr;</span><br><span class="line">    <span class="keyword">char</span> *p;</span><br><span class="line">    <span class="keyword">extern</span> <span class="keyword">void</span> _Py_ReadyTypes(<span class="keyword">void</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (initialized)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    initialized = <span class="number">1</span>;</span><br><span class="line">    _Py_Finalizing = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">      Hash randomization is enabled.  Generate a per-process secret,</span></span><br><span class="line"><span class="comment">      using PYTHONHASHSEED if provided.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    _PyRandom_Init();</span><br></pre></td></tr></table></figure>
+<p>嘿，朋友，你知道 hash(1) != hash(1) 吗？</p>
+<h3 id="InterpreterState-amp-ThreadState"><a href="#InterpreterState-amp-ThreadState" class="headerlink" title="InterpreterState &amp; ThreadState"></a>InterpreterState &amp; ThreadState</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 模拟进程状态 PyInterpreterState 见 pystate.h.26</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    interp-&gt;next = interp_head;</span></span><br><span class="line"><span class="comment">    interp-&gt;tstate_head = NULL;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    interp-&gt;eval_frame = _PyEval_EvalFrameDefault;</span></span><br><span class="line"><span class="comment">    interp_head = interp;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">interp = PyInterpreterState_New();</span><br><span class="line"><span class="comment">/* 模拟线程状态</span></span><br><span class="line"><span class="comment">    tstate-&gt;interp = interp;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    tstate-&gt;prev = NULL;</span></span><br><span class="line"><span class="comment">    tstate-&gt;next = interp-&gt;tstate_head;</span></span><br><span class="line"><span class="comment">    if (tstate-&gt;next)</span></span><br><span class="line"><span class="comment">        tstate-&gt;next-&gt;prev = tstate;</span></span><br><span class="line"><span class="comment">    interp-&gt;tstate_head = tstate;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">tstate = PyThreadState_New(interp);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 宏：SET_TSTATE() 设置全局变量 _PyThreadState_Current */</span></span><br><span class="line">(<span class="keyword">void</span>) PyThreadState_Swap(tstate);</span><br></pre></td></tr></table></figure>
+<p>此处，来张图最好理解，图片来自《Python 源码剖析》P318。<br><img src="http://t1.aixinxi.net/o_1ck4focrce781ti4obv1vd61osna.png-w.jpg" alt="InterpreterState 与 ThreadState联系"></p>
+<h3 id="ReayType-amp-Init"><a href="#ReayType-amp-Init" class="headerlink" title="ReayType &amp; Init"></a>ReayType &amp; Init</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 调用 PyType_Ready，对 Py*_Type 进行初始化 */</span></span><br><span class="line">_Py_ReadyTypes();</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!_PyFrame_Init())</span><br><span class="line">    Py_FatalError(<span class="string">"Py_Initialize: can't init frames"</span>);</span><br><span class="line"><span class="comment">/* 嘿，还记得 small_ints 小整数对象池吗？ */</span></span><br><span class="line"><span class="keyword">if</span> (!_PyLong_Init())</span><br><span class="line">    Py_FatalError(<span class="string">"Py_Initialize: can't init longs"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!PyByteArray_Init())</span><br><span class="line">    Py_FatalError(<span class="string">"Py_Initialize: can't init bytearray"</span>);</span><br><span class="line"><span class="comment">/* 判断机器是否使用  IEEE 浮点数格式 */</span></span><br><span class="line"><span class="keyword">if</span> (!_PyFloat_Init())</span><br><span class="line">    Py_FatalError(<span class="string">"Py_Initialize: can't init float"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Init Unicode implementation; relies on the codec registry */</span></span><br><span class="line"><span class="keyword">if</span> (_PyUnicode_Init() &lt; <span class="number">0</span>)</span><br><span class="line">    Py_FatalError(<span class="string">"Py_Initialize: can't initialize unicode"</span>);</span><br><span class="line"><span class="keyword">if</span> (_PyStructSequence_Init() &lt; <span class="number">0</span>)</span><br><span class="line">    Py_FatalError(<span class="string">"Py_Initialize: can't initialize structseq"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* initialize builtin exceptions */</span></span><br><span class="line">_PyExc_Init(bimod);</span><br></pre></td></tr></table></figure>
+<h3 id="builtins"><a href="#builtins" class="headerlink" title="builtins"></a>builtins</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">    interp-&gt;modules = PyDict_New();</span><br><span class="line">    bimod = _PyBuiltin_Init();</span><br><span class="line">    _PyImport_FixupBuiltin(bimod, <span class="string">"builtins"</span>);</span><br><span class="line">    interp-&gt;builtins = PyModule_GetDict(bimod);</span><br><span class="line"></span><br><span class="line">PyObject *</span><br><span class="line">_PyBuiltin_Init(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">    mod = PyModule_Create(&amp;builtinsmodule);</span><br><span class="line">    dict = PyModule_GetDict(mod); <span class="comment">// d = ((PyModuleObject *)m) -&gt; md_dict;</span></span><br><span class="line">    <span class="meta">#<span class="meta-keyword">define</span> SETBUILTIN(NAME, OBJECT) \</span></span><br><span class="line">    <span class="keyword">if</span> (PyDict_SetItemString(dict, NAME, (PyObject *)OBJECT) &lt; <span class="number">0</span>)       \</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    SETBUILTIN(<span class="string">"None"</span>,                  Py_None);</span><br><span class="line">    SETBUILTIN(<span class="string">"type"</span>,                  &amp;PyType_Type);</span><br><span class="line">    SETBUILTIN(<span class="string">"object"</span>,                &amp;PyBaseObject_Type);</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> mod;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">PyModuleDef</span> <span class="title">builtinsmodule</span> = &#123;</span></span><br><span class="line">    PyModuleDef_HEAD_INIT,</span><br><span class="line">    <span class="string">"builtins"</span>,</span><br><span class="line">    builtin_doc,</span><br><span class="line">    ...</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>如上，创建我们已经熟悉的<code>builtins</code>，并且在其<code>__dict__</code>中放入我们熟悉的<code>type/object</code>等。<br>然后再将解释器<code>interp-&gt;builtins</code>直接指向该<code>__dict__</code>。</p>
+<p>同时在<code>_PyImport_FixupBuiltin</code>中，调用<code>_PyImport_FixupExtensionObject</code>，完成<code>extensions</code>的初始化。</p>
+<h3 id="sysmod"><a href="#sysmod" class="headerlink" title="sysmod"></a>sysmod</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">    sysmod = _PySys_Init();</span><br><span class="line">    interp-&gt;sysdict = PyModule_GetDict(sysmod);</span><br><span class="line">    _PyImport_FixupBuiltin(sysmod, <span class="string">"sys"</span>);</span><br><span class="line">    PySys_SetPath(Py_GetPath());</span><br><span class="line">    PyDict_SetItemString(interp-&gt;sysdict, <span class="string">"modules"</span>,</span><br><span class="line">                         interp-&gt;modules);</span><br><span class="line"></span><br><span class="line">PyObject *</span><br><span class="line">_PySys_Init(<span class="keyword">void</span>)&#123;</span><br><span class="line">    m = PyModule_Create(&amp;sysmodule);</span><br><span class="line">    sysdict = PyModule_GetDict(m);</span><br><span class="line">    SET_SYS_FROM_STRING(<span class="string">"hash_info"</span>,</span><br><span class="line">                    get_hash_info());</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对 sys module 进行同样的操作。此时的内存布局如下图，同样来自《Python 源码剖析》P327。<br><img src="http://t1.aixinxi.net/o_1ck4fpcmonel1te1s0117am1kva.png-w.jpg" alt="完成 sys module 创建后的内存布局"></p>
+<h3 id="stderr"><a href="#stderr" class="headerlink" title="stderr"></a>stderr</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Set up a preliminary stderr printer until we have enough</span></span><br><span class="line"><span class="comment">   infrastructure for the io module in place. */</span></span><br><span class="line">pstderr = PyFile_NewStdPrinter(fileno(<span class="built_in">stderr</span>));</span><br><span class="line"><span class="keyword">if</span> (pstderr == <span class="literal">NULL</span>)</span><br><span class="line">    Py_FatalError(<span class="string">"Py_Initialize: can't set preliminary stderr"</span>);</span><br><span class="line">_PySys_SetObjectId(&amp;PyId_stderr, pstderr);</span><br><span class="line">PySys_SetObject(<span class="string">"__stderr__"</span>, pstderr);</span><br><span class="line">Py_DECREF(pstderr);</span><br></pre></td></tr></table></figure>
+<p>恩，这就是<code>sys.__stderr__</code>的由来。</p>
+<h3 id="再次-Init"><a href="#再次-Init" class="headerlink" title="再次 Init"></a>再次 Init</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">    <span class="comment">/* interp-&gt;builtins_copy = PyDict_Copy(interp-&gt;builtins); */</span></span><br><span class="line">    _PyImport_Init();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 设置 sys.meta_path sys.path_importer_cache sys.path_hooks */</span></span><br><span class="line">    _PyImportHooks_Init();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Initialize _warnings. */</span></span><br><span class="line">    _PyWarnings_Init();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!install_importlib)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (_PyTime_Init() &lt; <span class="number">0</span>)</span><br><span class="line">        Py_FatalError(<span class="string">"Py_Initialize: can't initialize time"</span>);</span><br><span class="line"></span><br><span class="line">    import_init(interp, sysmod);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* initialize the faulthandler module */</span></span><br><span class="line">    <span class="keyword">if</span> (_PyFaulthandler_Init())</span><br><span class="line">        Py_FatalError(<span class="string">"Py_Initialize: can't initialize faulthandler"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (initfsencoding(interp) &lt; <span class="number">0</span>)</span><br><span class="line">        Py_FatalError(<span class="string">"Py_Initialize: unable to load the file system codec"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (install_sigs)</span><br><span class="line">        initsigs(); <span class="comment">/* Signal handling stuff, including initintr() */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (_PyTraceMalloc_Init() &lt; <span class="number">0</span>)</span><br><span class="line">        Py_FatalError(<span class="string">"Py_Initialize: can't initialize tracemalloc"</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Initialize warnings. */</span></span><br><span class="line">    <span class="keyword">if</span> (PySys_HasWarnOptions()) &#123;</span><br><span class="line">        PyObject *warnings_module = PyImport_ImportModule(<span class="string">"warnings"</span>);</span><br><span class="line">        <span class="keyword">if</span> (warnings_module == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"'import warnings' failed; traceback:\n"</span>);</span><br><span class="line">            PyErr_Print();</span><br><span class="line">        &#125;</span><br><span class="line">        Py_XDECREF(warnings_module);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="main-1"><a href="#main-1" class="headerlink" title="main"></a><strong>main</strong></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">    initmain(interp); <span class="comment">/* Module __main__ */</span></span><br><span class="line">    <span class="keyword">if</span> (initstdio() &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="comment">// 设置 sys.__stdin__、__stdout__、__stderr__</span></span><br><span class="line">        Py_FatalError(</span><br><span class="line">            <span class="string">"Py_Initialize: can't initialize sys standard streams"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">initmain(PyInterpreterState *interp)</span><br><span class="line">&#123;</span><br><span class="line">    PyObject *m, *d, *loader, *ann_dict;</span><br><span class="line">    m = PyImport_AddModule(<span class="string">"__main__"</span>);</span><br><span class="line">    d = PyModule_GetDict(m);</span><br><span class="line">    ann_dict = PyDict_New();</span><br><span class="line">    PyDict_SetItemString(d, <span class="string">"__annotations__"</span>, ann_dict);</span><br><span class="line">    PyObject *bimod = PyImport_ImportModule(<span class="string">"builtins"</span>);</span><br><span class="line">    PyDict_SetItemString(d, <span class="string">"__builtins__"</span>, bimod);</span><br><span class="line">    PyObject *loader = PyObject_GetAttrString(interp-&gt;importlib,</span><br><span class="line">                                                  <span class="string">"BuiltinImporter"</span>);</span><br><span class="line">    PyDict_SetItemString(d, <span class="string">"__loader__"</span>, loader);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PyObject *</span><br><span class="line">PyImport_AddModuleObject(PyObject *name)&#123;</span><br><span class="line">    <span class="comment">// 获取到 PyThreadState_GET()-&gt;interp-&gt;modules</span></span><br><span class="line">    PyObject *modules = PyImport_GetModuleDict();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建一个新的 PyModuleObject，m-&gt;md_name = str: __main__</span></span><br><span class="line">    m = PyModule_NewObject(name);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// interp-&gt;modules[str: __main__] = model object: __main__</span></span><br><span class="line">    PyDict_SetItem(modules, name, m);</span><br><span class="line">    <span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建了一个名字为<code>__main__</code>的module，并且在其<code>__dict__</code>中放入了一些属性。</p>
+<h3 id="initsite"><a href="#initsite" class="headerlink" title="initsite"></a>initsite</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">    <span class="keyword">if</span> (!Py_NoSiteFlag)</span><br><span class="line">        initsite(); <span class="comment">/* Module site */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">initsite(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">    PyObject *m;</span><br><span class="line">    m = PyImport_ImportModule(<span class="string">"site"</span>);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// PyImport_ImportModule -&gt; PyImport_Import</span></span><br></pre></td></tr></table></figure>
+<p>在前面 sysmod 中，有一个步骤是<code>PySys_SetPath(Py_GetPath());</code>，它完成了 Python 模块加载路径的设置。但完成第三方库搜索路径设置，还是在<code>PyImport_Import</code>中。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">PyObject *</span><br><span class="line">PyImport_Import(PyObject *module_name)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* Initialize constant string objects */</span></span><br><span class="line">    import_str = PyUnicode_InternFromString(<span class="string">"__import__"</span>);</span><br><span class="line">    builtins_str = PyUnicode_InternFromString(<span class="string">"__builtins__"</span>);</span><br><span class="line">    silly_list = PyList_New(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the builtins from current globals */</span></span><br><span class="line">    builtins = PyImport_ImportModuleLevel(<span class="string">"builtins"</span>,</span><br><span class="line">                                          <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="number">0</span>);</span><br><span class="line">    globals = Py_BuildValue(<span class="string">"&#123;OO&#125;"</span>, builtins_str, builtins);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">import</span> = PyObject_GetItem(builtins, import_str);</span><br><span class="line"></span><br><span class="line">    r = PyObject_CallFunction(<span class="keyword">import</span>, <span class="string">"OOOOi"</span>, module_name, globals,</span><br><span class="line">                              globals, silly_list, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">return</span> r;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在此处导入了模块 site.py 。好高兴，终于看见一个 py 文件了~~</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// site.py</span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">Append module search paths for third-party packages to sys.path.</span></span><br><span class="line"><span class="string">* This module is automatically imported during initialization. *</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">On Unix (including Mac OSX), it starts with sys.prefix and sys.exec_prefix</span></span><br><span class="line"><span class="string">(if different) and appends lib/python&lt;version&gt;/site-packages.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">On other platforms (such as Windows), it tries each of the</span></span><br><span class="line"><span class="string">prefixes directly, as well as with lib/site-packages appended.</span></span><br><span class="line"><span class="string">"""</span></span><br></pre></td></tr></table></figure>
+<p>从注释中能发现，根据不同平台，把不同的路径加入到 sys.path 中。具体内容可以参考源文件。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>在<code>_Py_InitializeEx_Private</code>经过漫长的步骤后，终于完成了初始化工作，跳转到 <a href="#main">main</a> 继续运行。看图：<br><img src="http://t1.aixinxi.net/o_1ck4fqgv21s69g753o81agg1073a.png-w.jpg" alt="完成初始化后的环境"></p>
+<h2 id="run"><a href="#run" class="headerlink" title="run"></a>run</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">run_command(command, &amp;cf);  -&gt; PyRun_SimpleStringFlags -&gt; PyRun_StringFlags</span><br><span class="line">    -&gt; run_mod -&gt; PyEval_EvalCode -&gt; PyEval_EvalCodeEx -&gt; 执行字节码</span><br><span class="line"></span><br><span class="line">run_file(fp, filename, &amp;cf); -&gt; PyRun_AnyFileExFlags -&gt; PyRun_InteractiveLoopFlags</span><br><span class="line">    -&gt; PyRun_InteractiveOneObjectEx -&gt; 进入交互式环境 -&gt; run_mod</span><br><span class="line"></span><br><span class="line">run_file(fp, filename, &amp;cf); -&gt; PyRun_AnyFileExFlags -&gt; PyRun_SimpleFileExFlags</span><br><span class="line">    -&gt; PyRun_FileExFlags -&gt; run_mod -&gt; PyEval_EvalCode -&gt; 执行字节码</span><br></pre></td></tr></table></figure>
+<p> Python 环境初始化完成后，根据参数的不同，进入不同的模式。从上面的调用链可以发现，最后必然都殊途同归，进入到字节码的执行环节，区别就在与字节码的获取方式不一样。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CPython3-6源码/" rel="tag"># CPython3.6源码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/" rel="next" title="【CPython3.6源码分析】Python 自定义类">
+                <i class="fa fa-chevron-left"></i> 【CPython3.6源码分析】Python 自定义类
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/" rel="prev" title="【CPython3.6源码分析】Python 多线程机制">
+                【CPython3.6源码分析】Python 多线程机制 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">2.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#main"><span class="nav-number">3.</span> <span class="nav-text">main</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Py-Initialize"><span class="nav-number">4.</span> <span class="nav-text">Py_Initialize</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyRandom-Init"><span class="nav-number">4.1.</span> <span class="nav-text">_PyRandom_Init</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#InterpreterState-amp-ThreadState"><span class="nav-number">4.2.</span> <span class="nav-text">InterpreterState &amp; ThreadState</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReayType-amp-Init"><span class="nav-number">4.3.</span> <span class="nav-text">ReayType &amp; Init</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#builtins"><span class="nav-number">4.4.</span> <span class="nav-text">builtins</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sysmod"><span class="nav-number">4.5.</span> <span class="nav-text">sysmod</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stderr"><span class="nav-number">4.6.</span> <span class="nav-text">stderr</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#再次-Init"><span class="nav-number">4.7.</span> <span class="nav-text">再次 Init</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#main-1"><span class="nav-number">4.8.</span> <span class="nav-text">main</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initsite"><span class="nav-number">4.9.</span> <span class="nav-text">initsite</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">4.10.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#run"><span class="nav-number">5.</span> <span class="nav-text">run</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">He11oLx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a></div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/';
+          this.page.identifier = '2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/';
+          this.page.title = '【CPython3.6源码分析】Python 环境初始化';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

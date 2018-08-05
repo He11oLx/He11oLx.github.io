@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CPython3.6源码,PyListObject," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="参考 List Objects  前言123Another generally useful object type is a list of object pointers.This is a mutable type: the list items can be changed, and items can beadded or removed.  Out-of-range indices o">
+<meta name="keywords" content="CPython3.6源码,PyListObject">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【CPython3.6源码分析】PyListObject">
+<meta property="og:url" content="http://he11olx.com/2018/07/15/1.CPython3.6源码分析/1.3.Python列表对象/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考 List Objects  前言123Another generally useful object type is a list of object pointers.This is a mutable type: the list items can be changed, and items can beadded or removed.  Out-of-range indices o">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-08-05T07:11:46.706Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【CPython3.6源码分析】PyListObject">
+<meta name="twitter:description" content="参考 List Objects  前言123Another generally useful object type is a list of object pointers.This is a mutable type: the list items can be changed, and items can beadded or removed.  Out-of-range indices o">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/07/15/1.CPython3.6源码分析/1.3.Python列表对象/"/>
+
+
+
+
+
+  <title>【CPython3.6源码分析】PyListObject | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/15/1.CPython3.6源码分析/1.3.Python列表对象/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【CPython3.6源码分析】PyListObject</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-15T12:00:00+08:00">
+                2018-07-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/15/1.CPython3.6源码分析/1.3.Python列表对象/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/07/15/1.CPython3.6源码分析/1.3.Python列表对象/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://docs.python.org/3.6/c-api/list.html" target="_blank" rel="noopener">List Objects</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Another generally useful object type is a list of object pointers.</span><br><span class="line">This is a mutable type: the list items can be changed, and items can be</span><br><span class="line">added or removed.  Out-of-range indices or non-list objects are ignored.</span><br></pre></td></tr></table></figure>
+<p>老套路，开局一段注释：</p>
+<ul>
+<li>对象指针列表</li>
+<li>可以增删改查</li>
+<li>具有索引容错功能</li>
+</ul>
+<a id="more"></a>
+<h2 id="PyListObject"><a href="#PyListObject" class="headerlink" title="PyListObject"></a>PyListObject</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// listobject.h.23</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyObject_VAR_HEAD</span><br><span class="line">    PyObject **ob_item;</span><br><span class="line">    Py_ssize_t allocated;</span><br><span class="line">&#125; PyListObject;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ob_item contains space for 'allocated' elements.  The number</span></span><br><span class="line"><span class="comment"> * currently in use is ob_size.</span></span><br><span class="line"><span class="comment"> * Invariants:</span></span><br><span class="line"><span class="comment"> *     0 &lt;= ob_size &lt;= allocated</span></span><br><span class="line"><span class="comment"> *     len(list) == ob_size</span></span><br><span class="line"><span class="comment"> *     ob_item == NULL implies ob_size == allocated == 0</span></span><br><span class="line"><span class="comment"> * list.sort() temporarily sets allocated to -1 to detect mutations.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Items must normally not be NULL, except during construction when</span></span><br><span class="line"><span class="comment"> * the list is not yet visible outside the function that builds it.</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
+<p>如上，其中的注释很有用，其他信息：</p>
+<ul>
+<li><code>**ob_item</code> 明确是指针数组</li>
+<li>allocated 标记了容器大小，决定了内存大小</li>
+<li>ob_size 标记了元素个数</li>
+</ul>
+<h2 id="PyList-Type"><a href="#PyList-Type" class="headerlink" title="PyList_Type"></a>PyList_Type</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// listobject.c.2624</span></span><br><span class="line">PyTypeObject PyList_Type = &#123;</span><br><span class="line">    PyVarObject_HEAD_INIT(&amp;PyType_Type, <span class="number">0</span>)</span><br><span class="line">    <span class="string">"list"</span>,</span><br><span class="line">    <span class="keyword">sizeof</span>(PyListObject),</span><br><span class="line">    <span class="number">0</span>,</span><br><span class="line">    (destructor)list_dealloc,   <span class="comment">/* tp_dealloc */</span></span><br><span class="line">    PyType_GenericAlloc,          <span class="comment">/* tp_alloc */</span></span><br><span class="line">    PyType_GenericNew,            <span class="comment">/* tp_new */</span></span><br><span class="line">    (initproc)list_init,          <span class="comment">/* tp_init */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>在之前的 PyLong_Type、PyUnicode_Type中，<code>tp_new</code>都是单独定义的函数。而在<code>PyList_Type</code>中，是通用的 <code>PyType_Generic*</code> 函数。下面，我们就来看下他们的逻辑。</p>
+<h3 id="PyType-GenericNew"><a href="#PyType-GenericNew" class="headerlink" title="PyType_GenericNew"></a>PyType_GenericNew</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// typeobject.c.958</span></span><br><span class="line">PyObject *</span><br><span class="line">PyType_GenericNew(PyTypeObject *type, PyObject *args, PyObject *kwds)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> type-&gt;tp_alloc(type, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// typeobject.c.928</span></span><br><span class="line"><span class="function">PyObject * <span class="title">PyType_GenericAlloc</span><span class="params">(PyTypeObject *type, Py_ssize_t nitems)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyObject *obj;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">size_t</span> size = _PyObject_VAR_SIZE(type, nitems+<span class="number">1</span>);</span><br><span class="line">    <span class="comment">/* note that we need to add one, for the sentinel */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PyType_IS_GC(type))</span><br><span class="line">        obj = _PyObject_GC_Malloc(size);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        obj = (PyObject *)PyObject_MALLOC(size);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (obj == <span class="literal">NULL</span>));</span><br><span class="line">        <span class="keyword">return</span> PyErr_NoMemory();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(obj, <span class="string">'\0'</span>, size);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (type-&gt;tp_flags &amp; Py_TPFLAGS_HEAPTYPE)</span><br><span class="line">        Py_INCREF(type);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (type-&gt;tp_itemsize == <span class="number">0</span>)</span><br><span class="line">        (<span class="keyword">void</span>)PyObject_INIT(obj, type);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        (<span class="keyword">void</span>) PyObject_INIT_VAR((PyVarObject *)obj, type, nitems);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PyType_IS_GC(type))</span><br><span class="line">        _PyObject_GC_TRACK(obj);</span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// objimpl.h.141</span></span><br><span class="line"><span class="comment">/* Macros trading binary compatibility for speed. See also pymem.h.</span></span><br><span class="line"><span class="comment">   Note that these macros expect non-NULL object pointers.*/</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PyObject_INIT(op, typeobj) \</span></span><br><span class="line">    ( Py_TYPE(op) = (typeobj), _Py_NewReference((PyObject *)(op)), (op) )</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PyObject_INIT_VAR(op, typeobj, size) \</span></span><br><span class="line">    ( Py_SIZE(op) = (size), PyObject_INIT((op), (typeobj)) )</span><br></pre></td></tr></table></figure>
+<p>如上，具体细节不在深究，能够看出一个轮廓：</p>
+<ol>
+<li>根据 type 计算 size</li>
+<li>根据 size 调用 MALLOC</li>
+<li>调用 INIT 完成初始化</li>
+</ol>
+<h2 id="PyList-New"><a href="#PyList-New" class="headerlink" title="PyList_New"></a>PyList_New</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">PyObject* <span class="title">PyList_New</span><span class="params">(Py_ssize_t len)</span></span></span><br><span class="line">    Return value: New reference.</span><br><span class="line">    Return a <span class="keyword">new</span> <span class="built_in">list</span> of length len on success, <span class="keyword">or</span> <span class="literal">NULL</span> on failure.</span><br><span class="line"></span><br><span class="line">    Note: If len is greater than zero,</span><br><span class="line">    the returned <span class="built_in">list</span> object’s items are <span class="built_in">set</span> to <span class="literal">NULL</span>.</span><br><span class="line">    Thus you cannot use abstract API functions such as PySequence_SetItem() </span><br><span class="line">    <span class="keyword">or</span> expose the object to Python code before  setting all items to a real</span><br><span class="line">    object with PyList_SetItem().</span><br></pre></td></tr></table></figure>
+<p>上面，是来自来自<a href="https://docs.python.org/3.6/c-api/list.html#c.PyList_New" target="_blank" rel="noopener">文档</a>的API介绍，其中介绍了创建列表，设置元素的方法。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// listobject.c.104</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PyList_MAXFREELIST 80</span></span><br><span class="line"><span class="keyword">static</span> PyListObject *free_list[PyList_MAXFREELIST];</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> numfree = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// listobject.c.140</span></span><br><span class="line"><span class="function">PyObject * <span class="title">PyList_New</span><span class="params">(Py_ssize_t size)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyListObject *op;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// asert size &gt;= 0</span></span><br><span class="line">    <span class="keyword">if</span> (size &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        PyErr_BadInternalCall();</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 尝试共享 list 对象指针</span></span><br><span class="line">    <span class="keyword">if</span> (numfree) &#123;</span><br><span class="line">        numfree--;</span><br><span class="line">        op = free_list[numfree];</span><br><span class="line">        _Py_NewReference((PyObject *)op);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        op = PyObject_GC_New(PyListObject, &amp;PyList_Type);</span><br><span class="line">        <span class="keyword">if</span> (op == <span class="literal">NULL</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取真实数据地址</span></span><br><span class="line">    <span class="keyword">if</span> (size &lt;= <span class="number">0</span>)</span><br><span class="line">        op-&gt;ob_item = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        op-&gt;ob_item = (PyObject **) PyMem_Calloc(size, <span class="keyword">sizeof</span>(PyObject *));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 赋初值</span></span><br><span class="line">    Py_SIZE(op) = size;</span><br><span class="line">    op-&gt;allocated = size;</span><br><span class="line">    _PyObject_GC_TRACK(op);</span><br><span class="line">    <span class="keyword">return</span> (PyObject *) op;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，从中我们可以看到，一个数组 free_list，很容易联想到<code>共享机制</code>。通过 <code>numfree</code> 与 <code>free_list</code> 的配合，实现了列表的共享，却又不同于之前谈到的整数小对象池。此处共享的是对象的指针，但真实数据的地址是不共享的，这点也很容易明白。</p>
+<h2 id="共享机制"><a href="#共享机制" class="headerlink" title="共享机制"></a>共享机制</h2><p>如上，free_list 与 small_ints 类似，都是提供对象缓冲池，但又不完全一样。</p>
+<ul>
+<li>小整数对象 small_ints 是一个数组 [-5, 256]</li>
+<li>单字节对象 characters 是一个数组 latin-1 [0 - 255]</li>
+<li>UnicodeObject interned 是一个弱引用的对象字典</li>
+<li>ListObject free_list 是一个数组，存放着80个销毁的对象</li>
+</ul>
+<h2 id="list-dealloc"><a href="#list-dealloc" class="headerlink" title="list_dealloc"></a>list_dealloc</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/listobject.c/313行</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">list_dealloc</span><span class="params">(PyListObject *op)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Py_ssize_t i;</span><br><span class="line">    PyObject_GC_UnTrack(op);</span><br><span class="line">    Py_TRASHCAN_SAFE_BEGIN(op)</span><br><span class="line">    <span class="keyword">if</span> (op-&gt;ob_item != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        i = Py_SIZE(op);</span><br><span class="line">        <span class="keyword">while</span> (--i &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            Py_XDECREF(op-&gt;ob_item[i]);</span><br><span class="line">        &#125;</span><br><span class="line">        PyMem_FREE(op-&gt;ob_item);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (numfree &lt; PyList_MAXFREELIST &amp;&amp; PyList_CheckExact(op))</span><br><span class="line">        free_list[numfree++] = op;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        Py_TYPE(op)-&gt;tp_free((PyObject *)op);</span><br><span class="line">    Py_TRASHCAN_SAFE_END(op)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，PyList_Type 中定义了 <code>tp_dealloc</code> 为 list_dealloc，在代码中可以看见：</p>
+<ul>
+<li>对元素进行循环处理：减引用</li>
+<li>对 ob_item 指针进行释放</li>
+<li>尝试加入缓冲池 free_list</li>
+</ul>
+<h2 id="CRUD"><a href="#CRUD" class="headerlink" title="CRUD"></a>CRUD</h2><p>在 PyList_New 中，很明确的指出创建对象后要先调用 <code>PyList_SetItem</code></p>
+<h3 id="PyList-SetItem"><a href="#PyList-SetItem" class="headerlink" title="PyList_SetItem"></a>PyList_SetItem</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">PyList_SetItem</span><span class="params">(PyObject *<span class="built_in">list</span>, Py_ssize_t index, PyObject *item)</span></span></span><br><span class="line">    Set the item at index index in list to item. </span><br><span class="line">    Return <span class="number">0</span> on success <span class="keyword">or</span> <span class="number">-1</span> on failure.</span><br><span class="line"></span><br><span class="line">    Note: This function “steals” a reference to item <span class="keyword">and</span></span><br><span class="line">    discards a reference to an item already in the <span class="built_in">list</span> at</span><br><span class="line">    the affected position.</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">PyList_SET_ITEM</span><span class="params">(PyObject *<span class="built_in">list</span>, Py_ssize_t i, PyObject *o)</span></span></span><br><span class="line">    Macro form of PyList_SetItem() without error checking.</span><br><span class="line">    This is normally only used to fill in <span class="keyword">new</span> lists where </span><br><span class="line">    there is no previous content.</span><br><span class="line"></span><br><span class="line">    Note: This macro “steals” a reference to item, <span class="keyword">and</span>, unlike</span><br><span class="line">    PyList_SetItem(), does <span class="keyword">not</span> discard a reference to any item</span><br><span class="line">    that is being replaced;</span><br><span class="line">    any reference in <span class="built_in">list</span> at position i will be leaked.</span><br></pre></td></tr></table></figure>
+<p><a href="https://docs.python.org/3.6/c-api/list.html#c.PyList_SetItem" target="_blank" rel="noopener">文档</a>中，指出设置元素的方式，并且指明引用计数的处理原则。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PyList_SET_ITEM(op, i, v) (((PyListObject *)(op))-&gt;ob_item[i] = (v))</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// listobject.c.218</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">PyList_SetItem</span><span class="params">(PyObject *op, Py_ssize_t i, PyObject *newitem)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyObject **p;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// op 类型检查</span></span><br><span class="line">    <span class="keyword">if</span> (!PyList_Check(op)) &#123;</span><br><span class="line">        Py_XDECREF(newitem);</span><br><span class="line">        PyErr_BadInternalCall();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 索引值容错</span></span><br><span class="line">    <span class="keyword">if</span> (i &lt; <span class="number">0</span> || i &gt;= Py_SIZE(op)) &#123;</span><br><span class="line">        Py_XDECREF(newitem);</span><br><span class="line">        PyErr_SetString(PyExc_IndexError, </span><br><span class="line">                        <span class="string">"list assignment index out of range"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 对象指针引用</span></span><br><span class="line">    p = ((PyListObject *)op) -&gt; ob_item + i;</span><br><span class="line">    Py_XSETREF(*p, newitem);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// object.h.882</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> Py_XSETREF(op, op2)                     \</span></span><br><span class="line">    <span class="keyword">do</span> &#123;                                        \</span><br><span class="line">        PyObject *_py_tmp = (PyObject *)(op);   \</span><br><span class="line">        (op) = (op2);                           \</span><br><span class="line">        Py_XDECREF(_py_tmp);                    \</span><br><span class="line">    &#125; <span class="keyword">while</span> (<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+<p>如上，对元素进行赋值操作，单纯的进行了对象指针赋值操作，时间复杂度O(1)。</p>
+<p>需要注意的是，如上文所述，在指针替换的过程中，只减少了原地址的引用，并未增加 newitem 的引用数。</p>
+<h3 id="PyList-GetItem"><a href="#PyList-GetItem" class="headerlink" title="PyList_GetItem"></a>PyList_GetItem</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">PyObject* <span class="title">PyList_GetItem</span><span class="params">(PyObject *<span class="built_in">list</span>, Py_ssize_t index)</span></span></span><br><span class="line">    Return value: Borrowed reference.</span><br><span class="line"></span><br><span class="line">    Return the object at position index in the <span class="built_in">list</span> pointed to by <span class="built_in">list</span>. </span><br><span class="line">    The position must be positive, </span><br><span class="line">    indexing from the end of the <span class="built_in">list</span> is <span class="keyword">not</span> supported. </span><br><span class="line">    If index is out of bounds, <span class="keyword">return</span> <span class="literal">NULL</span> <span class="keyword">and</span> <span class="built_in">set</span> an IndexError exception.</span><br><span class="line"></span><br><span class="line">PyObject* PyList_GET_ITEM(PyObject *<span class="built_in">list</span>, Py_ssize_t i)</span><br><span class="line">    Return value: Borrowed reference.</span><br><span class="line"></span><br><span class="line">    Macro form of PyList_GetItem() without error checking.</span><br></pre></td></tr></table></figure>
+<p>文档中也指出了获取元素的方式，其中一个是宏实现。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PyList_GET_ITEM(op, i) (((PyListObject *)(op))-&gt;ob_item[i])</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Objects/listobject.c/198行</span></span><br><span class="line"><span class="function">PyObject * <span class="title">PyList_GetItem</span><span class="params">(PyObject *op, Py_ssize_t i)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 类型检查(略)</span></span><br><span class="line">    <span class="keyword">if</span> (i &lt; <span class="number">0</span> || i &gt;= Py_SIZE(op)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (indexerr == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            indexerr = PyUnicode_FromString(</span><br><span class="line">                <span class="string">"list index out of range"</span>);</span><br><span class="line">            <span class="keyword">if</span> (indexerr == <span class="literal">NULL</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        PyErr_SetObject(PyExc_IndexError, indexerr);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ((PyListObject *)op) -&gt; ob_item[i];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，函数<code>PyList_GetItem</code>会进行容错处理。最终按索引进行数组取值，时间复杂度O(1)</p>
+<h3 id="PyList-Insert"><a href="#PyList-Insert" class="headerlink" title="PyList_Insert"></a>PyList_Insert</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// listobject.c.272</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">PyList_Insert</span><span class="params">(PyObject *op, Py_ssize_t where, PyObject *newitem)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 类型检查(略)</span></span><br><span class="line">    <span class="keyword">return</span> ins1((PyListObject *)op, where, newitem);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// listobject.c.239</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">ins1</span><span class="params">(PyListObject *self, Py_ssize_t where, PyObject *v)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Py_ssize_t i, n = Py_SIZE(self);</span><br><span class="line">    PyObject **items;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//　容错处理</span></span><br><span class="line">    <span class="keyword">if</span> (v == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        PyErr_BadInternalCall();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (n == PY_SSIZE_T_MAX) &#123;</span><br><span class="line">        PyErr_SetString(PyExc_OverflowError,</span><br><span class="line">            <span class="string">"cannot add more objects to list"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// !!! 可能调整位置 !!!</span></span><br><span class="line">    <span class="keyword">if</span> (list_resize(self, n+<span class="number">1</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 索引正负号处理</span></span><br><span class="line">    <span class="keyword">if</span> (where &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        where += n;</span><br><span class="line">        <span class="keyword">if</span> (where &lt; <span class="number">0</span>)</span><br><span class="line">            where = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (where &gt; n)</span><br><span class="line">        where = n;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 移动元素</span></span><br><span class="line">    items = self-&gt;ob_item;</span><br><span class="line">    <span class="keyword">for</span> (i = n; --i &gt;= where; )</span><br><span class="line">        items[i+<span class="number">1</span>] = items[i];</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 插入值</span></span><br><span class="line">    Py_INCREF(v);</span><br><span class="line">    items[where] = v;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，对数组进行插值大概可以分为几部分，从中可以看出：</p>
+<ul>
+<li>索引 where 支持负值，支持大于元素个数的值</li>
+<li>调用 list_resize 可能会调整位置</li>
+<li>插入值，会产生移动操作。时间复杂度O(n)</li>
+</ul>
+<h3 id="list-resize"><a href="#list-resize" class="headerlink" title="list_resize"></a>list_resize</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// listobject.c.25</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">list_resize</span><span class="params">(PyListObject *self, Py_ssize_t newsize)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyObject **items;</span><br><span class="line">    <span class="keyword">size_t</span> new_allocated;</span><br><span class="line">    Py_ssize_t allocated = self-&gt;allocated;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果足够大，就减小</span></span><br><span class="line">    <span class="keyword">if</span> (allocated &gt;= newsize &amp;&amp; newsize &gt;= (allocated &gt;&gt; <span class="number">1</span>)) &#123;</span><br><span class="line">        assert(self-&gt;ob_item != <span class="literal">NULL</span> || newsize == <span class="number">0</span>);</span><br><span class="line">        Py_SIZE(self) = newsize;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 计算新的需要</span></span><br><span class="line">    new_allocated = (newsize &gt;&gt; <span class="number">3</span>) + (newsize &lt; <span class="number">9</span> ? <span class="number">3</span> : <span class="number">6</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* check for integer overflow */</span></span><br><span class="line">    <span class="keyword">if</span> (new_allocated &gt; SIZE_MAX - newsize) &#123;</span><br><span class="line">        PyErr_NoMemory();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        new_allocated += newsize;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (newsize == <span class="number">0</span>)</span><br><span class="line">        new_allocated = <span class="number">0</span>;</span><br><span class="line">    items = self-&gt;ob_item;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 调整大小</span></span><br><span class="line">    <span class="keyword">if</span> (new_allocated &lt;= (SIZE_MAX / <span class="keyword">sizeof</span>(PyObject *)))</span><br><span class="line">        PyMem_RESIZE(items, PyObject *, new_allocated);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        items = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">if</span> (items == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        PyErr_NoMemory();</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 赋值</span></span><br><span class="line">    self-&gt;ob_item = items;</span><br><span class="line">    Py_SIZE(self) = newsize;</span><br><span class="line">    self-&gt;allocated = new_allocated;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">调用链：</span><br><span class="line"><span class="keyword">if</span> (list_resize(self, n+<span class="number">1</span>) &lt; <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br></pre></td></tr></table></figure>
+<p>如上，list_resize 接收一个 list对 象指针以及新的size值，成功返回0，失败返回-1。具体分析，见下文的伪代码</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">list_resize</span><span class="params">(*self, newsize)</span>:</span></span><br><span class="line">    allocated = self.allocated</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> newsize == <span class="number">0</span>:</span><br><span class="line">        new_allocated = <span class="number">0</span></span><br><span class="line">    <span class="keyword">elif</span> allocated /<span class="number">2</span> &lt;= newsize  &lt;= allocated：</span><br><span class="line">        self.size = newsize</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        new_allocated = newsize + newsize / <span class="number">8</span> + (<span class="number">3</span> <span class="keyword">if</span> newsize&lt;<span class="number">9</span> <span class="keyword">else</span> <span class="number">6</span>)</span><br><span class="line"></span><br><span class="line">    PyMem_RESIZE(items, PyObject *, new_allocated);</span><br><span class="line">    self-&gt;ob_item = items;</span><br><span class="line">    Py_SIZE(self) = newsize;</span><br><span class="line">    self-&gt;allocated = new_allocated;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+<p>PyMem_RESIZE，调用 PyMem_REALLOC，实现最终的重新分配内存空间。</p>
+<h3 id="PyList-Append"><a href="#PyList-Append" class="headerlink" title="PyList_Append"></a>PyList_Append</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Objects/listobject.c/282行</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">int</span></span><br><span class="line">app1(PyListObject *self, PyObject *v)</span><br><span class="line">&#123;</span><br><span class="line">    Py_ssize_t n = PyList_GET_SIZE(self);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (list_resize(self, n+<span class="number">1</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    Py_INCREF(v);</span><br><span class="line">    PyList_SET_ITEM(self, n, v);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span></span><br><span class="line">PyList_Append(PyObject *op, PyObject *newitem)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (PyList_Check(op) &amp;&amp; (newitem != <span class="literal">NULL</span>))</span><br><span class="line">        <span class="keyword">return</span> app1((PyListObject *)op, newitem);</span><br><span class="line">    PyErr_BadInternalCall();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，append -&gt; app1 -&gt; list_resize -&gt; PyList_SET_ITEM<br>若 list_resize 不触发 PyMem_RESIZE()，时间复杂度为 O(1)</p>
+<h3 id="PyList-GetSlice-list-slice"><a href="#PyList-GetSlice-list-slice" class="headerlink" title="PyList_GetSlice(list_slice)"></a>PyList_GetSlice(list_slice)</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// listobject.c.458</span></span><br><span class="line">PyObject *</span><br><span class="line">PyList_GetSlice(PyObject *a, Py_ssize_t ilow, Py_ssize_t ihigh)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 类型检查(略)</span></span><br><span class="line">    <span class="keyword">return</span> list_slice((PyListObject *)a, ilow, ihigh);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// listobject.c.428</span></span><br><span class="line"><span class="keyword">static</span> PyObject * </span><br><span class="line">list_slice(PyListObject *a, Py_ssize_t ilow, Py_ssize_t ihigh)</span><br><span class="line">&#123;</span><br><span class="line">    PyListObject *np;</span><br><span class="line">    PyObject **src, **dest;</span><br><span class="line">    Py_ssize_t i, len;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 边界处理</span></span><br><span class="line">    <span class="keyword">if</span> (ilow &lt; <span class="number">0</span>)</span><br><span class="line">        ilow = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (ilow &gt; Py_SIZE(a))</span><br><span class="line">        ilow = Py_SIZE(a);</span><br><span class="line">    <span class="keyword">if</span> (ihigh &lt; ilow)</span><br><span class="line">        ihigh = ilow;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (ihigh &gt; Py_SIZE(a))</span><br><span class="line">        ihigh = Py_SIZE(a);</span><br><span class="line">    len = ihigh - ilow;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 新对象</span></span><br><span class="line">    np = (PyListObject *) PyList_New(len);</span><br><span class="line">    <span class="keyword">if</span> (np == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    src = a-&gt;ob_item + ilow;</span><br><span class="line">    dest = np-&gt;ob_item;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 拷贝数据指针</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        PyObject *v = src[i];</span><br><span class="line">        Py_INCREF(v);</span><br><span class="line">        dest[i] = v;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (PyObject *)np;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，对List 切片取值。其中需要注意的是，在数据拷贝过程中，拷贝的是指针，实现的是 浅拷贝。</p>
+<h3 id="PyList-SetSlice-list-ass-slice"><a href="#PyList-SetSlice-list-ass-slice" class="headerlink" title="PyList_SetSlice(list_ass_slice)"></a>PyList_SetSlice(list_ass_slice)</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span></span><br><span class="line">PyList_SetSlice(PyObject *a,</span><br><span class="line">                Py_ssize_t ilow, </span><br><span class="line">                Py_ssize_t ihigh, PyObject *v)</span><br><span class="line">&#123;</span><br><span class="line">        ...    <span class="comment">// 类型检查</span></span><br><span class="line">    <span class="keyword">return</span> list_ass_slice((PyListObject *)a, ilow, ihigh, v);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// listobject.c.569</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">int</span></span><br><span class="line">list_ass_slice(PyListObject *a, </span><br><span class="line">               Py_ssize_t ilow, Py_ssize_t ihigh, </span><br><span class="line">               PyObject *v)</span><br><span class="line">&#123;</span><br><span class="line">    PyObject *recycle_on_stack[<span class="number">8</span>];</span><br><span class="line">    <span class="comment">/* can allocate more if needed */</span></span><br><span class="line">    PyObject **recycle = recycle_on_stack; </span><br><span class="line">    PyObject **item;</span><br><span class="line">    PyObject **vitem = <span class="literal">NULL</span>;</span><br><span class="line">    PyObject *v_as_SF = <span class="literal">NULL</span>; <span class="comment">/* PySequence_Fast(v) */</span></span><br><span class="line">    Py_ssize_t n;         <span class="comment">/* # of elements in replacement list */</span></span><br><span class="line">    Py_ssize_t norig;     <span class="comment">/* # of elements in list getting replaced */</span></span><br><span class="line">    Py_ssize_t d;         <span class="comment">/* Change in size */</span></span><br><span class="line">    Py_ssize_t k;</span><br><span class="line">    <span class="keyword">size_t</span> s;</span><br><span class="line">    <span class="keyword">int</span> result = <span class="number">-1</span>;            <span class="comment">/* guilty until proved innocent */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> b ((PyListObject *)v)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// v = NULL，不执行操作</span></span><br><span class="line">    <span class="keyword">if</span> (v == <span class="literal">NULL</span>)</span><br><span class="line">        n = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (a == b) &#123;</span><br><span class="line">            <span class="comment">/* Special case "a[i:j] = a" -- copy b first */</span></span><br><span class="line">            v = list_slice(b, <span class="number">0</span>, Py_SIZE(b));</span><br><span class="line">            <span class="keyword">if</span> (v == <span class="literal">NULL</span>)</span><br><span class="line">                <span class="keyword">return</span> result;</span><br><span class="line">            result = list_ass_slice(a, ilow, ihigh, v);</span><br><span class="line">            Py_DECREF(v);</span><br><span class="line">            <span class="keyword">return</span> result;</span><br><span class="line">        &#125;</span><br><span class="line">        v_as_SF = PySequence_Fast(v, <span class="string">"can only assign an iterable"</span>);</span><br><span class="line">        n = PySequence_Fast_GET_SIZE(v_as_SF);</span><br><span class="line">        vitem = PySequence_Fast_ITEMS(v_as_SF);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 边界处理（略）</span></span><br><span class="line">    ilow = ?</span><br><span class="line">    ihigh = ?</span><br><span class="line">    norig = ihigh - ilow;</span><br><span class="line">    assert(norig&gt;= <span class="number">0</span>);</span><br><span class="line">    d = n - norig;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// a[:] = [] 清空</span></span><br><span class="line">    <span class="keyword">if</span> (Py_SIZE(a) + d == <span class="number">0</span>) &#123;</span><br><span class="line">        Py_XDECREF(v_as_SF);</span><br><span class="line">        <span class="keyword">return</span> list_clear(a);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建临时数据 recycle</span></span><br><span class="line">    item = a-&gt;ob_item;</span><br><span class="line">    <span class="comment">/* recycle the items that we are about to remove */</span></span><br><span class="line">    s = norig * <span class="keyword">sizeof</span>(PyObject *);</span><br><span class="line">    <span class="comment">/* If norig == 0, item might be NULL,</span></span><br><span class="line"><span class="comment">       in which case we may not memcpy from it. */</span></span><br><span class="line">    <span class="keyword">if</span> (s) &#123;</span><br><span class="line">        <span class="keyword">if</span> (s &gt; <span class="keyword">sizeof</span>(recycle_on_stack)) &#123;</span><br><span class="line">            recycle = (PyObject **)PyMem_MALLOC(s);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">memcpy</span>(recycle, &amp;item[ilow], s);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 形如 a[1:10] = [1,2]</span></span><br><span class="line">    <span class="keyword">if</span> (d &lt; <span class="number">0</span>) &#123; <span class="comment">/* Delete -d items */</span></span><br><span class="line">        Py_ssize_t tail;</span><br><span class="line">        tail = (Py_SIZE(a) - ihigh) * <span class="keyword">sizeof</span>(PyObject *);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 左移 a[ihigh:]，减少空位</span></span><br><span class="line">        memmove(&amp;item[ihigh+d], &amp;item[ihigh], tail);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 拷贝后，尝试 resieze</span></span><br><span class="line">        <span class="keyword">if</span> (list_resize(a, Py_SIZE(a) + d) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// 失败后恢复 recycle</span></span><br><span class="line">            memmove(&amp;item[ihigh], &amp;item[ihigh+d], tail);</span><br><span class="line">            <span class="built_in">memcpy</span>(&amp;item[ilow], recycle, s);</span><br><span class="line">            <span class="keyword">goto</span> Error;</span><br><span class="line">        &#125;</span><br><span class="line">        item = a-&gt;ob_item;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 形如 a[0:2] =[1,2,3,4]</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (d &gt; <span class="number">0</span>) &#123; <span class="comment">/* Insert d items */</span></span><br><span class="line">        k = Py_SIZE(a);</span><br><span class="line">        <span class="keyword">if</span> (list_resize(a, k+d) &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">goto</span> Error;</span><br><span class="line">        item = a-&gt;ob_item;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 右移 a[ihigh:]，腾出位置</span></span><br><span class="line">        memmove(&amp;item[ihigh+d], </span><br><span class="line">                &amp;item[ihigh], </span><br><span class="line">                (k - ihigh)*<span class="keyword">sizeof</span>(PyObject *));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 拷贝 v 的值指针到 a</span></span><br><span class="line">    <span class="keyword">for</span> (k = <span class="number">0</span>; k &lt; n; k++, ilow++) &#123;</span><br><span class="line">        PyObject *w = vitem[k];</span><br><span class="line">        Py_XINCREF(w);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 注意，从 ilow 开始</span></span><br><span class="line">        item[ilow] = w;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 释放 recycle</span></span><br><span class="line">    <span class="keyword">for</span> (k = norig - <span class="number">1</span>; k &gt;= <span class="number">0</span>; --k)</span><br><span class="line">        Py_XDECREF(recycle[k]);</span><br><span class="line">    result = <span class="number">0</span>;</span><br><span class="line"> Error:</span><br><span class="line">    <span class="keyword">if</span> (recycle != recycle_on_stack)</span><br><span class="line">        PyMem_FREE(recycle);</span><br><span class="line">    Py_XDECREF(v_as_SF);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">undef</span> b</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当执行 <code>a[low:high] = v</code> 时，调用 <code>SetSlice</code> 方法，具体执行逻辑见注释内容。</p>
+<p>从源码中，能分析出一些执行结果，伪代码如下：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">/* a[ilow:ihigh] = v <span class="keyword">if</span> v != NULL.</span><br><span class="line">   <span class="keyword">del</span> a[ilow:ihigh] <span class="keyword">if</span> v == NULL. */</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a</span><br><span class="line">[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">del</span> a[<span class="number">1</span>:<span class="number">1</span>]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a</span><br><span class="line">[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]</span><br><span class="line"></span><br><span class="line">v=NULL</span><br><span class="line">n=<span class="number">0</span></span><br><span class="line">ilow = <span class="number">1</span></span><br><span class="line">ihigh = <span class="number">1</span></span><br><span class="line">norig = ihigh - ilow = <span class="number">0</span></span><br><span class="line">d = n - norig = <span class="number">0</span></span><br><span class="line">不满足 <span class="keyword">if</span>(d) 中的任何条件，结果就是不做任何操作</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a</span><br><span class="line">[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a[<span class="number">1</span>:<span class="number">1</span>] = [<span class="number">1</span>]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a</span><br><span class="line">[<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>]</span><br><span class="line"></span><br><span class="line">v!=NULL</span><br><span class="line">n=<span class="number">1</span></span><br><span class="line">ilow = <span class="number">1</span></span><br><span class="line">ihigh = <span class="number">1</span></span><br><span class="line">norig = ihigh - ilow = <span class="number">0</span></span><br><span class="line">d = n - norig = <span class="number">1</span></span><br><span class="line">满足 <span class="keyword">if</span>(d&gt;<span class="number">0</span>)，右移腾出位置，并插入a[ilow] = <span class="number">1</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="listremove"><a href="#listremove" class="headerlink" title="listremove"></a>listremove</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// listobject.c.2193</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> PyObject * <span class="title">listremove</span><span class="params">(PyListObject *self, PyObject *v)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    Py_ssize_t i;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; Py_SIZE(self); i++) &#123;</span><br><span class="line">        <span class="keyword">int</span> cmp = PyObject_RichCompareBool(self-&gt;ob_item[i], v, Py_EQ);</span><br><span class="line">        <span class="keyword">if</span> (cmp &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (list_ass_slice(self, i, i+<span class="number">1</span>,</span><br><span class="line">                               (PyObject *)<span class="literal">NULL</span>) == <span class="number">0</span>)</span><br><span class="line">                Py_RETURN_NONE;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (cmp &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    PyErr_SetString(PyExc_ValueError, <span class="string">"list.remove(x): x not in list"</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由上，可以看出，删除元素是通过 list_ass_slice 实现：</p>
+<ul>
+<li>仅删除第一个遇见的元素，删除一个不在其中的元素，会报错</li>
+<li>删除是通过遍历实现，时间复杂度 O(n)</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>PyListObject 也利用了缓冲池机制，只缓冲对象，不缓冲数据。</p>
+<p>下面是粗略的时间复杂度( list_resize 不涉及到 移动时)：</p>
+<ul>
+<li>SetItem    -    O(1)</li>
+<li>GetItem    -    O(1)</li>
+<li>Append    -    O(1)</li>
+<li>Insert        -    O(n)，对象移动</li>
+<li>GetSlice    -    O(high - low)，创建新对象，拷贝指针</li>
+<li>SetSlice    -     O(n)，对象移动，拷贝指针</li>
+<li>Remove   -     O(n)，遍历，对象移动</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CPython3-6源码/" rel="tag"># CPython3.6源码</a>
+          
+            <a href="/tags/PyListObject/" rel="tag"># PyListObject</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/15/1.CPython3.6源码分析/1.2.Python字符对象/" rel="next" title="【CPython3.6源码分析】PyBytesObject/PyUnicodeObject">
+                <i class="fa fa-chevron-left"></i> 【CPython3.6源码分析】PyBytesObject/PyUnicodeObject
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/15/1.CPython3.6源码分析/1.4.Python字典对象/" rel="prev" title="【CPython3.6源码分析】PyDictObject">
+                【CPython3.6源码分析】PyDictObject <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">2.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyListObject"><span class="nav-number">3.</span> <span class="nav-text">PyListObject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyList-Type"><span class="nav-number">4.</span> <span class="nav-text">PyList_Type</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyType-GenericNew"><span class="nav-number">4.1.</span> <span class="nav-text">PyType_GenericNew</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyList-New"><span class="nav-number">5.</span> <span class="nav-text">PyList_New</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#共享机制"><span class="nav-number">6.</span> <span class="nav-text">共享机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#list-dealloc"><span class="nav-number">7.</span> <span class="nav-text">list_dealloc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CRUD"><span class="nav-number">8.</span> <span class="nav-text">CRUD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyList-SetItem"><span class="nav-number">8.1.</span> <span class="nav-text">PyList_SetItem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyList-GetItem"><span class="nav-number">8.2.</span> <span class="nav-text">PyList_GetItem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyList-Insert"><span class="nav-number">8.3.</span> <span class="nav-text">PyList_Insert</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#list-resize"><span class="nav-number">8.4.</span> <span class="nav-text">list_resize</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyList-Append"><span class="nav-number">8.5.</span> <span class="nav-text">PyList_Append</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyList-GetSlice-list-slice"><span class="nav-number">8.6.</span> <span class="nav-text">PyList_GetSlice(list_slice)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyList-SetSlice-list-ass-slice"><span class="nav-number">8.7.</span> <span class="nav-text">PyList_SetSlice(list_ass_slice)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#listremove"><span class="nav-number">8.8.</span> <span class="nav-text">listremove</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">9.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">He11oLx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a></div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/07/15/1.CPython3.6源码分析/1.3.Python列表对象/';
+          this.page.identifier = '2018/07/15/1.CPython3.6源码分析/1.3.Python列表对象/';
+          this.page.title = '【CPython3.6源码分析】PyListObject';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

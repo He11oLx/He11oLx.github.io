@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CPython3.6源码,内存管理," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="参考 PEP445 default-memory-allocators  内存策略1234567891011121314151617181920212223242526An object allocator for Python.   Here is an introduction to the layers of the Python memory architecture,   showing">
+<meta name="keywords" content="CPython3.6源码,内存管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【CPython3.6源码分析】Python 内存管理机制">
+<meta property="og:url" content="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考 PEP445 default-memory-allocators  内存策略1234567891011121314151617181920212223242526An object allocator for Python.   Here is an introduction to the layers of the Python memory architecture,   showing">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4fcarfh5r1ftgo23lo41ieda.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4ffj5b1vmh1ief15h3ookre0a.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4fgon5i9o1a991hqm5oeelja.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4fhhum1hjdul71s5c7vn1h2ma.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4fcarfh5r1ftgo23lo41ieda.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4ffj5b1vmh1ief15h3ookre0a.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4fhhum1hjdul71s5c7vn1h2ma.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4fgon5i9o1a991hqm5oeelja.png-w.jpg">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1ck4fmq6f1810nd6gk3p08467a.png-w.jpg">
+<meta property="og:updated_time" content="2018-08-05T07:29:20.958Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【CPython3.6源码分析】Python 内存管理机制">
+<meta name="twitter:description" content="参考 PEP445 default-memory-allocators  内存策略1234567891011121314151617181920212223242526An object allocator for Python.   Here is an introduction to the layers of the Python memory architecture,   showing">
+<meta name="twitter:image" content="http://t1.aixinxi.net/o_1ck4fcarfh5r1ftgo23lo41ieda.png-w.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/"/>
+
+
+
+
+
+  <title>【CPython3.6源码分析】Python 内存管理机制 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【CPython3.6源码分析】Python 内存管理机制</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-05T12:00:00+08:00">
+                2018-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://www.python.org/dev/peps/pep-0445/" target="_blank" rel="noopener">PEP445</a></li>
+<li><a href="https://docs.python.org/3/c-api/memory.html#default-memory-allocators" target="_blank" rel="noopener">default-memory-allocators</a></li>
+</ul>
+<h2 id="内存策略"><a href="#内存策略" class="headerlink" title="内存策略"></a>内存策略</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">An object allocator for Python.</span><br><span class="line">   Here is an introduction to the layers of the Python memory architecture,</span><br><span class="line">   showing where the object allocator is actually used (layer +2), It is</span><br><span class="line">   called for every object allocation and deallocation (PyObject_New/Del).</span><br><span class="line">   This is also the place where the cyclic garbage collector operates</span><br><span class="line">   selectively on container objects.</span><br><span class="line">    _____   ______   ______       ________</span><br><span class="line">   [ int ] [ dict ] [ list ] ... [ string ]       Python core         |</span><br><span class="line">+3 | &lt;----- Object-specific memory -----&gt; | &lt;-- Non-object memory --&gt; |</span><br><span class="line">    _______________________________       |                           |</span><br><span class="line">   [   Python&apos;s object allocator   ]      |                           |</span><br><span class="line">+2 | ####### Object memory ####### | &lt;------ Internal buffers ------&gt; |</span><br><span class="line">    ______________________________________________________________    |</span><br><span class="line">   [          Python&apos;s raw memory allocator (PyMem_ API)          ]   |</span><br><span class="line">+1 | &lt;----- Python memory (under PyMem manager&apos;s control) ------&gt; |   |</span><br><span class="line">    __________________________________________________________________</span><br><span class="line">   [    Underlying general-purpose allocator (ex: C library malloc)   ]</span><br><span class="line"> 0 | &lt;------ Virtual memory allocated for the python process -------&gt; |</span><br><span class="line"></span><br><span class="line">   =========================================================================</span><br><span class="line">    _______________________________________________________________________</span><br><span class="line">   [                OS-specific Virtual Memory Manager (VMM)               ]</span><br><span class="line">-1 | &lt;--- Kernel dynamic storage allocation &amp; management (page-based) ---&gt; |</span><br><span class="line">    __________________________________   __________________________________</span><br><span class="line">   [                                  ] [                                  ]</span><br><span class="line">-2 | &lt;-- Physical memory: ROM/RAM --&gt; | | &lt;-- Secondary storage (swap) --&gt; |</span><br></pre></td></tr></table></figure>
+<p>通过<code>obmalloc.c</code>这段注释，我们可以获取到很多内容：</p>
+<ul>
+<li>Python 内存管理，是分层次的</li>
+<li>对象的创建、销毁、 GC 都发生在+2层</li>
+<li>在最顶层，不同的对象有着不同的分配策略</li>
+</ul>
+<p>从分层机制上看，似乎这个 allocator 不是固定的，那么是不是意味着可以自定义？<br>答案是肯定的，在 3.6 中可以通过环境变量 PYTHONMALLOC 改变分配器，甚至是自定义，<br>参考<a href="https://docs.python.org/3/using/cmdline.html#envvar-PYTHONMALLOC" target="_blank" rel="noopener">Environment variables</a>。<br><a id="more"></a></p>
+<h3 id="Default-Memory-Allocators"><a href="#Default-Memory-Allocators" class="headerlink" title="Default Memory Allocators"></a>Default Memory Allocators</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Python has a pymalloc allocator optimized for small objects (smaller or</span><br><span class="line">equal to 512 bytes) with a short lifetime. It uses memory mappings called</span><br><span class="line">“arenas” with a fixed size of 256 KiB. It falls back to PyMem_RawMalloc()</span><br><span class="line">and PyMem_RawRealloc() for allocations larger than 512 bytes.</span><br><span class="line"></span><br><span class="line">pymalloc is the default allocator of the PYMEM_DOMAIN_MEM (ex: PyMem_Malloc()) and PYMEM_DOMAIN_OBJ (ex: PyObject_Malloc()) domains.</span><br></pre></td></tr></table></figure>
+<p>如上，Py3.6 内存分配结构中，+1/+2 层都默认使用 pymalloc allocator。对 &lt;= 512字节的小对象进行了优化，共用256kb字节的“arena”空间。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">PYMEM_DOMAIN_RAW：PyMem_RawMalloc（），PyMem_RawRealloc（） ，PyMem_RawFree（）</span><br><span class="line">PYMEM_DOMAIN_MEM：PyMem_Malloc（），PyMem_Realloc（）， PyMem_Free（）</span><br><span class="line">PYMEM_DOMAIN_OBJ：PyObject_Malloc（），PyObject_Realloc（） ，PyObject_Free（）</span><br></pre></td></tr></table></figure>
+<p>目前存在 3 个 allocator 域，其中 PYMEM_DOMAIN_RAW 不需要持有GIL，另外两层默认都使用 pymalloc allocator，且必须持有 GIL。</p>
+<h3 id="1-2-层-API"><a href="#1-2-层-API" class="headerlink" title="+1/+2 层 API"></a>+1/+2 层 API</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// obmalloc.c</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="comment">/* user context passed as the first argument to the 4 functions */</span></span><br><span class="line">    <span class="keyword">void</span> *ctx;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* allocate a memory block */</span></span><br><span class="line">    <span class="keyword">void</span>* (*<span class="built_in">malloc</span>) (<span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> size);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* allocate a memory block initialized by zeros */</span></span><br><span class="line">    <span class="keyword">void</span>* (*<span class="built_in">calloc</span>) (<span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nelem, <span class="keyword">size_t</span> elsize);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* allocate or resize a memory block */</span></span><br><span class="line">    <span class="keyword">void</span>* (*<span class="built_in">realloc</span>) (<span class="keyword">void</span> *ctx, <span class="keyword">void</span> *ptr, <span class="keyword">size_t</span> new_size);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* release a memory block */</span></span><br><span class="line">    <span class="keyword">void</span> (*<span class="built_in">free</span>) (<span class="keyword">void</span> *ctx, <span class="keyword">void</span> *ptr);</span><br><span class="line">&#125; PyMemAllocatorEx;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyMemAllocatorEx _PyMem = &#123;</span><br><span class="line">    <span class="literal">NULL</span>, _PyObject_Malloc, _PyObject_Calloc, _PyObject_Realloc, _PyObject_Free</span><br><span class="line">&#125; _PyObject ;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> * <span class="title">PyMem_Malloc</span><span class="params">(<span class="keyword">size_t</span> size)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> _PyMem.<span class="built_in">malloc</span>(_PyMem.ctx, size);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> * <span class="title">PyObject_Malloc</span><span class="params">(<span class="keyword">size_t</span> size)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> _PyObject.<span class="built_in">malloc</span>(_PyObject.ctx, size);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>因为 +1/+2 层 allocator 默认是 pymalloc，所以调用的都是相同 API，PyObject_ *。</p>
+<h3 id="SMALL-REQUEST-THRESHOLD"><a href="#SMALL-REQUEST-THRESHOLD" class="headerlink" title="SMALL_REQUEST_THRESHOLD"></a>SMALL_REQUEST_THRESHOLD</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Max size threshold below which malloc requests are considered to be</span></span><br><span class="line"><span class="comment"> * small enough in order to use preallocated memory pools. You can tune</span></span><br><span class="line"><span class="comment"> * this value according to your application behaviour and memory needs.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Note: a size threshold of 512 guarantees that newly created dictionaries</span></span><br><span class="line"><span class="comment"> * will be allocated from preallocated memory pools on 64-bit.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * The following invariants must hold:</span></span><br><span class="line"><span class="comment"> *      1) ALIGNMENT &lt;= SMALL_REQUEST_THRESHOLD &lt;= 512</span></span><br><span class="line"><span class="comment"> *      2) SMALL_REQUEST_THRESHOLD is evenly divisible by ALIGNMENT</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Although not required, for better performance and space efficiency,</span></span><br><span class="line"><span class="comment"> * it is recommended that SMALL_REQUEST_THRESHOLD is set to a power of 2.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SMALL_REQUEST_THRESHOLD 512</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> NB_SMALL_SIZE_CLASSES   (SMALL_REQUEST_THRESHOLD / ALIGNMENT)</span></span><br></pre></td></tr></table></figure>
+<p><code>SMALL_REQUEST_THRESHOLD</code>变量，定义了小对象的阈值，默认为 512 字节。</p>
+<h3 id="ALIGNMENT"><a href="#ALIGNMENT" class="headerlink" title="ALIGNMENT"></a>ALIGNMENT</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Alignment of addresses returned to the user. 8-bytes alignment works</span></span><br><span class="line"><span class="comment"> * on most current architectures (with 32-bit or 64-bit address busses).</span></span><br><span class="line"><span class="comment"> * The alignment value is also used for grouping small requests in size</span></span><br><span class="line"><span class="comment"> * classes spaced ALIGNMENT bytes apart.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * You shouldn't change this unless you know what you are doing.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ALIGNMENT               8               <span class="comment">/* must be 2^N */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ALIGNMENT_SHIFT         3</span></span><br></pre></td></tr></table></figure>
+<p>定义地址对齐大小，默认为8字节对齐。同时还用作 classes 中小对象的分组，即 8 个一组。</p>
+<h3 id="分配策略摘要"><a href="#分配策略摘要" class="headerlink" title="分配策略摘要"></a>分配策略摘要</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line"> * For small requests, the allocator sub-allocates &lt;Big&gt; blocks of memory.</span><br><span class="line"> * Requests greater than SMALL_REQUEST_THRESHOLD bytes are routed to the</span><br><span class="line"> * system&apos;s allocator.</span><br><span class="line">   对于小对象，分配器将从 block 中分配，超过阈值512字节，将调用 malloc 直接分配</span><br><span class="line"></span><br><span class="line"> * Small requests are grouped in size classes spaced 8 bytes apart, due</span><br><span class="line"> * to the required valid alignment of the returned address. Requests of</span><br><span class="line"> * a particular size are serviced from memory pools of 4K (one VMM page).</span><br><span class="line"> * Pools are fragmented on demand and contain free lists of blocks of one</span><br><span class="line"> * particular size class. In other words, there is a fixed-size allocator</span><br><span class="line"> * for each size class. Free pools are shared by the different allocators</span><br><span class="line"> * thus minimizing the space reserved for a particular size class.</span><br><span class="line">   小对象，按大小进行分组，因为对齐原因，间隔8个字节，即8、16、24字节。</span><br><span class="line"></span><br><span class="line"> * For small requests we have the following table:</span><br><span class="line"> *</span><br><span class="line"> * Request in bytes     Size of allocated block      Size class idx</span><br><span class="line"> * ----------------------------------------------------------------</span><br><span class="line"> *        1-8                     8                       0</span><br><span class="line"> *        9-16                   16                       1</span><br><span class="line"> *        ...                   ...                     ...</span><br><span class="line"> *      505-512                 512                      63</span><br><span class="line"> *</span><br><span class="line"> *      0, SMALL_REQUEST_THRESHOLD + 1 and up: routed to the underlying</span><br><span class="line"> *      allocator.</span><br><span class="line"> */</span><br></pre></td></tr></table></figure>
+<p>也就是说，对于小对象，会阶段性的分配固定大小的字节数。例如 10 字节，会分配一个 idx=1, size=16字节的block。对于 0  或 大于阈值的对象，会委托给底层的 malloc 进行分配。</p>
+<h2 id="block"><a href="#block" class="headerlink" title="block"></a>block</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* When you say memory, my mind reasons in terms of (pointers to) blocks */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint8_t</span> block;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Pool for small blocks. */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> &#123;</span></span><br><span class="line">    <span class="keyword">union</span> &#123; block *_padding;</span><br><span class="line">            uint count; &#125; ref;          <span class="comment">/* number of allocated blocks    */</span></span><br><span class="line">    block *freeblock;                   <span class="comment">/* pool's free list head         */</span></span><br><span class="line">    uint szidx;                         <span class="comment">/* block size class index        */</span></span><br><span class="line">    ...</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> *<span class="title">poolp</span>;</span></span><br></pre></td></tr></table></figure>
+<p>可以发现，一个 block 就是一个地址，就是一个 pool 中的一部分。</p>
+<h2 id="Pool"><a href="#Pool" class="headerlink" title="Pool"></a>Pool</h2><h3 id="pool-结构"><a href="#pool-结构" class="headerlink" title="pool 结构"></a>pool 结构</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Size of the pools used for small blocks. Should be a power of 2,</span></span><br><span class="line"><span class="comment"> * between 1K and SYSTEM_PAGE_SIZE, that is: 1k, 2k, 4k.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SYSTEM_PAGE_SIZE        (4 * 1024)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SYSTEM_PAGE_SIZE_MASK   (SYSTEM_PAGE_SIZE - 1)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> POOL_SIZE               SYSTEM_PAGE_SIZE        <span class="comment">/* must be 2^N */</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> POOL_SIZE_MASK          SYSTEM_PAGE_SIZE_MASK</span></span><br></pre></td></tr></table></figure>
+<p>pool 是一组大小相等的 block 的集合，一个 pool 大小默认为一个系统页表大小，即 4k。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="keyword">uint8_t</span> block;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> &#123;</span></span><br><span class="line">    <span class="keyword">union</span> &#123; block *_padding;</span><br><span class="line">            uint count; &#125; ref;          <span class="comment">/* number of allocated blocks    */</span></span><br><span class="line">    block *freeblock;                   <span class="comment">/* 下一个可用 block 起始位置     */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> *<span class="title">nextpool</span>;</span>       <span class="comment">/* next pool of this size class  */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> *<span class="title">prevpool</span>;</span>       <span class="comment">/* previous pool       ""        */</span></span><br><span class="line">    uint arenaindex;                    <span class="comment">/* index into arenas of base adr */</span></span><br><span class="line">    uint szidx;                         <span class="comment">/* block size class index        */</span></span><br><span class="line">    uint nextoffset;                    <span class="comment">/* 下一个可用 block 的偏移量      */</span></span><br><span class="line">    uint maxnextoffset;                 <span class="comment">/* 最大 有效 偏移量      */</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> *<span class="title">poolp</span>;</span></span><br></pre></td></tr></table></figure>
+<p>pool_header 指向 pool 的起始位置，除了 header 本身所占空间，剩下的都是 block 可用内存。<br>pool-&gt;szidx 指定了 class size index，即指定了这个 pool 所有 block 的大小。</p>
+<h3 id="pool-状态"><a href="#pool-状态" class="headerlink" title="pool 状态"></a>pool 状态</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">used state</span><br><span class="line">    初始状态，至少有一个 block 在用，至少有一个 block 未空</span><br><span class="line">    通过 pool_header-&gt;nextpool/prevpool 组成双向链表</span><br><span class="line">    只剩一个未用时，使用 malloc 会转换为 full state</span><br><span class="line">    只剩一个在用时，使用 free 会转换为 empty state</span><br><span class="line">full state</span><br><span class="line">    全部在用</span><br><span class="line">    从 usedpools[] list 解链，不与任何东西链接在一起</span><br><span class="line">    在转换为 used state 之前，nextpool/prevpool 是没有意义的</span><br><span class="line">    在 free 之后，会转换为 used state，并重新放入 usedpools[] 表头</span><br><span class="line">empty state</span><br><span class="line">    全部未用</span><br><span class="line">    不在 usedpools[] 链上</span><br><span class="line">    其 nextpool 指向对应的 arena_object&apos;s 表头</span><br><span class="line">    prevpool 是没有意义的</span><br><span class="line">    如果下一次使用的 class size 与之前相同，就能跳过一些初始化环节</span><br></pre></td></tr></table></figure>
+<p>Pool 有三种状态，并且存在一个 usedpools[]，将可以使用的 pool，组成双向链表。</p>
+<p><span id="pool-init"></span></p>
+<h3 id="Pool-init"><a href="#Pool-init" class="headerlink" title="Pool init"></a>Pool init</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">init_pool:</span><br><span class="line">    <span class="comment">/* 处理 usedpools[] 此处略，见 Arena.usedpools */</span></span><br><span class="line">    pool-&gt;ref.count = <span class="number">1</span>;     <span class="comment">// 已分配数 1</span></span><br><span class="line">    <span class="keyword">if</span> (pool-&gt;szidx == size) &#123;</span><br><span class="line">        bp = pool-&gt;freeblock;</span><br><span class="line">        pool-&gt;freeblock = *(block **)bp;</span><br><span class="line">        <span class="keyword">if</span> (use_calloc)</span><br><span class="line">            <span class="built_in">memset</span>(bp, <span class="number">0</span>, nbytes);</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">void</span> *)bp;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 设置 class size index</span></span><br><span class="line">    pool-&gt;szidx = size;</span><br><span class="line">    <span class="comment">// 计算实际 block 大小：(size+1) &lt;&lt; ALIGNMENT_SHIFT=3</span></span><br><span class="line">    size = INDEX2SIZE(size);</span><br><span class="line">    <span class="comment">// 第一个 blcok 位置，跳过 header 部分</span></span><br><span class="line">    bp = (block *)pool + POOL_OVERHEAD;</span><br><span class="line">    <span class="comment">// 下一个可用 blcok 偏移量，跳过 头+ 1个 block</span></span><br><span class="line">    pool-&gt;nextoffset = POOL_OVERHEAD + (size &lt;&lt; <span class="number">1</span>);</span><br><span class="line">    <span class="comment">// 最大偏移量：池大小 - 最后一个 block</span></span><br><span class="line">    pool-&gt;maxnextoffset = POOL_SIZE - size;</span><br><span class="line">    <span class="comment">// 下一个可用 block 起始位置</span></span><br><span class="line">    pool-&gt;freeblock = bp + size;</span><br><span class="line">    <span class="comment">// 构建 freeblock 链表头(尾)</span></span><br><span class="line">    *(block **)(pool-&gt;freeblock) = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">if</span> (use_calloc)</span><br><span class="line">        <span class="built_in">memset</span>(bp, <span class="number">0</span>, nbytes);</span><br><span class="line">    <span class="comment">// 返回第一个 block 指针</span></span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">void</span> *)bp;</span><br></pre></td></tr></table></figure>
+<p>初始化完成后，内存布局见下图：<br><img src="http://t1.aixinxi.net/o_1ck4fcarfh5r1ftgo23lo41ieda.png-w.jpg" alt="一个 pool 初始化后的布局"><br>上图，实线是指针指向，虚线是数值等于。</p>
+<h3 id="freeblock-链表"><a href="#freeblock-链表" class="headerlink" title="freeblock 链表"></a>freeblock 链表</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">*(block **)p = lastfree = pool-&gt;freeblock;</span><br><span class="line">pool-&gt;freeblock = (block *)p;</span><br></pre></td></tr></table></figure>
+<p>释放 block 时，pool-&gt;freeblock 指向下一个可用的 block 起始位置，但 <code>*freeblock</code>为 NULL。<br>将要释放的 p，所指向地址的值 <code>*p</code>设置为 freeblock。通过一种巧妙地利用删除了的 block，构建链表。见图：<br><img src="http://t1.aixinxi.net/o_1ck4ffj5b1vmh1ief15h3ookre0a.png-w.jpg" alt="释放了 block 后的自由 block 链表"></p>
+<h2 id="Arena"><a href="#Arena" class="headerlink" title="Arena"></a>Arena</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ARENA_SIZE              (256 &lt;&lt; 10)     <span class="comment">/* 256KB */</span></span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span> &#123;</span></span><br><span class="line">    <span class="keyword">uintptr_t</span> address;    <span class="comment">// pool 起始地址</span></span><br><span class="line">    block* pool_address;  <span class="comment">// 指向下一个 pool</span></span><br><span class="line">    uint nfreepools;      <span class="comment">// 可用的 pool 数</span></span><br><span class="line">    uint ntotalpools;    <span class="comment">// pool 总数</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span>* <span class="title">freepools</span>;</span> <span class="comment">// 可用 pool 指针</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span>* <span class="title">nextarena</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span>* <span class="title">prevarena</span>;</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>通过 malloc/mmap 获取虚拟地址空间，每个 arenas 默认为 256k。而默认 pool 为 4k，意味着每个 arena 默认有64个 pool。通过内部的两个指针，组成跟 pool 类似的链式结构。</p>
+<p>pymalloc allocator 会创建一个 256kb 的固定的大小，作为 arena 维护的空间。用完后，会再再次创建一倍空间，默认是没有上限的。</p>
+<p>arena 内部只是管理着 pool 的集合，并未指定集合中 pool 的类型。意味着其 pool-&gt;szidx 可以是不同大小。</p>
+<h3 id="arena-链"><a href="#arena-链" class="headerlink" title="arena 链"></a>arena 链</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 单链表，未使用的 arena</span></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span>* <span class="title">unused_arena_objects</span> = <span class="title">NULL</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 双向链表，部分可用的 arena</span></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span>* <span class="title">usable_arenas</span> = <span class="title">NULL</span>;</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    所有 pool 都未用：</span></span><br><span class="line"><span class="comment">        nextarena 指向下一个 都未用的 arena</span></span><br><span class="line"><span class="comment">        unused_arena_objects 为表头，指向 当前</span></span><br><span class="line"><span class="comment">    所有 pool 都已用：</span></span><br><span class="line"><span class="comment">        nextarena/prevarena 无意义，不在链上</span></span><br><span class="line"><span class="comment">    部分 pool 可用：</span></span><br><span class="line"><span class="comment">        nextarena/prevarena 与 其他 usable_arenas 组成双向链表</span></span><br><span class="line"><span class="comment">        usable_arenas 为表头，指向 当前</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p><img src="http://t1.aixinxi.net/o_1ck4fgon5i9o1a991hqm5oeelja.png-w.jpg" alt="某一时刻的 arena 链"><br>注意，所有的 arena 都在数组 arenas 中。通过 maxarenas 记录个数。</p>
+<p><span id="new-arena"><span></span></span></p>
+<h3 id="new-arena"><a href="#new-arena" class="headerlink" title="new_arena()"></a>new_arena()</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> INITIAL_ARENA_OBJECTS 16</span></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span>* <span class="title">arenas</span> = <span class="title">NULL</span>;</span></span><br><span class="line"><span class="keyword">static</span> uint maxarenas = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> struct arena_object* <span class="title">new_arena</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (unused_arena_objects == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">/* 不存在 未使用的 arena 链表，先构建一个 */</span></span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* 获取一个 unused_arena_objects */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>申请 arena 大概分为两步，第一步先判断是否需要扩充未使用的 unused_arena_objects，第二获取到unused_arena_objects。此处，调用位置在 <a href="#jp-new_arena">Alloc 不存在可用 pool</a>。</p>
+<p><span id="unused_arena_objects"></span></p>
+<h3 id="创建-unused-arena-objects"><a href="#创建-unused-arena-objects" class="headerlink" title="创建 unused_arena_objects"></a>创建 unused_arena_objects</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> struct arena_object* <span class="title">new_arena</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">    <span class="comment">/* 若 不存在可用的 arena，就先申请一个 arena 头部的空间 */</span></span><br><span class="line">    <span class="keyword">if</span> (unused_arena_objects == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        uint i;</span><br><span class="line">        uint numarenas;</span><br><span class="line">        <span class="keyword">size_t</span> nbytes;</span><br><span class="line">        <span class="comment">// 申请的 arena 数目，默认 16 个，每次都翻倍</span></span><br><span class="line">        numarenas = maxarenas ? maxarenas &lt;&lt; <span class="number">1</span> : INITIAL_ARENA_OBJECTS;</span><br><span class="line">        <span class="keyword">if</span> (numarenas &lt;= maxarenas)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;                <span class="comment">/* overflow */</span></span><br><span class="line">        <span class="comment">// 16个 arena 头部数据长度 sizeof(arena_object)</span></span><br><span class="line">        nbytes = numarenas * <span class="keyword">sizeof</span>(*arenas);</span><br><span class="line">        <span class="comment">// PyMem_Raw 调用 realloc</span></span><br><span class="line">        arenaobj = (struct arena_object *)PyMem_RawRealloc(arenas, nbytes);</span><br><span class="line">        arenas = arenaobj;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* arenas中，所有 pool 都未用, nextarena 指向下一个 arena */</span></span><br><span class="line">        <span class="keyword">for</span> (i = maxarenas; i &lt; numarenas; ++i) &#123;</span><br><span class="line">            arenas[i].address = <span class="number">0</span>;    <span class="comment">/* 此时不存在 pool集合 */</span></span><br><span class="line">            <span class="comment">/* 构造链表，表头 arena-&gt;next 为 NULL */</span></span><br><span class="line">            arenas[i].nextarena = i &lt; numarenas - <span class="number">1</span> ?</span><br><span class="line">                                   &amp;arenas[i+<span class="number">1</span>] : <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// unused_arena_objects 指向 表头</span></span><br><span class="line">        unused_arena_objects = &amp;arenas[maxarenas];</span><br><span class="line">        maxarenas = numarenas;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>申请一组 arena 头部空间。unused_arena_objects 指向的是数组尾部，即”表头”。</p>
+<p><span id="exist-unused_arena_objects"></span></p>
+<h3 id="存在-unused-arena-objects"><a href="#存在-unused-arena-objects" class="headerlink" title="存在 unused_arena_objects"></a>存在 unused_arena_objects</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> struct arena_object* <span class="title">new_arena</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">    <span class="comment">/* 弹出未使用 arenae 链表 unused_arena_objects 第一个 */</span></span><br><span class="line">    arenaobj = unused_arena_objects;</span><br><span class="line">    unused_arena_objects = arenaobj-&gt;nextarena;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 申请 arena_object 管理的内存</span></span><br><span class="line"><span class="comment">        _PyObject_Arena.alloc 是一个区分平台的函数</span></span><br><span class="line"><span class="comment">        Linux 上，如不用 nmap，会直接调用 malloc(256kb)</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    address = _PyObject_Arena.alloc(_PyObject_Arena.ctx, ARENA_SIZE);</span><br><span class="line">    <span class="keyword">if</span> (address == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">/* 创建失败，把 arena 放回未用链表头 */</span></span><br><span class="line">        arenaobj-&gt;nextarena = unused_arena_objects;</span><br><span class="line">        unused_arena_objects = arenaobj;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 改变 arena 指向的 pool 地址</span></span><br><span class="line">    arenaobj-&gt;address = (<span class="keyword">uintptr_t</span>)address;</span><br><span class="line"></span><br><span class="line">    ++narenas_currently_allocated;</span><br><span class="line">    ++ntimes_arena_allocated;</span><br><span class="line">    <span class="keyword">if</span> (narenas_currently_allocated &gt; narenas_highwater)</span><br><span class="line">        narenas_highwater = narenas_currently_allocated;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 可用 pool 指针，释放 pool 时用到 */</span></span><br><span class="line">    arenaobj-&gt;freepools = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="comment">/* pool_address 指向第一个 pool  */</span></span><br><span class="line">    arenaobj-&gt;pool_address = (block*)arenaobj-&gt;address;</span><br><span class="line">    <span class="comment">/* nfreepools 为可用的 pool 数 256k/4k = 64 */</span></span><br><span class="line">    arenaobj-&gt;nfreepools = ARENA_SIZE / POOL_SIZE;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将 pool 起始地址调整为系统页的边界</span></span><br><span class="line">    excess = (uint)(arenaobj-&gt;address &amp; POOL_SIZE_MASK);</span><br><span class="line">    <span class="keyword">if</span> (excess != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">// 弹出一个 立马使用</span></span><br><span class="line">        --arenaobj-&gt;nfreepools;</span><br><span class="line">        <span class="comment">// 改变 下一个指向位置</span></span><br><span class="line">        arenaobj-&gt;pool_address += POOL_SIZE - excess;</span><br><span class="line">    &#125;</span><br><span class="line">    arenaobj-&gt;ntotalpools = arenaobj-&gt;nfreepools;</span><br><span class="line">    <span class="keyword">return</span> arenaobj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建新的 arena 时，判断存在可用的 unused_arena_objects，将执行上面的代码。把一个 arena 从链中摘下，申请256kb内存，构建出64个  pool 集合。返回该 arena，跳转到<a href="#jp-new_arena">Alloc 不存在可用 pool</a></p>
+<h3 id="arena-中的-pool-链"><a href="#arena-中的-pool-链" class="headerlink" title="arena 中的 pool 链"></a>arena 中的 pool 链</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span> &#123;</span></span><br><span class="line">    <span class="keyword">uintptr_t</span> address;    <span class="comment">// 自身起始地址</span></span><br><span class="line">    block* pool_address;  <span class="comment">// 指向下一个 pool</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span>* <span class="title">freepools</span>;</span> <span class="comment">// 未用 pools 表头</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> &#123;</span></span><br><span class="line">    block *freeblock;                   <span class="comment">/* 下一个可用 block 起始位置     */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> *<span class="title">nextpool</span>;</span>       <span class="comment">/* next pool of this size class  */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> *<span class="title">prevpool</span>;</span>       <span class="comment">/* previous pool       ""        */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">全部未用 empty</span></span><br><span class="line"><span class="comment">    pool 中所有 block 都未使用</span></span><br><span class="line"><span class="comment">    通过 freepools + nextpool，构成单向链表</span></span><br><span class="line"><span class="comment">部分使用 used</span></span><br><span class="line"><span class="comment">    pool 中存在被使用，且存在未被使用 block</span></span><br><span class="line"><span class="comment">    通过 usedpools[] 维护链表</span></span><br><span class="line"><span class="comment">全部使用 full</span></span><br><span class="line"><span class="comment">    各自独立，不存在 链</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p><img src="http://t1.aixinxi.net/o_1ck4fhhum1hjdul71s5c7vn1h2ma.png-w.jpg" alt="arena 中 pool 集合"></p>
+<p>注意了，arena 中的 pool 并非相同大小，而 pool-&gt;nextpoll 是相同大小的 szidx。那么，这就意味着，必须有个地方，把 arena pool size 给关联起来，那就是 usedpools。</p>
+<h2 id="usedpools"><a href="#usedpools" class="headerlink" title="usedpools"></a>usedpools</h2><h3 id="指针数组定义"><a href="#指针数组定义" class="headerlink" title="指针数组定义"></a>指针数组定义</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> *<span class="title">poolp</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// NB_SMALL_SIZE_CLASSES = SMALL_REQUEST_THRESHOLD / ALIGNMENT = 512/8 = 64</span></span><br><span class="line"><span class="keyword">static</span> poolp usedpools[<span class="number">2</span> * ((NB_SMALL_SIZE_CLASSES + <span class="number">7</span>) / <span class="number">8</span>) * <span class="number">8</span>] = &#123;</span><br><span class="line">    PT(<span class="number">0</span>), PT(<span class="number">1</span>), PT(<span class="number">2</span>), PT(<span class="number">3</span>), PT(<span class="number">4</span>), PT(<span class="number">5</span>), PT(<span class="number">6</span>), PT(<span class="number">7</span>)</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 等效于</span></span><br><span class="line">#define PTA(x)  ((poolp )((<span class="keyword">uint8_t</span> *)&amp;(usedpools[<span class="number">2</span>*(x)]) - <span class="number">2</span>*<span class="keyword">sizeof</span>(block *)))</span><br><span class="line"><span class="keyword">static</span> poolp usedpools[<span class="number">2</span> * <span class="number">64</span>] = &#123;</span><br><span class="line">    PTA(<span class="number">0</span>), PTA(<span class="number">0</span>), PTA(<span class="number">1</span>), PTA(<span class="number">1</span>),</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    指针，`block *` 为四个字节</span></span><br><span class="line"><span class="comment">    那么 usedpools[2*(x=3)]，所指向的值为 usedpools[6] - 8</span></span><br><span class="line"><span class="comment">    整个 usedpools 数组，都是指针，都是4个字节</span></span><br><span class="line"><span class="comment">    那么，`- 8`，就是位置左移 2，即指向了`usedpools[4]`</span></span><br><span class="line"><span class="comment">    意思就是，usedpools[6] == &amp;usedpools[4]</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>再来看 pool_header 的定义。</p>
+<h3 id="pool-结构体定义"><a href="#pool-结构体定义" class="headerlink" title="pool 结构体定义"></a>pool 结构体定义</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> &#123;</span></span><br><span class="line">    <span class="keyword">union</span> &#123; block *_padding;</span><br><span class="line">            uint count; &#125; ref;          <span class="comment">/* number of allocated blocks    */</span></span><br><span class="line">    block *freeblock;                   <span class="comment">/* 下一个可用 block 起始位置     */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> *<span class="title">nextpool</span>;</span>       <span class="comment">/* next pool of this size class  */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">pool_header</span> *<span class="title">prevpool</span>;</span>       <span class="comment">/* previous pool       ""        */</span></span><br><span class="line">    uint arenaindex;                    <span class="comment">/* index into arenas of base adr */</span></span><br><span class="line">    uint szidx;                         <span class="comment">/* block size class index        */</span></span><br><span class="line">    uint nextoffset;                    <span class="comment">/* 下一个可用 block 的偏移量      */</span></span><br><span class="line">    uint maxnextoffset;                 <span class="comment">/* 最大 有效 偏移量      */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    ref + *freeblock，也正好是 8 个字节</span></span><br><span class="line"><span class="comment">    pool-&gt;nextpool，就是 pool 指针后移8个字节</span></span><br><span class="line"><span class="comment">    pool-&gt;prevpool，就是 pool 指针后移8+4个字节</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>巧合的 8 字节，意味着有阴谋！</p>
+<h3 id="trick"><a href="#trick" class="headerlink" title="trick"></a>trick</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">usedpools[6] == &amp;usedpools[6] -8 == &amp;usedpools[4]</span><br><span class="line">&gt;&gt;&gt; 初始状态 usedpools[6] 就是指向 usedpools[4]</span><br><span class="line"></span><br><span class="line">usedpools[6]-&gt;nextpool == &amp;usedpools[4] +8 == usedpools[6]</span><br><span class="line">&gt;&gt;&gt; 初始状态 usedpools[6]-&gt;nextpool 就是 usedpools[6]</span><br><span class="line">&gt;&gt;&gt; 初始状态 usedpools[i+i] == usedpools[i+i]-&gt;nextpool   // 注意这里，很重要</span><br><span class="line"></span><br><span class="line">usedpools[6]-&gt;prevpool == &amp;usedpools[4] +12 == usedpools[7]</span><br><span class="line">&gt;&gt;&gt; 初始状态 usedpools[6]-&gt;prevpool，就是 usedpools[7]</span><br><span class="line"></span><br><span class="line">执行 usedpools[6]-&gt;nextpool = 一个 i=3 的 pool</span><br><span class="line">&gt;&gt;&gt; 就是对 usedpools 数组赋值，将位置 6 存储为一个 pool 地址</span><br><span class="line">&gt;&gt;&gt; 再然后，就可以直接用 usedpools[6]，获取到该 pool 地址</span><br><span class="line"></span><br><span class="line">执行 usedpools[6]-&gt;prevpool = 一个 i=3 的 pool</span><br><span class="line">&gt;&gt;&gt; 就是对 usedpools 数组赋值，将位置 7 存储为一个 pool 地址</span><br></pre></td></tr></table></figure>
+<p>嘿，饶了大半圈，结果原来时这么回事。用两个位置指针，模拟出 pool_head 的结构。<br>初始状态<code>[i+i] == [i+i]-&gt;next</code>，一旦调用 [i+i]-&gt;next= pool，那么就可以直接取用 [i+i]。</p>
+<p>再来看看如何对 usedpools 进行操作。</p>
+<h3 id="add-by-Alloc-init"><a href="#add-by-Alloc-init" class="headerlink" title="add by Alloc init"></a>add by Alloc init</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">_PyObject_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nelem, <span class="keyword">size_t</span> elsize)&#123;</span><br><span class="line"></span><br><span class="line">init_pool:</span><br><span class="line">    next = usedpools[size + size]; <span class="comment">/* 此时 [6] = &amp;[4] */</span></span><br><span class="line">    pool-&gt;nextpool = next; <span class="comment">// pool-&gt;next = &amp;[4]</span></span><br><span class="line">    pool-&gt;prevpool = next; <span class="comment">// pool-&gt;prev = &amp;[4]</span></span><br><span class="line">    next-&gt;nextpool = pool; <span class="comment">// &amp;[4]-&gt;next == [6]  &gt;&gt;&gt; [6] = pool</span></span><br><span class="line">    next-&gt;prevpool = pool; <span class="comment">// &amp;[4]-&gt;prev == [7]  &gt;&gt;&gt; [7] = pool</span></span><br><span class="line">    <span class="comment">/* 结果就是:</span></span><br><span class="line"><span class="comment">        A-&gt;nextpool == &amp;[4]</span></span><br><span class="line"><span class="comment">        A-&gt;prevpool == &amp;[4]</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">        &amp;[4]-&gt;nextpool == [6] == A</span></span><br><span class="line"><span class="comment">        &amp;[4]-&gt;prevpool == [7] == A</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <a href="#pool-init">Pool init</a> 中，我们省略了部分代码如上。可以发现，在初始化 pool 时，构造出一个双向链表，其中只有两个节点，A 与 虚拟的 usedpools。</p>
+<h3 id="add-by-Free-full"><a href="#add-by-Free-full" class="headerlink" title="add by Free full"></a>add by Free full</h3><p>Free block 时，遇到一个 full poll，会将其挂载到 usedpools[] 双向链表上。下面分两种情况查看：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _PyObject_Free(<span class="keyword">void</span> *ctx, <span class="keyword">void</span> *p) &#123;</span><br><span class="line">    next = usedpools[size + size];    <span class="comment">// &amp;[4]</span></span><br><span class="line">    prev = next-&gt;prevpool;    <span class="comment">// [7]</span></span><br><span class="line">    pool-&gt;nextpool = next;    <span class="comment">// A-&gt;nextpool == &amp;[4]</span></span><br><span class="line">    pool-&gt;prevpool = prev;    <span class="comment">// A-&gt;prevpool == [7] == &amp;[4]</span></span><br><span class="line">    next-&gt;prevpool = pool;    <span class="comment">// [7] = pool</span></span><br><span class="line">    prev-&gt;nextpool = pool;    <span class="comment">// [6] = pool</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* usedpools 为初始状态，结果等于 init pool。</span></span><br><span class="line"><span class="comment">    A-&gt;nextpool == &amp;[4]</span></span><br><span class="line"><span class="comment">    A-&gt;prevpool == &amp;[4]</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    &amp;[4]-&gt;nextpool == [6] == A</span></span><br><span class="line"><span class="comment">    &amp;[4]-&gt;prevpool == [7] == A</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _PyObject_Free(<span class="keyword">void</span> *ctx, <span class="keyword">void</span> *p) &#123;</span><br><span class="line">    next = usedpools[size + size];    <span class="comment">// A</span></span><br><span class="line">    prev = next-&gt;prevpool;    <span class="comment">// A-&gt;prevpool == &amp;[4]</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* insert pool before next:   prev &lt;-&gt; pool &lt;-&gt; next */</span></span><br><span class="line">    pool-&gt;nextpool = next;    <span class="comment">// B-&gt;nextpool == A</span></span><br><span class="line">    pool-&gt;prevpool = prev;    <span class="comment">// B-&gt;prevpool == &amp;[4]</span></span><br><span class="line">    next-&gt;prevpool = pool;    <span class="comment">// A-&gt;prevpool = B</span></span><br><span class="line">    prev-&gt;nextpool = pool;    <span class="comment">// &amp;[4]-&gt;next == [6] = B</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* usedpools 已经挂载了一个 A，现在新挂一个 B</span></span><br><span class="line"><span class="comment">    A-&gt;nextpool == &amp;[4]</span></span><br><span class="line"><span class="comment">    A-&gt;prevpool == B</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    B-&gt;nextpool == A</span></span><br><span class="line"><span class="comment">    B-&gt;prevpool == &amp;[4]</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    &amp;[4]-&gt;nextpool == [6] == B</span></span><br><span class="line"><span class="comment">    &amp;[4]-&gt;prevpool == [7] == A</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">注意，不是直接挂载到头上，而是插入其中</span></span><br><span class="line"><span class="comment">    &amp;[4] -next-&gt; B -next-&gt; A</span></span><br><span class="line"><span class="comment">    &amp;[4] &lt;-prev- B &lt;-prev- A</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">但，通过 usedpools[6] 获取到的却是刚刚插入的 B</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<h3 id="remove-by-Alloc-full"><a href="#remove-by-Alloc-full" class="headerlink" title="remove by Alloc full"></a>remove by Alloc full</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">_PyObject_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nelem, <span class="keyword">size_t</span> elsize)&#123;</span><br><span class="line"><span class="comment">/* 假设：</span></span><br><span class="line"><span class="comment">    A-&gt;nextpool == &amp;[4]</span></span><br><span class="line"><span class="comment">    A-&gt;prevpool == &amp;[4]</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    &amp;[4]-&gt;nextpool == [6] == A</span></span><br><span class="line"><span class="comment">    &amp;[4]-&gt;prevpool == [7] == A</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">    <span class="comment">/* Pool is full, unlink from used pools. */</span></span><br><span class="line">    next = pool-&gt;nextpool; <span class="comment">// &amp;[4]</span></span><br><span class="line">    pool = pool-&gt;prevpool; <span class="comment">// &amp;[4]</span></span><br><span class="line">    next-&gt;prevpool = pool; <span class="comment">// [7] = &amp;[4]</span></span><br><span class="line">    pool-&gt;nextpool = next; <span class="comment">// [6] = &amp;[4]</span></span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 Pool 满了之后，只是简单的将自己从双向链表中 摘掉。<br>如果只有 1 个 usedpool，就会把 usepools 恢复到最开始的状态。</p>
+<h3 id="remove-by-Free-empty"><a href="#remove-by-Free-empty" class="headerlink" title="remove by Free empty"></a>remove by Free empty</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _PyObject_Free(<span class="keyword">void</span> *ctx, <span class="keyword">void</span> *p) &#123;</span><br><span class="line"><span class="comment">/* 假设：</span></span><br><span class="line"><span class="comment">    A-&gt;nextpool == &amp;[4]</span></span><br><span class="line"><span class="comment">    A-&gt;prevpool == B</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    B-&gt;nextpool == A</span></span><br><span class="line"><span class="comment">    B-&gt;prevpool == &amp;[4]</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    &amp;[4]-&gt;nextpool == [6] == B</span></span><br><span class="line"><span class="comment">    &amp;[4]-&gt;prevpool == [7] == A</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">    next = pool-&gt;nextpool; <span class="comment">// A</span></span><br><span class="line">    prev = pool-&gt;prevpool; <span class="comment">// &amp;[4]</span></span><br><span class="line">    next-&gt;prevpool = prev; <span class="comment">// A-&gt;prevpool = &amp;[4]</span></span><br><span class="line">    prev-&gt;nextpool = next; <span class="comment">// &amp;[4]-&gt;nextpool = A</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 结果是：</span></span><br><span class="line"><span class="comment">    &amp;[4] -next-&gt; A</span></span><br><span class="line"><span class="comment">    &amp;[4] &lt;-prev- A</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>在 Free 时，遇到 emtyp pool，如果 usedpool，不止一个，会将自己从双向链表中 摘掉。</p>
+<h2 id="PyObject-Alloc"><a href="#PyObject-Alloc" class="headerlink" title="PyObject_Alloc"></a>PyObject_Alloc</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> * _PyObject_Malloc(<span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nbytes) &#123;</span><br><span class="line">    <span class="keyword">return</span> _PyObject_Alloc(<span class="number">0</span>, ctx, <span class="number">1</span>, nbytes);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">_PyObject_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nelem, <span class="keyword">size_t</span> elsize) &#123;</span><br><span class="line">    <span class="keyword">size_t</span> nbytes = nelem * elsize;</span><br><span class="line">    <span class="comment">/* The small block allocator. */</span></span><br><span class="line">   <span class="keyword">if</span> ((nbytes - <span class="number">1</span>) &lt; SMALL_REQUEST_THRESHOLD) &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">void</span> *result;</span><br><span class="line">    <span class="keyword">if</span> (use_calloc)</span><br><span class="line">        result = PyMem_RawCalloc(nelem, elsize);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        result = PyMem_RawMalloc(nbytes);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从这里，可以看出，小对象与大对象的处理方式不同，大对象直接调用 mallco。下面，主要看小对象的处理方式。</p>
+<h3 id="Alloc-存在可用-pool"><a href="#Alloc-存在可用-pool" class="headerlink" title="Alloc 存在可用 pool"></a>Alloc 存在可用 pool</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">_PyObject_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nelem, <span class="keyword">size_t</span> elsize)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 前提条件，小对象</span></span><br><span class="line">    size = (uint)(nbytes - <span class="number">1</span>) &gt;&gt; ALIGNMENT_SHIFT; <span class="comment">// 计算 pool-&gt;szidx</span></span><br><span class="line">    pool = usedpools[size + size]; <span class="comment">// 获取可用 szidx= size 的可用pool</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* usedpools 中存在可用 pool */</span></span><br><span class="line">    <span class="keyword">if</span> (pool != pool-&gt;nextpool) &#123;</span><br><span class="line">        ++pool-&gt;ref.count;    <span class="comment">// 增加 使用计数</span></span><br><span class="line">        bp = pool-&gt;freeblock; <span class="comment">// 可用的 blcok 起始地址</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将 freeblock 在链表上移动，如果未到达尾部，则直接返回</span></span><br><span class="line">        <span class="keyword">if</span> ((pool-&gt;freeblock = *(block **)bp) != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (use_calloc)</span><br><span class="line">                <span class="built_in">memset</span>(bp, <span class="number">0</span>, nbytes);</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">void</span> *)bp;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 已经到达 freelist 尾部，但存在 未使用过的 block</span></span><br><span class="line">        <span class="keyword">if</span> (pool-&gt;nextoffset &lt;= pool-&gt;maxnextoffset) &#123;</span><br><span class="line">            <span class="comment">// 下一个可用 block 起始位置，指向上一个 block 的结束为止</span></span><br><span class="line">            pool-&gt;freeblock = (block*)pool + pool-&gt;nextoffset;</span><br><span class="line">            <span class="comment">// 偏移位置后移 block size</span></span><br><span class="line">            pool-&gt;nextoffset += INDEX2SIZE(size);</span><br><span class="line">            <span class="comment">// 再次设置 freelist 链表尾</span></span><br><span class="line">            *(block **)(pool-&gt;freeblock) = <span class="literal">NULL</span>;</span><br><span class="line">            <span class="keyword">if</span> (use_calloc)</span><br><span class="line">                <span class="built_in">memset</span>(bp, <span class="number">0</span>, nbytes);</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">void</span> *)bp;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/* Pool is full, unlink from used pools. */</span></span><br><span class="line">        next = pool-&gt;nextpool;</span><br><span class="line">        pool = pool-&gt;prevpool;</span><br><span class="line">        next-&gt;prevpool = pool;</span><br><span class="line">        pool-&gt;nextpool = next;</span><br><span class="line">        <span class="keyword">if</span> (use_calloc)</span><br><span class="line">            <span class="built_in">memset</span>(bp, <span class="number">0</span>, nbytes);</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">void</span> *)bp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意其中起始的两句，<code>pool = usedpools[size + size]   if(pool != pool-&gt;nextpool)</code>。</p>
+<p>在前面 usedpools 中，我们已经知道：初始状态 usedpools[i+i] == usedpools[i+i]-&gt;nextpool。<br>那么，意味着此次，进入 if 的条件就是存在可用的 pool。</p>
+<p><span id="jp-new_arena"></span></p>
+<h3 id="Alloc-不存在可用-pool"><a href="#Alloc-不存在可用-pool" class="headerlink" title="Alloc 不存在可用 pool"></a>Alloc 不存在可用 pool</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span>* <span class="title">usable_arenas</span> = <span class="title">NULL</span>;</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">_PyObject_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nelem, <span class="keyword">size_t</span> elsize)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 前提条件 pool == pool-&gt;nextpool</span></span><br><span class="line">    <span class="keyword">if</span> (usable_arenas == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">/* 创建一个 arena */</span></span><br><span class="line">        usable_arenas = new_arena();</span><br><span class="line">        usable_arenas-&gt;nextarena =</span><br><span class="line">            usable_arenas-&gt;prevarena = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>Alloc 不存在可用 free pool，即 usedpools 中不存在可用 pool。若不存在 可用arena，调用 <a href="#new-arena">new_arena()</a> 获取一个 arena。接着在把它前后指针都置为NULL.。</p>
+<h3 id="Alloc-创建-pool"><a href="#Alloc-创建-pool" class="headerlink" title="Alloc 创建 pool"></a>Alloc 创建 pool</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">_PyObject_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nelem, <span class="keyword">size_t</span> elsize)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* 前提条件：</span></span><br><span class="line"><span class="comment">        pool == pool-&gt;nextpool</span></span><br><span class="line"><span class="comment">        usable_arenas != NULL</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="comment">/* Try to get a cached free pool. */</span></span><br><span class="line">    pool = usable_arenas-&gt;freepools;</span><br><span class="line">    <span class="keyword">if</span> (pool != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">/* 找到一个可用的 pool */</span></span><br><span class="line">        usable_arenas-&gt;freepools = pool-&gt;nextpool;</span><br><span class="line">        --usable_arenas-&gt;nfreepools;</span><br><span class="line">        <span class="comment">// 处理 =0 的情况，从链中摘掉 usable_arenas</span></span><br><span class="line">        ...</span><br><span class="line">        init_pool: &#123;</span><br><span class="line">            <span class="comment">/* 初始化 pool */</span></span><br><span class="line">            ...</span><br><span class="line">            <span class="keyword">return</span> (<span class="keyword">void</span> *)bp;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* Carve off a new pool. */</span></span><br><span class="line">    assert(usable_arenas-&gt;nfreepools &gt; <span class="number">0</span>);</span><br><span class="line">    assert(usable_arenas-&gt;freepools == <span class="literal">NULL</span>);</span><br><span class="line">    pool = (poolp)usable_arenas-&gt;pool_address;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">goto</span> init_pool;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 <a href="#exist-unused_arena_objects">new_arena()</a> 中，初始化时设定了<code>arenaobj-&gt;freepools = NULL;</code>，因此直接走 Carve off a new pool 环节。</p>
+<h3 id="Carve-off-a-new-pool"><a href="#Carve-off-a-new-pool" class="headerlink" title="Carve off a new pool"></a>Carve off a new pool</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">_PyObject_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nelem, <span class="keyword">size_t</span> elsize)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* 前提条件：</span></span><br><span class="line"><span class="comment">        usable_arenas != NULL</span></span><br><span class="line"><span class="comment">        usable_arenas-&gt;freepools == NULL</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="comment">/* Carve off a new pool. */</span></span><br><span class="line">    pool = (poolp)usable_arenas-&gt;pool_address;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* arenaindex: pool 所在 arena 位于 arenas 数组中的序号 */</span></span><br><span class="line">    pool-&gt;arenaindex = (uint)(usable_arenas - arenas);</span><br><span class="line">    assert(&amp;arenas[pool-&gt;arenaindex] == usable_arenas);</span><br><span class="line">    pool-&gt;szidx = DUMMY_SIZE_IDX;    <span class="comment">// 0xffff</span></span><br><span class="line">    <span class="comment">// 指向下一个 pool</span></span><br><span class="line">    usable_arenas-&gt;pool_address += POOL_SIZE;</span><br><span class="line">    <span class="comment">// 调整剩余数量</span></span><br><span class="line">    --usable_arenas-&gt;nfreepools;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (usable_arenas-&gt;nfreepools == <span class="number">0</span>) &#123;</span><br><span class="line">        assert(usable_arenas-&gt;nextarena == <span class="literal">NULL</span> ||</span><br><span class="line">               usable_arenas-&gt;nextarena-&gt;prevarena ==</span><br><span class="line">               usable_arenas);</span><br><span class="line">        <span class="comment">/* 全部Pool 用完，Unlink the arena */</span></span><br><span class="line">        usable_arenas = usable_arenas-&gt;nextarena;</span><br><span class="line">        <span class="keyword">if</span> (usable_arenas != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            usable_arenas-&gt;prevarena = <span class="literal">NULL</span>;</span><br><span class="line">            assert(usable_arenas-&gt;address != <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">goto</span> init_pool;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中，涉及到<code>arenaindex</code>的使用，见<a href="#address_in_range">PyObject_Free.address_in_range</a>。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> *</span><br><span class="line">_PyObject_Alloc(<span class="keyword">int</span> use_calloc, <span class="keyword">void</span> *ctx, <span class="keyword">size_t</span> nelem, <span class="keyword">size_t</span> elsize) &#123;</span><br><span class="line">    <span class="comment">// 如果是小对象，&lt;256字节，使用内存池 arena</span></span><br><span class="line">    <span class="keyword">if</span> ((nbytes - <span class="number">1</span>) &lt; SMALL_REQUEST_THRESHOLD) &#123;</span><br><span class="line">        size = (uint)(nbytes - <span class="number">1</span>) &gt;&gt; ALIGNMENT_SHIFT; <span class="comment">// 计算 pool-&gt;szidx</span></span><br><span class="line">        pool = usedpools[size + size]; <span class="comment">// 获取可用 szidx= size 的可用pool</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">/* usedpools 中存在可用 pool */</span></span><br><span class="line">        <span class="keyword">if</span> (pool != pool-&gt;nextpool) &#123;</span><br><span class="line">            bp = pool-&gt;freeblock; <span class="comment">// 分配 block</span></span><br><span class="line">            <span class="comment">/* 判断处理 freeblocks 链表状态：</span></span><br><span class="line"><span class="comment">                存在已释放，未到达 freelist 尾部</span></span><br><span class="line"><span class="comment">                已经到达 freelist 尾部，但存在 free block</span></span><br><span class="line"><span class="comment">                Pool is full, unlink from used pools.</span></span><br><span class="line"><span class="comment">            */</span></span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 不存在可用的pool, 那么就找一个 arena 创建 pool */</span></span><br><span class="line">        <span class="keyword">if</span> (usable_arenas == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="comment">/* 扩充 arenas 空间 */</span></span><br><span class="line">            usable_arenas = new_arena();</span><br><span class="line">            usable_arenas-&gt;nextarena = usable_arenas-&gt;prevarena = <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 从表头的 arena 中获取一个 pool */</span></span><br><span class="line">        pool = usable_arenas-&gt;freepools;</span><br><span class="line">        <span class="keyword">if</span> (pool != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="comment">/* 找到一个可用的 pool */</span></span><br><span class="line">            usable_arenas-&gt;freepools = pool-&gt;nextpool;</span><br><span class="line">            --usable_arenas-&gt;nfreepools;</span><br><span class="line">            <span class="comment">// 处理 =0 的情况，从链中摘掉 usable_arenas</span></span><br><span class="line">            ...</span><br><span class="line">            init_pool: &#123;</span><br><span class="line">                <span class="comment">/* 初始化 pool */</span></span><br><span class="line">                ...</span><br><span class="line">                <span class="keyword">return</span> (<span class="keyword">void</span> *)bp;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 获取失败，就创建一个 pool，然后转入：初始化 */</span></span><br><span class="line">        assert(usable_arenas-&gt;nfreepools &gt; <span class="number">0</span>);</span><br><span class="line">        assert(usable_arenas-&gt;freepools == <span class="literal">NULL</span>);</span><br><span class="line">        pool = (poolp)usable_arenas-&gt;pool_address;</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">goto</span> init_pool;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 否则，使用 mallcoc</span></span><br><span class="line">    <span class="keyword">return</span> PyMem_RawMalloc(nbytes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>复杂的逻辑，主要难点在于：</p>
+<ul>
+<li>通过已经释放的区域，当做链表的中间环节</li>
+<li>pool 内部指向，<img src="http://t1.aixinxi.net/o_1ck4fcarfh5r1ftgo23lo41ieda.png-w.jpg" alt="一个 pool 初始化后布局"></li>
+<li>freeblocks 链表，<img src="http://t1.aixinxi.net/o_1ck4ffj5b1vmh1ief15h3ookre0a.png-w.jpg" alt="释放了 block 后的自由 block 链表"></li>
+<li>arena 中的 pool 分布，<img src="http://t1.aixinxi.net/o_1ck4fhhum1hjdul71s5c7vn1h2ma.png-w.jpg" alt="arena 中 pool 集合"></li>
+<li>arena 集合的分布，<img src="http://t1.aixinxi.net/o_1ck4fgon5i9o1a991hqm5oeelja.png-w.jpg" alt="arena 集合的分布"></li>
+</ul>
+<h2 id="PyObject-Free"><a href="#PyObject-Free" class="headerlink" title="PyObject_Free"></a>PyObject_Free</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _PyObject_Free(<span class="keyword">void</span> *ctx, <span class="keyword">void</span> *p) &#123;</span><br><span class="line">    <span class="comment">// 找到最近的 pool 地址</span></span><br><span class="line">    pool = POOL_ADDR(p);</span><br><span class="line">    <span class="comment">// 根据 pool，找到 arena，判断 p 是否在其中</span></span><br><span class="line">    <span class="keyword">if</span> (address_in_range(p, pool)) &#123;</span><br><span class="line">        ... <span class="comment">// 小对象</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    PyMem_RawFree(p);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>下面主要查看小对象的处理。</p>
+<h3 id="POOL-ADDR"><a href="#POOL-ADDR" class="headerlink" title="POOL_ADDR"></a>POOL_ADDR</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">pool = POOL_ADDR(p);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 向下，找到距离 p 最近的 pool 地址 */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> POOL_ADDR(P) ((poolp)_Py_ALIGN_DOWN((P), POOL_SIZE))</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Round pointer "p" down to the closest "a"-aligned address &lt;= "p". */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _Py_ALIGN_DOWN(p, a) ((void *)((uintptr_t)(p) &amp; ~(uintptr_t)((a) - 1)))</span></span><br></pre></td></tr></table></figure>
+<p><span id="address_in_range"></span></p>
+<h3 id="address-in-range"><a href="#address-in-range" class="headerlink" title="address_in_range"></a>address_in_range</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">bool</span> ATTRIBUTE_NO_ADDRESS_SAFETY_ANALYSIS</span><br><span class="line">address_in_range(<span class="keyword">void</span> *p, poolp pool)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// &amp;arenas[pool-&gt;arenaindex] == pool 所在 arena</span></span><br><span class="line">    uint arenaindex = *((<span class="keyword">volatile</span> uint *)&amp;pool-&gt;arenaindex);</span><br><span class="line">    <span class="keyword">return</span> arenaindex &lt; maxarenas &amp;&amp;</span><br><span class="line">        (<span class="keyword">uintptr_t</span>)p - arenas[arenaindex].address &lt; ARENA_SIZE &amp;&amp;</span><br><span class="line">        arenas[arenaindex].address != <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>获取到 pool 所在 arena 地址，在通过 .address 获取到 pool 的起始地址。在<a href="#unused_arena_objects">创建 unused_arena_objects</a> 中，所有初始 arena.address 都为0。通过计算指针差值，能就能得出 p 是否在 arena 中。</p>
+<h3 id="Free-full-pool"><a href="#Free-full-pool" class="headerlink" title="Free full pool"></a>Free full pool</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _PyObject_Free(<span class="keyword">void</span> *ctx, <span class="keyword">void</span> *p) &#123;</span><br><span class="line">    <span class="comment">// 前提条件：address_in_range(p, pool)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 设置 freeblocks 链表</span></span><br><span class="line">    *(block **)p = lastfree = pool-&gt;freeblock;</span><br><span class="line">    pool-&gt;freeblock = (block *)p;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// lastfree 有效，表明当前 pool 未满</span></span><br><span class="line">    <span class="keyword">if</span> (lastfree) &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 当前 pool 处于 full 状态，释放 block 后，需要转为 used 状态</span></span><br><span class="line">    <span class="comment">// 将 pool 放入 usedpools 头部</span></span><br><span class="line">    --pool-&gt;ref.count;</span><br><span class="line">    size = pool-&gt;szidx;</span><br><span class="line">    next = usedpools[size + size];</span><br><span class="line">    prev = next-&gt;prevpool;</span><br><span class="line">    <span class="comment">/* insert pool before next:   prev &lt;-&gt; pool &lt;-&gt; next */</span></span><br><span class="line">    pool-&gt;nextpool = next;</span><br><span class="line">    pool-&gt;prevpool = prev;</span><br><span class="line">    next-&gt;prevpool = pool;</span><br><span class="line">    prev-&gt;nextpool = pool;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，当 pool 已满时，释放后 block 后，需要将 pool 连接到可用的 pools 上。</p>
+<h3 id="Free-used-pool"><a href="#Free-used-pool" class="headerlink" title="Free used pool"></a>Free used pool</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _PyObject_Free(<span class="keyword">void</span> *ctx, <span class="keyword">void</span> *p) &#123;</span><br><span class="line">    <span class="comment">// 前提条件：address_in_range(p, pool)</span></span><br><span class="line">    *(block **)p = lastfree = pool-&gt;freeblock;</span><br><span class="line">    <span class="keyword">if</span> (lastfree) &#123;</span><br><span class="line">        <span class="comment">/* ref.count &gt; 1 表明，还有其他的 pool 可使用 */</span></span><br><span class="line">        <span class="keyword">if</span> (--pool-&gt;ref.count != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* ref.count==1, free 之后就 emtpy了，应脱离 usedpools[] */</span></span><br><span class="line">        next = pool-&gt;nextpool;</span><br><span class="line">        prev = pool-&gt;prevpool;</span><br><span class="line">        next-&gt;prevpool = prev;</span><br><span class="line">        prev-&gt;nextpool = next;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* 把 pool 关联到 arena-&gt;freepools 链上 */</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span>* <span class="title">ao</span> = &amp;<span class="title">arenas</span>[<span class="title">pool</span>-&gt;<span class="title">arenaindex</span>];</span></span><br><span class="line">        pool-&gt;nextpool = ao-&gt;freepools;</span><br><span class="line">        ao-&gt;freepools = pool;</span><br><span class="line">        uint nf = ++ao-&gt;nfreepools;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* All the rest is arena management. */</span></span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>当释放一个 block，若 Pool 本身就是 used 状态，无需更多操作。反之，若 Pool 从 used 变为 empty 时，不仅要处理 pool，脱离 usedpools 链表，还要处理 arena。</p>
+<h3 id="Free-arena-management"><a href="#Free-arena-management" class="headerlink" title="Free arena management"></a>Free arena management</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span> _PyObject_Free(<span class="keyword">void</span> *ctx, <span class="keyword">void</span> *p) &#123;</span><br><span class="line">    <span class="comment">// 前提条件：address_in_range(p, pool)</span></span><br><span class="line">    *(block **)p = lastfree = pool-&gt;freeblock;</span><br><span class="line">    <span class="keyword">if</span> (lastfree) &#123;</span><br><span class="line">        <span class="comment">/* All the rest is arena management. */</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// ntotalpools &gt; pool-&gt;ref.count &gt; 1，不止一个且未满</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">arena_object</span>* <span class="title">ao</span> = &amp;<span class="title">arenas</span>[<span class="title">pool</span>-&gt;<span class="title">arenaindex</span>];</span></span><br><span class="line">        uint nf = ++ao-&gt;nfreepools;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Case 1: pool 全部 free，销毁 arena</span></span><br><span class="line">        <span class="keyword">if</span> (nf == ao-&gt;ntotalpools) &#123;&#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Case 2: 仅此一个 pool 可用，挂载到 usable_arenas 链上</span></span><br><span class="line">        <span class="keyword">if</span> (nf == <span class="number">1</span>) &#123;&#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Case 3: 如果当前 pool &lt;= next-&gt;nf，什么都不干</span></span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// Case 4：调整 usable_arenas 链表顺序，快满的 arena 首先被使用</span></span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">return</span> ;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 pool 从 used 转变为 empty 时，arena 有可能出现 全部 free，以及，仅此一个 pool 可用两种状态。当满足仅此一个pool 为 usable 时，又要挂载链表，调整顺序。</p>
+<h4 id="Free-a-block-then-arena-empty"><a href="#Free-a-block-then-arena-empty" class="headerlink" title="Free a block then arena empty"></a>Free a block then arena empty</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (nf == ao-&gt;ntotalpools) &#123;</span><br><span class="line">    <span class="comment">// Case 1: pool 全部 free，销毁 arena</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Case 1.  First unlink ao from usable_arenas. */</span></span><br><span class="line">    assert(ao-&gt;prevarena == <span class="literal">NULL</span> ||</span><br><span class="line">           ao-&gt;prevarena-&gt;address != <span class="number">0</span>);</span><br><span class="line">    assert(ao -&gt;nextarena == <span class="literal">NULL</span> ||</span><br><span class="line">           ao-&gt;nextarena-&gt;address != <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 调整 usable_arenas 链表 */</span></span><br><span class="line">    <span class="keyword">if</span> (ao-&gt;prevarena == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">// ao 在表头</span></span><br><span class="line">        usable_arenas = ao-&gt;nextarena;</span><br><span class="line">        assert(usable_arenas == <span class="literal">NULL</span> ||</span><br><span class="line">               usable_arenas-&gt;address != <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// ao 不在表头</span></span><br><span class="line">        assert(ao-&gt;prevarena-&gt;nextarena == ao);</span><br><span class="line">        ao-&gt;prevarena-&gt;nextarena =</span><br><span class="line">            ao-&gt;nextarena;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ao-&gt;nextarena != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">// ao 不在末尾</span></span><br><span class="line">        assert(ao-&gt;nextarena-&gt;prevarena == ao);</span><br><span class="line">        ao-&gt;nextarena-&gt;prevarena =</span><br><span class="line">            ao-&gt;prevarena;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 挂载到 unused_arena_objects 链表</span></span><br><span class="line">    ao-&gt;nextarena = unused_arena_objects;</span><br><span class="line">    unused_arena_objects = ao;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Free the entire arena. ao-&gt;address */</span></span><br><span class="line">    _PyObject_Arena.<span class="built_in">free</span>(_PyObject_Arena.ctx,</span><br><span class="line">                         (<span class="keyword">void</span> *)ao-&gt;address, ARENA_SIZE);</span><br><span class="line">    ao-&gt;address = <span class="number">0</span>;                        <span class="comment">/* mark unassociated */</span></span><br><span class="line">    --narenas_currently_allocated;</span><br><span class="line"></span><br><span class="line">    UNLOCK();</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，在 free block 遇到一个 emtpy 的 arena 时，会调整 used/unused 链表，并且 free(arena)。</p>
+<h4 id="Free-a-block-then-arena-can-use"><a href="#Free-a-block-then-arena-can-use" class="headerlink" title="Free a block then arena can use"></a>Free a block then arena can use</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Case 2: 仅此一个 pool 可用，挂载到 usable_arenas 链上</span></span><br><span class="line"><span class="keyword">if</span> (nf == <span class="number">1</span>) &#123;</span><br><span class="line"></span><br><span class="line">    ao-&gt;nextarena = usable_arenas;</span><br><span class="line">    ao-&gt;prevarena = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">if</span> (usable_arenas)</span><br><span class="line">        usable_arenas-&gt;prevarena = ao;</span><br><span class="line">    usable_arenas = ao;</span><br><span class="line">    assert(usable_arenas-&gt;address != <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    UNLOCK();</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>仅此一个 Pool 可用，那么意味着arena 之前不在 usable_arenas 链表上，直接挂载上去。</p>
+<h4 id="Free-a-block-then-调整-usable-链表"><a href="#Free-a-block-then-调整-usable-链表" class="headerlink" title="Free a block then 调整 usable 链表"></a>Free a block then 调整 usable 链表</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Case 3: 如果当前 pool &lt;= next-&gt;nf，什么都不干</span></span><br><span class="line"><span class="keyword">if</span> (ao-&gt;nextarena == <span class="literal">NULL</span> ||</span><br><span class="line">             nf &lt;= ao-&gt;nextarena-&gt;nfreepools) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Case 4：调整 usable_arenas 链表顺序，快满的 arena 首先被使用</span></span><br></pre></td></tr></table></figure>
+<p>如上，调整 usable 顺序，始终保持 most full arena 在链表头，最先被使用。</p>
+<h3 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h3><p>Python 主要围绕几张链表来管理内存：</p>
+<ul>
+<li>free block 单链表，由 pool 管理</li>
+<li>free pool 单链表，由 usedpools 管理</li>
+<li>usable arena 双向链表，由 usable_arenas 管理</li>
+<li>unusable arena 单链表，由 unused_arena_objects 管理</li>
+</ul>
+<p>free 操作的对象是 block，blok 受 pool 管理，pool 在 arena 中，所有arena 构成数组 arenas。</p>
+<ul>
+<li>free block 后，要将 block 挂载到 pool-&gt;freeblocks 上</li>
+<li>如果 pool 变为 used，就把 pool 挂载到 usedpools[] 上<ul>
+<li>如果所在 arena，仅此一个可用，还得把 arena 从 unused_arena 脱离，挂载到 usable 上</li>
+</ul>
+</li>
+<li>如果 pool 变为 empty，就把 pool 从 usedpools 脱离，挂载到 arena-&gt;freepools 上<ul>
+<li>如果所在 arena 都 empty，还得把 arena 从 usable_arenas 脱离，释放内存，挂载到 unused_arena 上</li>
+</ul>
+</li>
+</ul>
+<p><img src="http://t1.aixinxi.net/o_1ck4fmq6f1810nd6gk3p08467a.png-w.jpg" alt="Python 小块内存池全景"></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CPython3-6源码/" rel="tag"># CPython3.6源码</a>
+          
+            <a href="/tags/内存管理/" rel="tag"># 内存管理</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/" rel="next" title="【CPython3.6源码分析】Python 多线程机制">
+                <i class="fa fa-chevron-left"></i> 【CPython3.6源码分析】Python 多线程机制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/" rel="prev" title="【CPython3.6源码分析】Python 垃圾回收">
+                【CPython3.6源码分析】Python 垃圾回收 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存策略"><span class="nav-number">2.</span> <span class="nav-text">内存策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Default-Memory-Allocators"><span class="nav-number">2.1.</span> <span class="nav-text">Default Memory Allocators</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-层-API"><span class="nav-number">2.2.</span> <span class="nav-text">+1/+2 层 API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SMALL-REQUEST-THRESHOLD"><span class="nav-number">2.3.</span> <span class="nav-text">SMALL_REQUEST_THRESHOLD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ALIGNMENT"><span class="nav-number">2.4.</span> <span class="nav-text">ALIGNMENT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分配策略摘要"><span class="nav-number">2.5.</span> <span class="nav-text">分配策略摘要</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#block"><span class="nav-number">3.</span> <span class="nav-text">block</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pool"><span class="nav-number">4.</span> <span class="nav-text">Pool</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#pool-结构"><span class="nav-number">4.1.</span> <span class="nav-text">pool 结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pool-状态"><span class="nav-number">4.2.</span> <span class="nav-text">pool 状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pool-init"><span class="nav-number">4.3.</span> <span class="nav-text">Pool init</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#freeblock-链表"><span class="nav-number">4.4.</span> <span class="nav-text">freeblock 链表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Arena"><span class="nav-number">5.</span> <span class="nav-text">Arena</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#arena-链"><span class="nav-number">5.1.</span> <span class="nav-text">arena 链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#new-arena"><span class="nav-number">5.2.</span> <span class="nav-text">new_arena()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建-unused-arena-objects"><span class="nav-number">5.3.</span> <span class="nav-text">创建 unused_arena_objects</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#存在-unused-arena-objects"><span class="nav-number">5.4.</span> <span class="nav-text">存在 unused_arena_objects</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#arena-中的-pool-链"><span class="nav-number">5.5.</span> <span class="nav-text">arena 中的 pool 链</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#usedpools"><span class="nav-number">6.</span> <span class="nav-text">usedpools</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#指针数组定义"><span class="nav-number">6.1.</span> <span class="nav-text">指针数组定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pool-结构体定义"><span class="nav-number">6.2.</span> <span class="nav-text">pool 结构体定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#trick"><span class="nav-number">6.3.</span> <span class="nav-text">trick</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#add-by-Alloc-init"><span class="nav-number">6.4.</span> <span class="nav-text">add by Alloc init</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#add-by-Free-full"><span class="nav-number">6.5.</span> <span class="nav-text">add by Free full</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#remove-by-Alloc-full"><span class="nav-number">6.6.</span> <span class="nav-text">remove by Alloc full</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#remove-by-Free-empty"><span class="nav-number">6.7.</span> <span class="nav-text">remove by Free empty</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyObject-Alloc"><span class="nav-number">7.</span> <span class="nav-text">PyObject_Alloc</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Alloc-存在可用-pool"><span class="nav-number">7.1.</span> <span class="nav-text">Alloc 存在可用 pool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Alloc-不存在可用-pool"><span class="nav-number">7.2.</span> <span class="nav-text">Alloc 不存在可用 pool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Alloc-创建-pool"><span class="nav-number">7.3.</span> <span class="nav-text">Alloc 创建 pool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Carve-off-a-new-pool"><span class="nav-number">7.4.</span> <span class="nav-text">Carve off a new pool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">7.5.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyObject-Free"><span class="nav-number">8.</span> <span class="nav-text">PyObject_Free</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#POOL-ADDR"><span class="nav-number">8.1.</span> <span class="nav-text">POOL_ADDR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#address-in-range"><span class="nav-number">8.2.</span> <span class="nav-text">address_in_range</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Free-full-pool"><span class="nav-number">8.3.</span> <span class="nav-text">Free full pool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Free-used-pool"><span class="nav-number">8.4.</span> <span class="nav-text">Free used pool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Free-arena-management"><span class="nav-number">8.5.</span> <span class="nav-text">Free arena management</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Free-a-block-then-arena-empty"><span class="nav-number">8.5.1.</span> <span class="nav-text">Free a block then arena empty</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Free-a-block-then-arena-can-use"><span class="nav-number">8.5.2.</span> <span class="nav-text">Free a block then arena can use</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Free-a-block-then-调整-usable-链表"><span class="nav-number">8.5.3.</span> <span class="nav-text">Free a block then 调整 usable 链表</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结-1"><span class="nav-number">8.6.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">He11oLx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a></div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/';
+          this.page.identifier = '2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/';
+          this.page.title = '【CPython3.6源码分析】Python 内存管理机制';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

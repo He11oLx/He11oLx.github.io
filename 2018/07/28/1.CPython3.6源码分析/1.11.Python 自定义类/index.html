@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CPython3.6源码,类机制," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="参考 PEP3115 Metaclasses in Python  前言在上一讲，我们谈到了内置类的初始化工作，其中最主要的逻辑落在 PyType_Ready 中。本讲，我们将主要查看用户自定义类及实例化，在 Python 中的实现过程。">
+<meta name="keywords" content="CPython3.6源码,类机制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【CPython3.6源码分析】Python 自定义类">
+<meta property="og:url" content="http://he11olx.com/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考 PEP3115 Metaclasses in Python  前言在上一讲，我们谈到了内置类的初始化工作，其中最主要的逻辑落在 PyType_Ready 中。本讲，我们将主要查看用户自定义类及实例化，在 Python 中的实现过程。">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-08-05T07:09:35.457Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【CPython3.6源码分析】Python 自定义类">
+<meta name="twitter:description" content="参考 PEP3115 Metaclasses in Python  前言在上一讲，我们谈到了内置类的初始化工作，其中最主要的逻辑落在 PyType_Ready 中。本讲，我们将主要查看用户自定义类及实例化，在 Python 中的实现过程。">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/"/>
+
+
+
+
+
+  <title>【CPython3.6源码分析】Python 自定义类 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【CPython3.6源码分析】Python 自定义类</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-28T18:00:00+08:00">
+                2018-07-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://www.python.org/dev/peps/pep-3115/" target="_blank" rel="noopener">PEP3115 Metaclasses in Python</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在上一讲，我们谈到了内置类的初始化工作，其中最主要的逻辑落在 PyType_Ready 中。本讲，我们将主要查看用户自定义类及实例化，在 Python 中的实现过程。<br><a id="more"></a></p>
+<h2 id="自定义类"><a href="#自定义类" class="headerlink" title="自定义类"></a>自定义类</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span>:</span></span><br><span class="line">    name = <span class="string">'a'</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        print(<span class="string">"A:__init__"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">f</span><span class="params">(self)</span>:</span></span><br><span class="line">        print(<span class="string">"A:f"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">g</span><span class="params">(self, v)</span>:</span></span><br><span class="line">        self.v = v</span><br><span class="line">        print(self.v)</span><br><span class="line">a = A()</span><br><span class="line">a.f()</span><br><span class="line">a.g(<span class="number">10</span>)</span><br></pre></td></tr></table></figure>
+<p>从编译的字节码可以发现，创建类、实例化，以及调用实例的方法，都是通过<code>CALL_FUNCTION</code>实现。在<a href="https://he11olx.com/2018/07/21/1.9.Python%20%E5%87%BD%E6%95%B0%E6%9C%BA%E5%88%B6/">Python 函数机制</a>中，我们已经分析过 CALL_FUNCTION 的实现：”通过栈中的 func 指针及参数，在加上当前的 global 命名空间，创建一个 Frame 对象。并在新的 Frame 中加载 Func.<strong>code</strong> 执行字节码指令，最终将返回值压入栈中。”</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"> 1           0 LOAD_BUILD_CLASS</span><br><span class="line">             2 LOAD_CONST               0 (&lt;code object A &gt;)</span><br><span class="line">             4 LOAD_CONST               1 (&apos;A&apos;)</span><br><span class="line">             6 MAKE_FUNCTION            0</span><br><span class="line">             8 LOAD_CONST               1 (&apos;A&apos;)</span><br><span class="line">            10 CALL_FUNCTION            2        // 创建类</span><br><span class="line">            12 STORE_NAME               0 (A)</span><br><span class="line"></span><br><span class="line">10          14 LOAD_NAME                0 (A)</span><br><span class="line">            16 CALL_FUNCTION            0</span><br><span class="line">            18 STORE_NAME               1 (a)</span><br><span class="line">11          20 LOAD_NAME                1 (a)</span><br><span class="line">            22 LOAD_ATTR                2 (f)</span><br><span class="line">            24 CALL_FUNCTION            0</span><br><span class="line">            26 POP_TOP</span><br><span class="line">12          28 LOAD_NAME                1 (a)</span><br><span class="line">            30 LOAD_ATTR                3 (g)</span><br><span class="line">            32 LOAD_CONST               2 (10)</span><br><span class="line">            34 CALL_FUNCTION            1</span><br><span class="line">            36 POP_TOP</span><br><span class="line">            38 LOAD_CONST               3 (None)</span><br><span class="line">            40 RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<p>那么我们先看下 demo.py 对应的CodeObject。</p>
+<h3 id="CodeObject：demo-py"><a href="#CodeObject：demo-py" class="headerlink" title="CodeObject：demo.py"></a>CodeObject：demo.py</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span>:</span></span><br><span class="line">  <span class="number">1</span>           <span class="number">0</span> LOAD_BUILD_CLASS</span><br><span class="line">              <span class="number">2</span> LOAD_CONST               <span class="number">0</span> (&lt;code object A &gt;)</span><br><span class="line">              <span class="number">4</span> LOAD_CONST               <span class="number">1</span> (<span class="string">'A'</span>)</span><br><span class="line">              <span class="number">6</span> MAKE_FUNCTION            <span class="number">0</span></span><br><span class="line">              <span class="number">8</span> LOAD_CONST               <span class="number">1</span> (<span class="string">'A'</span>)</span><br><span class="line">             <span class="number">10</span> CALL_FUNCTION            <span class="number">2</span></span><br><span class="line">             <span class="number">12</span> STORE_NAME               <span class="number">0</span> (A)</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">opcode:: LOAD_BUILD_CLASS</span></span><br><span class="line"><span class="comment">    Pushes :func:`builtins.__build_class__` onto the stack.</span></span><br><span class="line"><span class="comment">    It is later called by :opcode:`CALL_FUNCTION` to construct a class.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line">TARGET(LOAD_BUILD_CLASS) &#123;</span><br><span class="line">    PyObject *bc;</span><br><span class="line">    <span class="comment">/* 从 f-&gt;f_builtins 中获取 __build_class__</span></span><br><span class="line"><span class="comment">        bc = __builtins__['__build_class__']</span></span><br><span class="line"><span class="comment">        PUSH(bc);</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>跟函数机制类似：</p>
+<ul>
+<li>0，加载 <code>__build_class__</code> 方法到栈顶</li>
+<li>2、4、6，加载 <code>&lt;code object A &gt;</code> 函数名 A，创建一个 FuncObject 入栈</li>
+<li>8、10，从栈中弹出 <strong>build_class</strong>、FuncObject、参数，创建一个新的 Frame 对象，加载字节码执行</li>
+<li>12 将栈顶的结果转移到 local 命名空间中</li>
+</ul>
+<h3 id="CALL-FUNCTION"><a href="#CALL-FUNCTION" class="headerlink" title="CALL_FUNCTION"></a>CALL_FUNCTION</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">TARGET(CALL_FUNCTION) &#123;</span><br><span class="line">    sp = stack_pointer;</span><br><span class="line">    res = call_function(&amp;sp, oparg, <span class="literal">NULL</span>);    <span class="comment">// oparg == 2</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">call_function(PyObject ***pp_stack, Py_ssize_t oparg, PyObject *kwnames)&#123;</span><br><span class="line">    PyObject *func = *((*pp_stack) - oparg - <span class="number">1</span>);</span><br><span class="line">    Py_ssize_t nkwargs = (kwnames == <span class="literal">NULL</span>) ? <span class="number">0</span> : PyTuple_GET_SIZE(kwnames);</span><br><span class="line">    Py_ssize_t nargs = oparg - nkwargs;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PyCFunction_Check(func)) &#123;</span><br><span class="line">        <span class="built_in">stack</span> = (*pp_stack) - nargs - nkwargs;    <span class="comment">// - 2 - 0</span></span><br><span class="line">        x =  _PyCFunction_FastCallKeywords(func, <span class="built_in">stack</span>, nargs, kwnames);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PyObject *</span><br><span class="line">_PyCFunction_FastCallKeywords(PyObject *func, PyObject **<span class="built_in">stack</span>,</span><br><span class="line">                              Py_ssize_t nargs, PyObject *kwnames)</span><br><span class="line">&#123;</span><br><span class="line">    PyObject *kwdict, *result;</span><br><span class="line">    Py_ssize_t nkwargs = (kwnames == <span class="literal">NULL</span>) ? <span class="number">0</span> : PyTuple_GET_SIZE(kwnames);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (nkwargs &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">/* zip 组合成字典，说明 kwnames 必须为 str 且唯一 */</span></span><br><span class="line">        kwdict = _PyStack_AsDict(<span class="built_in">stack</span> + nargs, kwnames);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        kwdict = <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    result = _PyCFunction_FastCallDict(func, <span class="built_in">stack</span>, nargs, kwdict);</span><br><span class="line">    Py_XDECREF(kwdict);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>特别注意：<code>10 CALL_FUNCTION 2</code>，参数个数为2。执行前的栈帧结构如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">__builtins__[&apos;__build_class__&apos;]</span><br><span class="line">FuncObject</span><br><span class="line">CONST:&quot;A&quot;</span><br></pre></td></tr></table></figure></p>
+<p>因此，最终调用时的参数为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">result = _PyCFunction_FastCallDict(func, stack, nargs, kwdict);</span><br><span class="line">/*</span><br><span class="line">    func = __builtins__[&apos;__build_class__&apos;]</span><br><span class="line">    stack = &amp;FuncObject</span><br><span class="line">    nargs = 2</span><br><span class="line">    kwdict = NULL</span><br><span class="line">*/</span><br></pre></td></tr></table></figure></p>
+<h3 id="PyCFunction-FastCallDict"><a href="#PyCFunction-FastCallDict" class="headerlink" title="_PyCFunction_FastCallDict"></a>_PyCFunction_FastCallDict</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// methodobject.c.153</span></span><br><span class="line">PyObject *</span><br><span class="line">_PyCFunction_FastCallDict(PyObject *func_obj, PyObject **args, Py_ssize_t nargs,</span><br><span class="line">                          PyObject *kwargs)</span><br><span class="line">&#123;</span><br><span class="line">    PyCFunctionObject *func = (PyCFunctionObject*)func_obj;</span><br><span class="line">    PyObject *result;</span><br><span class="line">    <span class="keyword">int</span> flags = PyCFunction_GET_FLAGS(func) &amp; ~(METH_CLASS | METH_STATIC | METH_COEXIST);</span><br><span class="line">    <span class="keyword">switch</span> (flags)</span><br><span class="line">    &#123;</span><br><span class="line">         <span class="keyword">case</span> METH_NOARGS:</span><br><span class="line">             ... <span class="keyword">break</span>;</span><br><span class="line">         <span class="keyword">case</span> METH_O:</span><br><span class="line">             ... <span class="keyword">break</span>;</span><br><span class="line">         <span class="keyword">case</span> METH_VARARGS:</span><br><span class="line">         <span class="keyword">case</span> METH_VARARGS | METH_KEYWORDS:</span><br><span class="line">             ... <span class="keyword">break</span>;</span><br><span class="line">         <span class="keyword">case</span> METH_FASTCALL:</span><br><span class="line">             ... <span class="keyword">break</span>;</span><br><span class="line">         <span class="keyword">default</span>：</span><br><span class="line">             <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// bltinmodule.c.2635</span></span><br><span class="line"><span class="keyword">static</span> PyMethodDef builtin_methods[] = &#123;</span><br><span class="line">    &#123;<span class="string">"__build_class__"</span>, (PyCFunction)builtin___build_class__,</span><br><span class="line">         METH_VARARGS | METH_KEYWORDS, build_class_doc&#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// methodobject.h.91</span></span><br><span class="line"><span class="keyword">typedef</span> struct &#123;</span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    PyMethodDef *m_ml; <span class="comment">/* Description of the C function to call */</span></span><br><span class="line">    PyObject    *m_self; <span class="comment">/* Passed as 'self' arg to the C func, can be NULL */</span></span><br><span class="line">    PyObject    *m_module; <span class="comment">/* The __module__ attribute, can be anything */</span></span><br><span class="line">    PyObject    *m_weakreflist; <span class="comment">/* List of weak references */</span></span><br><span class="line">&#125; PyCFunctionObject;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">PyMethodDef</span> &#123;</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>  *ml_name;   <span class="comment">/* The name of the built-in function/method */</span></span><br><span class="line">    PyCFunction ml_meth;    <span class="comment">/* The C function that implements it */</span></span><br><span class="line">    <span class="keyword">int</span>         ml_flags;   <span class="comment">/* Combination of METH_xxx flags, which mostly</span></span><br><span class="line"><span class="comment">                               describe the args expected by the C func */</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>  *ml_doc;    <span class="comment">/* The __daoc__ attribute, or NULL */</span></span><br><span class="line">&#125; PyMethodDef;</span><br></pre></td></tr></table></figure>
+<p>回想上一节谈到的 Python 类机制，在 PyType_Ready 中会经历一步 add_methods，把一个 C 函数封装成 Python 对象，放入字典中。此处，也不例外。根据 flags，程序将执行下面的分支。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">PyCFunction meth = func -&gt; m_ml -&gt; ml_meth;</span><br><span class="line">PyObject *self = func -&gt; m_self; <span class="comment">// == NULL</span></span><br><span class="line"><span class="keyword">case</span> METH_VARARGS | METH_KEYWORDS:</span><br><span class="line">&#123;</span><br><span class="line">    PyObject *tuple;</span><br><span class="line">    tuple = _PyStack_AsTuple(args, nargs);</span><br><span class="line">    result = (*(PyCFunctionWithKeywords)meth) (self, tuple, kwargs);</span><br><span class="line">    Py_DECREF(tuple);</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    meth = builtin___build_class__</span></span><br><span class="line"><span class="comment">    self = NULL</span></span><br><span class="line"><span class="comment">    tuple = (FuncObject,"A")</span></span><br><span class="line"><span class="comment">    kwargs = NULL</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>此处，将直接执行 C 函数<code>builtin___build_class__(NULL, (FuncObject, &quot;A&quot;), NULL)</code>。</p>
+<h3 id="build-class"><a href="#build-class" class="headerlink" title="build_class"></a><strong>build_class</strong></h3><h4 id="PEP3115"><a href="#PEP3115" class="headerlink" title="PEP3115"></a>PEP3115</h4><p>在查看源码前，我们先来看下<a href="https://www.python.org/dev/peps/pep-3115/" target="_blank" rel="noopener">PEP3115</a>。该提案改变了 Python3 中 metaclass 的定义方式。按照 <a href="https://mail.python.org/pipermail/python-3000/2007-March/006338.html" target="_blank" rel="noopener">Guido 所说</a>，class 语句将接受关键字参数，并且为元类增加 <code>__prepare__</code> 方法逻辑。在用元类创建类之前，会先尝试调用元类的<code>__prepare__</code>方法，返回一个字典，作为局部变量字典。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">C</span><span class="params">(A, B, metaclass=M, other=<span class="number">42</span>, *more_bases, *more_kwds)</span>:</span></span><br><span class="line">    ...</span><br><span class="line"><span class="comment"># would translate into this:</span></span><br><span class="line">C = __build_class__(&lt;func&gt;, <span class="string">'C'</span>, A, B, metaclass=M, other=<span class="number">42</span>,</span><br><span class="line">                   *more_bases, *more_kwds)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Then __build_class__ could be roughly like this (but implemented in C):</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__build_class__</span><span class="params">(func, name, *bases, metaclass=None, **kwds)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> metaclass <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">        metaclass = extract_metaclass(bases)  <span class="comment"># may raise an exception</span></span><br><span class="line">    prepare = getattr(metaclass, <span class="string">"__prepare__"</span>, <span class="keyword">None</span>)</span><br><span class="line">    <span class="keyword">if</span> prepare:</span><br><span class="line">        locals = prepare(name, bases, **kwds)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        locals = &#123;&#125;</span><br><span class="line">    func(locals)</span><br><span class="line">    <span class="keyword">return</span> metaclass(name, bases, locals, **kwds)</span><br></pre></td></tr></table></figure>
+<p><span id="builtin___build_class__"></span></p>
+<h4 id="builtin-build-class"><a href="#builtin-build-class" class="headerlink" title="builtin___build_class__"></a>builtin___build_class__</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// bltinmodule.c.55</span></span><br><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">builtin___build_class__(PyObject *self, PyObject *args, PyObject *kwds)&#123;</span><br><span class="line">    assert args is tuple</span><br><span class="line">    assert nargs = len(args) &gt;= <span class="number">2</span></span><br><span class="line">    asert func = args[<span class="number">0</span>] is callable</span><br><span class="line">    asert name = args[<span class="number">1</span>] is <span class="built_in">string</span></span><br><span class="line">    bases = args[<span class="number">2</span>:]</span><br><span class="line">    <span class="keyword">if</span> (kwds == <span class="literal">NULL</span>):</span><br><span class="line">        meta = <span class="literal">NULL</span></span><br><span class="line">        mkw = <span class="literal">NULL</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        mkw = kwds.copy()</span><br><span class="line">        meta = mkw.pop('metaclass', NULL)</span><br><span class="line">    <span class="keyword">if</span> meta is <span class="literal">NULL</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> bases:</span><br><span class="line">            meta = PyType_Typ</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            meta = bases[<span class="number">0</span>].__calss__</span><br><span class="line">    <span class="keyword">if</span> isinstance(meta, type):</span><br><span class="line">        meta = 更深层的 meta</span><br><span class="line"></span><br><span class="line">    ns = meta.__prepare__() <span class="keyword">or</span> &#123;&#125;  <span class="comment">// namespace 的简写</span></span><br><span class="line">    <span class="comment">/* 将 class block 存储到 ns 中 */</span></span><br><span class="line">    cell = PyEval_EvalCodeEx(func.__code__</span><br><span class="line">                             func.__global__, ns,</span><br><span class="line">                             <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="literal">NULL</span>,</span><br><span class="line">                             func.closure);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 创建类</span></span><br><span class="line">    PyObject *cls = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">if</span> cell != <span class="literal">NULL</span>:</span><br><span class="line">        PyObject *margs[<span class="number">3</span>] = &#123;name, bases, ns&#125;;</span><br><span class="line">        <span class="comment">// 相当于执行 meta(name_str, bases_tuple, namespace_dict)</span></span><br><span class="line">        cls = _PyObject_FastCallDict(meta, margs, <span class="number">3</span>, mkw);</span><br><span class="line">    <span class="keyword">return</span> cls</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意，上面不伦不类的伪代码是笔者根据源码改写的，具体内容请查看<a href="https://github.com/python/cpython/blob/3.6/Python/bltinmodule.c" target="_blank" rel="noopener">bltinmodule.c</a>。可以发现在此处真正完成了类的创建。</p>
+<p>特别注意，此处传入的 CodeObject 是从栈中取出的 FuncObject.code，即对应代码中的<code>&lt;code object A&gt;</code>。</p>
+<p>PyEval_EvalCodeEx 将调用 _PyEval_EvalCodeWithName。后者，我们在 Python函数机制 中已经谈到，最终都是创建栈帧对象，在新的上下文环境执行被调函数字节码指令。那么接下来就是在新的 Frame 中，执行 <code>class A</code> 的字节码指令，等待返回，执行创建类的<a href="#_PyObject_FastCallDict">代码</a>。</p>
+<h3 id="CodeObject：Class-A"><a href="#CodeObject：Class-A" class="headerlink" title="CodeObject：Class A"></a>CodeObject：Class A</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">// &lt;code object A&gt;</span><br><span class="line">co_consts = (&apos;A&apos;, &apos;a&apos;, &lt;code object __init__ &gt;, &apos;A.__init__&apos;,</span><br><span class="line">            &lt;code object f&gt;, &apos;A.f&apos;, &lt;code object g&gt;, &apos;A.g&apos;, None)</span><br><span class="line"></span><br><span class="line">co_names = (&apos;__name__&apos;, &apos;__module__&apos;, &apos;__qualname__&apos;, &apos;name&apos;, </span><br><span class="line">            &apos;__init__&apos;, &apos;f&apos;, &apos;g&apos;)</span><br><span class="line"></span><br><span class="line">  1           0 LOAD_NAME                0 (__name__)</span><br><span class="line">              2 STORE_NAME               1 (__module__)</span><br><span class="line">              4 LOAD_CONST               0 (&apos;A&apos;)</span><br><span class="line">              6 STORE_NAME               2 (__qualname__)</span><br><span class="line">  2           8 LOAD_CONST               1 (&apos;a&apos;)</span><br><span class="line">             10 STORE_NAME               3 (name)</span><br><span class="line">  3          12 LOAD_CONST               2 (&lt;code object __init__&gt;)</span><br><span class="line">             14 LOAD_CONST               3 (&apos;A.__init__&apos;)</span><br><span class="line">             16 MAKE_FUNCTION            0</span><br><span class="line">             18 STORE_NAME               4 (__init__)</span><br><span class="line">  5          20 LOAD_CONST               4 (&lt;code object f&gt;)</span><br><span class="line">             22 LOAD_CONST               5 (&apos;A.f&apos;)</span><br><span class="line">             24 MAKE_FUNCTION            0</span><br><span class="line">             26 STORE_NAME               5 (f)</span><br><span class="line">  7          28 LOAD_CONST               6 (&lt;code object g&gt;)</span><br><span class="line">             30 LOAD_CONST               7 (&apos;A.g&apos;)</span><br><span class="line">             32 MAKE_FUNCTION            0</span><br><span class="line">             34 STORE_NAME               6 (g)</span><br><span class="line">             36 LOAD_CONST               8 (None)</span><br><span class="line">             38 RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<p>如上，在新的 Frame 中，执行 CodeObject class A，整体上都在加载变量，创建 Function，存储到此时的 locals 命名空间中。要注意到，此时的 locals，是在<code>__build_class__</code>中，创建并传入的<code>ns</code>。意思就是，这些属性、方法，都存放在了 ns 中。最后，返回 None，回到<code>__build_class__</code>继续执行，<a href="#builtin___build_class__">跳转到 builtin___build_class__</a>。</p>
+<p><span id="_PyObject_FastCallDict"></span></p>
+<h3 id="PyObject-FastCallDict"><a href="#PyObject-FastCallDict" class="headerlink" title="_PyObject_FastCallDict"></a>_PyObject_FastCallDict</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">PyObject *margs[<span class="number">3</span>] = &#123;name, bases, ns&#125;;</span><br><span class="line">cls = _PyObject_FastCallDict(meta, margs, <span class="number">3</span>, mkw);</span><br><span class="line"></span><br><span class="line">PyObject *</span><br><span class="line">_PyObject_FastCallDict(PyObject *func, PyObject **args, Py_ssize_t nargs,</span><br><span class="line">                       PyObject *kwargs)</span><br><span class="line">&#123;</span><br><span class="line">    ternaryfunc call;</span><br><span class="line">    PyObject *result = <span class="literal">NULL</span>;</span><br><span class="line">    PyObject *tuple = &amp;_PyStack_AsTuple(args, nargs);</span><br><span class="line">    call = func-&gt;ob_type-&gt;tp_call;</span><br><span class="line">    <span class="keyword">if</span> (call == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        PyErr_Format(PyExc_TypeError, <span class="string">"'%.200s' object is not callable"</span>,</span><br><span class="line">                     func-&gt;ob_type-&gt;tp_name);</span><br><span class="line">        <span class="keyword">goto</span> <span class="built_in">exit</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    result = (*call)(func, tuple, kwargs);</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PyTypeObject PyType_Type = &#123;</span><br><span class="line">    (ternaryfunc)type_call,                     <span class="comment">/* tp_call */</span></span><br><span class="line">    type_new,                                   <span class="comment">/* tp_new */</span></span><br><span class="line">    type_init,                                  <span class="comment">/* tp_init */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>简写后的代码如上，此处的 func，就是上文传入的 metaclass，默认为 PyType_Type。那么就将调用 type_call()，创建类。</p>
+<p>这里就要提一句，为什么传入一个对象，却可以作为 func 使用？在 Python 中，函数是可以被调用的。而函数是<br>对象，变量也是对象。那么为什么函数可以被调用，而变量却不能？</p>
+<p>事实上，源代码已经告诉了我们答案：<code>object-&gt;ob_type-&gt;tp_call</code>，只要 <code>tp_call</code> 存在且是函数。该对象就是可以被调用的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="class"><span class="keyword">class</span> <span class="title">Ca</span>:</span></span><br><span class="line"><span class="meta">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self)</span>:</span></span><br><span class="line"><span class="meta">... </span>        print(<span class="string">"call: ca"</span>)</span><br><span class="line">...</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Ca.__class__.__call__</span><br><span class="line">&lt;slot wrapper <span class="string">'__call__'</span> of <span class="string">'type'</span> objects&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>callable(Ca())</span><br><span class="line"><span class="keyword">True</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Ca().__class__.__call__</span><br><span class="line">&lt;function Ca.__call__ at <span class="number">0x000001C8B28BEA60</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>执行 classObject()，就是执行 PyType_Type.tp_call()。执行 instance()，就是执行<code>instance.__class__.__call__</code>。</p>
+<p><span id="type_call"></span></p>
+<h3 id="type-call"><a href="#type-call" class="headerlink" title="type_call()"></a>type_call()</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">type_call(PyTypeObject *type, PyObject *args, PyObject *kwds)</span><br><span class="line">&#123;</span><br><span class="line">    PyObject *obj;</span><br><span class="line">    obj = type-&gt;tp_new(type, args, kwds);</span><br><span class="line">    obj = _Py_CheckFunctionResult((PyObject*)type, obj, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Ugly exception: when the call was type(something),</span></span><br><span class="line"><span class="comment">       don't call tp_init on the result. */</span></span><br><span class="line">    <span class="keyword">if</span> (type == &amp;PyType_Type &amp;&amp;</span><br><span class="line">        PyTuple_Check(args) &amp;&amp; PyTuple_GET_SIZE(args) == <span class="number">1</span> &amp;&amp;</span><br><span class="line">        (kwds == <span class="literal">NULL</span> ||</span><br><span class="line">         (PyDict_Check(kwds) &amp;&amp; PyDict_Size(kwds) == <span class="number">0</span>)))</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* If the returned object is not an instance of type,</span></span><br><span class="line"><span class="comment">       it won't be initialized. */</span></span><br><span class="line">    <span class="keyword">if</span> (!PyType_IsSubtype(Py_TYPE(obj), type))</span><br><span class="line">        <span class="keyword">return</span> obj;</span><br><span class="line"></span><br><span class="line">    type = Py_TYPE(obj);</span><br><span class="line">    <span class="keyword">if</span> (type-&gt;tp_init != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        type-&gt;tp_init(obj, args, kwds);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用 type-&gt;type_new()，得到一个 classObject。判断，是否执行的是 type(classObject)，再判断 classObject 是否继承自 type，否则进入我们熟悉的环节<code>__init__</code>。</p>
+<h3 id="type-new"><a href="#type-new" class="headerlink" title="type_new()"></a>type_new()</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(list)</span>:</span></span><br><span class="line"><span class="meta">... </span>    name = <span class="string">'n'</span></span><br><span class="line"><span class="meta">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">f</span><span class="params">(self)</span>:</span></span><br><span class="line"><span class="meta">... </span>        print(self)</span><br><span class="line">...</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>B = type(<span class="string">'B'</span>, (list,), &#123;<span class="string">'name'</span>: <span class="string">'n'</span>, <span class="string">"f"</span>: <span class="keyword">lambda</span> self: print(self)&#125;)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>type(B) <span class="keyword">is</span> type</span><br><span class="line"><span class="keyword">True</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>A.name</span><br><span class="line"><span class="string">'n'</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>B.name</span><br><span class="line"><span class="string">'n'</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>type(<span class="string">'C'</span>,())</span><br><span class="line">Traceback (most recent call last):</span><br><span class="line">  File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;</span><br><span class="line">TypeError: type() takes <span class="number">1</span> <span class="keyword">or</span> <span class="number">3</span> arguments</span><br></pre></td></tr></table></figure>
+<p>在查看 type_new 之前，先了解下 Python 中类的创建。从上面可以发现，type() 接收1个参数时，返回类型对象，3个参数时创建类。好了，了解之后就开始进入 type_new 环节。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// typeobject.c.2285-2731</span></span><br><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">type_new(PyTypeObject *metatype, PyObject *args, PyObject *kwds)&#123;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    metatype = type</span></span><br><span class="line"><span class="comment">    args =  (类名 name, 基类 bases, 命名空间 ns)</span></span><br><span class="line"><span class="comment">    kwds = 附加参数 or &#123;&#125;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>type_new</code>是一个非常复杂的函数，有超过400行。它在 Python 中扮演着非常重要的角色，正是由它创建了 Python 的各种 class。</p>
+<h4 id="type-x"><a href="#type-x" class="headerlink" title="type(x)"></a>type(x)</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (metatype == &amp;PyType_Type) &#123;</span><br><span class="line">    <span class="keyword">const</span> Py_ssize_t nargs = PyTuple_GET_SIZE(args);</span><br><span class="line">    <span class="keyword">const</span> Py_ssize_t nkwds = kwds == <span class="literal">NULL</span> ? <span class="number">0</span> : PyDict_Size(kwds);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Special case: type(x) should return x-&gt;ob_type */</span></span><br><span class="line">    <span class="comment">/* We only want type itself to accept the one-argument form (#27157)</span></span><br><span class="line"><span class="comment">       Note: We don't call PyType_CheckExact as that also allows subclasses */</span></span><br><span class="line">    <span class="keyword">if</span> (nargs == <span class="number">1</span> &amp;&amp; nkwds == <span class="number">0</span>) &#123;</span><br><span class="line">        PyObject *x = PyTuple_GET_ITEM(args, <span class="number">0</span>);</span><br><span class="line">        Py_INCREF(Py_TYPE(x));</span><br><span class="line">        <span class="keyword">return</span> (PyObject *) Py_TYPE(x);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>实际在调用时，type 本身也是作为形参 metatype 传入的。判断参数个数，若参数只有1个，那么就实在执行<code>type(classObject)</code>，直接返回<code>type(args[0])</code>。</p>
+<h4 id="确定-metatype"><a href="#确定-metatype" class="headerlink" title="确定 metatype"></a>确定 metatype</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Determine the proper metatype to deal with this: */</span></span><br><span class="line">winner = _PyType_CalculateMetaclass(metatype, bases);</span><br><span class="line"><span class="keyword">if</span> (winner == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (winner != metatype) &#123;</span><br><span class="line">    <span class="keyword">if</span> (winner-&gt;tp_new != type_new) <span class="comment">/* Pass it to the winner */</span></span><br><span class="line">        <span class="keyword">return</span> winner-&gt;tp_new(winner, args, kwds);</span><br><span class="line">    metatype = winner;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Adjust for empty tuple bases */</span></span><br><span class="line">nbases = PyTuple_GET_SIZE(bases);</span><br><span class="line"><span class="keyword">if</span> (nbases == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">/* 这就是 为什么 Python3 中自动继承 object */</span></span><br><span class="line">    bases = PyTuple_Pack(<span class="number">1</span>, &amp;PyBaseObject_Type);</span><br><span class="line">    <span class="keyword">if</span> (bases == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">goto</span> error;</span><br><span class="line">    nbases = <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>找出最佳的 metaclass，并处理 base=() 的情况。</p>
+<h4 id="slot"><a href="#slot" class="headerlink" title="slot"></a><strong>slot</strong></h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Check for a __slots__ sequence variable in dict, and count it */</span></span><br><span class="line">slots = _PyDict_GetItemId(di#$ct, &amp;PyId___slots__);</span><br><span class="line"><span class="keyword">if</span> (slots == <span class="literal">NULL</span>) &#123; ... &#125;</span><br><span class="line"><span class="keyword">else</span> &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+<p><code>__slot__</code>属性，允许我们显式的指定成员属性，经常用于存在大量实例的情况下减小内存占用。在这种情况下，将不会存在<code>__dict__</code>属性。具体参考：<a href="https://docs.python.org/3.6/reference/datamodel.html#slots" target="_blank" rel="noopener">python.org</a></p>
+<p><span id="Allocate"></span></p>
+<h4 id="Allocate"><a href="#Allocate" class="headerlink" title="Allocate"></a>Allocate</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/* Allocate the type object, 不使用 __slot__时 nslots=0 */</span></span><br><span class="line"> type = (PyTypeObject *)metatype-&gt;tp_alloc(metatype, nslots);</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Keep name and slots alive in the extended type object */</span></span><br><span class="line"> et = (PyHeapTypeObject *)type;</span><br><span class="line"> et-&gt;ht_name = name;</span><br><span class="line"> et-&gt;ht_slots = slots;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Initialize tp_flags */</span></span><br><span class="line"> type-&gt;tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HEAPTYPE |</span><br><span class="line">     Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_FINALIZE;</span><br><span class="line"> <span class="keyword">if</span> (base-&gt;tp_flags &amp; Py_TPFLAGS_HAVE_GC)</span><br><span class="line">     type-&gt;tp_flags |= Py_TPFLAGS_HAVE_GC;</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Initialize essential fields */</span></span><br><span class="line"> type-&gt;tp_as_async = &amp;et-&gt;as_async;</span><br><span class="line"> type-&gt;tp_as_number = &amp;et-&gt;as_number;</span><br><span class="line"> type-&gt;tp_as_sequence = &amp;et-&gt;as_sequence;</span><br><span class="line"> type-&gt;tp_as_mapping = &amp;et-&gt;as_mapping;</span><br><span class="line"> type-&gt;tp_as_buffer = &amp;et-&gt;as_buffer;</span><br><span class="line"> type-&gt;tp_name = PyUnicode_AsUTF8AndSize(name, &amp;name_size);</span><br><span class="line"></span><br><span class="line"> <span class="comment">/* Set tp_base and tp_bases */</span></span><br><span class="line"> type-&gt;tp_bases = bases;</span><br><span class="line"> type-&gt;tp_base = base;</span><br><span class="line"> <span class="comment">/* Initialize tp_dict from passed-in dict */</span></span><br><span class="line"> type-&gt;tp_dict = dict;</span><br><span class="line"> <span class="comment">/* Set __module__ in the dict */</span></span><br><span class="line"> <span class="comment">/* Set ht_qualname to dict['__qualname__'] if available, else to</span></span><br><span class="line"><span class="comment">    __name__.  The __qualname__ accessor will look for ht_qualname.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"> <span class="comment">/* Set tp_doc to a copy of dict['__doc__'], if the latter is there</span></span><br><span class="line"><span class="comment">    and is a string.  The __doc__ accessor will first look for tp_doc;</span></span><br><span class="line"><span class="comment">    if that fails, it will still look into __dict__.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"> <span class="comment">/* Special-case __new__: if it's a plain function,</span></span><br><span class="line"><span class="comment">    make it a static function */</span></span><br><span class="line"><span class="comment">/* Special-case __init_subclass__: if it's a plain function,</span></span><br><span class="line"><span class="comment">    make it a classmethod */</span></span><br><span class="line"><span class="comment">/* Add descriptors for custom slots from __slots__, or for __dict__ */</span></span><br><span class="line"><span class="comment">/* Special case some slots */</span></span><br></pre></td></tr></table></figure>
+<p>如上，在这部分调用 tp_alloc 在堆上分配内存。然后进行了一些属性和方法的初始化工作。</p>
+<p>这里要注意一点，若查看 PyType_Type 源码会发现 tp_alloc 为0，这可怎么搞？还记得 Python类机制中谈到，PyType_Ready 会将所有的 type.<strong>base</strong> 默认设置为 object。因此，PyType_Type 将继承到 PyBaseObject_Type-&gt;PyType_GenericAlloc 方法。</p>
+<h4 id="Gc-amp-Ready"><a href="#Gc-amp-Ready" class="headerlink" title="Gc&amp;Ready"></a>Gc&amp;Ready</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Enable GC unless this class is not adding new instance variables and</span></span><br><span class="line"><span class="comment">    the base class did not use GC. */</span></span><br><span class="line"><span class="comment">/* Always override allocation strategy to use regular heap */</span></span><br><span class="line"><span class="comment">/* store type in class' cell if one is supplied */</span></span><br><span class="line"><span class="comment">/* Initialize the rest */</span></span><br><span class="line"><span class="keyword">if</span> (PyType_Ready(type) &lt; <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">goto</span> error;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Put the proper slots in place */</span></span><br><span class="line">fixup_slot_dispatchers(type);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> (PyObject *)type;</span><br></pre></td></tr></table></figure>
+<p>最终，调用 PyType_Ready 对用户创建的类进行初始化，完成后返回 <a href="#type_call">type_call</a><br>此时，判断满足条件<code>PyType_IsSubtype(Py_TYPE(obj), type)</code>，直接返回 classObject，完成创建类的工作。</p>
+<p>特别注意：</p>
+<ol>
+<li>PyType_Ready(class A) 会为 A 继承一些属性/方法，其中就包括 tp_new/tp_init。</li>
+<li><code>fixup_slot_dispatchers</code>会替换存在于 <code>slotdefs</code>中，且用户自定义的<code>魔术</code>方法。</li>
+</ol>
+<h2 id="实例化自定义类"><a href="#实例化自定义类" class="headerlink" title="实例化自定义类"></a>实例化自定义类</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a = A()</span><br><span class="line"> <span class="number">10</span>          <span class="number">14</span> LOAD_NAME                <span class="number">0</span> (A)</span><br><span class="line">             <span class="number">16</span> CALL_FUNCTION            <span class="number">0</span></span><br><span class="line">             <span class="number">18</span> STORE_NAME               <span class="number">1</span> (a)</span><br></pre></td></tr></table></figure>
+<p>可见，创建实例对象，依此调用<code>CALL_FUNCTION-&gt;call_function-&gt;_PyObject_FastCallKeywords-&gt;_PyObject_FastCallDict</code>最终找到<code>func-&gt;ob_type-&gt;tp_call</code>，执行<code>tp_call()</code>。</p>
+<p>这又回到了创建自定义类的套路，问题在于，此时的 tp_new/tp_init 还是之前的 PyType_Type-&gt;tp_new吗？</p>
+<p>回顾 <a href="#PyType_Ready">PyType_Ready</a>，Python3 默认添加基类 object，若用户没有自定义，那么 tp_new 自然是<code>PyBaseObject_Type-&gt;tp_new</code> 即 object_new 。</p>
+<h3 id="object-new"><a href="#object-new" class="headerlink" title="object_new"></a>object_new</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">static PyObject *</span><br><span class="line">object_new(PyTypeObject *type, PyObject *args, PyObject *kwds)</span><br><span class="line">&#123;</span><br><span class="line">    /* 处理含参数，但 type-&gt;tp_init == object_init，报错 */</span><br><span class="line">    /* 处理抽象类 */</span><br><span class="line">    if (type-&gt;tp_flags &amp; Py_TPFLAGS_IS_ABSTRACT) &#123;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">    return type-&gt;tp_alloc(type, 0);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>是不是非常清晰、明了，比 type-&gt;type_new 的400行代码，看着舒服多了~完成后同样返回到 <a href="#type_call">type_call</a>。此时，不满足条件<code>PyType_IsSubtype(Py_TYPE(obj), type)</code>，继续执行<code>tp_init(obj, args, kwds)</code>，完成实例的初始化工作。</p>
+<h2 id="访问实例属性"><a href="#访问实例属性" class="headerlink" title="访问实例属性"></a>访问实例属性</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">a.f()</span><br><span class="line"> <span class="number">11</span>          <span class="number">20</span> LOAD_NAME                <span class="number">1</span> (a)</span><br><span class="line">             <span class="number">22</span> LOAD_ATTR                <span class="number">2</span> (f)</span><br><span class="line">             <span class="number">24</span> CALL_FUNCTION            <span class="number">0</span></span><br><span class="line">             <span class="number">26</span> POP_TOP</span><br></pre></td></tr></table></figure>
+<p>很明显，其中<code>LOAD_ATTR</code>将发挥重要作用。</p>
+<h3 id="LOAD-ATTR"><a href="#LOAD-ATTR" class="headerlink" title="LOAD_ATTR"></a>LOAD_ATTR</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">opcode:: LOAD_ATTR (namei)</span><br><span class="line">   Replaces TOS with ``getattr(TOS, co_names[namei])``.</span><br><span class="line"></span><br><span class="line">TARGET(LOAD_ATTR) &#123;</span><br><span class="line">    PyObject *name = GETITEM(names, oparg);</span><br><span class="line">    PyObject *owner = TOP();</span><br><span class="line">    PyObject *res = PyObject_GetAttr(owner, name);</span><br><span class="line">    Py_DECREF(owner);</span><br><span class="line">    SET_TOP(res);</span><br><span class="line">    <span class="keyword">if</span> (res == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="keyword">goto</span> error;</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>恩，看注释就很好理解。那么在来看<code>PyObject_GetAttr</code>。</p>
+<h3 id="描述符协议"><a href="#描述符协议" class="headerlink" title="描述符协议"></a>描述符协议</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="class"><span class="keyword">class</span> <span class="title">Field</span>:</span></span><br><span class="line"><span class="meta">... </span>    <span class="string">""" 实现描述符协议的类，描述符类 """</span></span><br><span class="line"><span class="meta">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name)</span>:</span></span><br><span class="line"><span class="meta">... </span>        self.name = name</span><br><span class="line"><span class="meta">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">__set__</span><span class="params">(self, instance, value)</span>:</span></span><br><span class="line"><span class="meta">... </span>        <span class="string">"""</span></span><br><span class="line"><span class="string"><span class="meta">... </span>        self 为描述符实例</span></span><br><span class="line"><span class="string"><span class="meta">... </span>        instance 为托管类的实例</span></span><br><span class="line"><span class="string"><span class="meta">... </span>        为 托管实例的托管属性进行赋值时，调用。</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line"><span class="string"><span class="meta">... </span>        描述符协议，是对托管实例，进行操作。</span></span><br><span class="line"><span class="string"><span class="meta">... </span>        """</span></span><br><span class="line"><span class="meta">... </span>        print(<span class="string">"use __set__"</span>)</span><br><span class="line"><span class="meta">... </span>        instance.__dict__[self.name] = value</span><br><span class="line"><span class="meta">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">__get__</span><span class="params">(self, instance, owner)</span>:</span></span><br><span class="line"><span class="meta">... </span>        <span class="string">"""</span></span><br><span class="line"><span class="string"><span class="meta">... </span>        self 为描述类实例</span></span><br><span class="line"><span class="string"><span class="meta">... </span>        instance 为托管类实例</span></span><br><span class="line"><span class="string"><span class="meta">... </span>        owner 为托管类</span></span><br><span class="line"><span class="string"><span class="meta">... </span>        """</span></span><br><span class="line"><span class="meta">... </span>        print(<span class="string">"use __get__"</span>)</span><br><span class="line"><span class="meta">... </span>        <span class="keyword">return</span> instance.__dict__[self.name]</span><br><span class="line">...</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="class"><span class="keyword">class</span> <span class="title">Model</span>:</span></span><br><span class="line"><span class="meta">... </span>    <span class="string">""" 把描述符实例，声明为类属性的类，托管类 """</span></span><br><span class="line"><span class="meta">... </span>    width = Field(<span class="string">'width'</span>)  <span class="comment"># 描述符实例 Field()</span></span><br><span class="line"><span class="meta">... </span>    height = Field(<span class="string">"height"</span>)  <span class="comment"># 描述符属性 height，都是类属性</span></span><br><span class="line"><span class="meta">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, width, height)</span>:</span></span><br><span class="line"><span class="meta">... </span>        <span class="string">""" 由描述符协议进行托管的，托管属性 """</span></span><br><span class="line"><span class="meta">... </span>        self.width = width</span><br><span class="line"><span class="meta">... </span>        self.height = height</span><br><span class="line">...</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>m = Model(<span class="number">10</span>, <span class="number">32</span>)</span><br><span class="line">use __set__</span><br><span class="line">use __set__</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>m.__dict__</span><br><span class="line">&#123;<span class="string">'width'</span>: <span class="number">10</span>, <span class="string">'height'</span>: <span class="number">32</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>在查看源码前，先了解下 Python 中的<a href="https://docs.python.org/3/reference/datamodel.html#implementing-descriptors" target="_blank" rel="noopener">描述符协议</a>。写过框架或者熟悉ORM的人，应该对其不陌生。描述符，在ORM中经常被用于数据验证。实际上，描述符在 Python 内部被大量使用。属性访问得到的对象，如果包含描述符方法，会调用该方法并返回。</p>
+<p>描述符定义为，对象包含以下任意方法，<code>__get__(), __set__(), and __delete__()</code>的对象。对实例来说，获取属性 x ，会lookup chain starting with <code>a.__dict__[&#39;x&#39;]</code>, then <code>type(a).__dict__[&#39;x&#39;]</code>, 并且继续在 bases 链中寻找，但不包括元类。</p>
+<p>但是，如果查找的值是一个定义描述符方法的对象，那么Python可以重写默认行为并调用描述符方法。在优先级链中发生这种情况取决于定义了哪些描述符方法以及如何调用它们。</p>
+<h3 id="描述符优先级"><a href="#描述符优先级" class="headerlink" title="描述符优先级"></a>描述符优先级</h3><p>描述符调用的优先级取决于定义了哪些描述符方法：</p>
+<ul>
+<li>如果它没有定义get()，那么访问该属性将返回描述符对象本身，除非对象的实例字典中有一个值。</li>
+<li>如果描述符定义了set()或del()那么它就是一个数据描述符</li>
+<li>如果它既不定义set()也不定义del()，那么它就是一个非数据描述符</li>
+<li>通常，数据描述符定义get()和set()，而非数据描述符只有get()方法。</li>
+</ul>
+<p>总体上就是：数据描述符 &gt; 实例覆盖&gt; 数据描述符</p>
+<p>Python 方法(包括staticmethod()和classmethod()))实现为非数据描述符。因此，实例可以重新定义和覆盖方法。这允许实例获得与其他实例不同的行为。<br>属性方法 property() 函数实现为数据描述符。因此，实例不能覆盖属性的行为。</p>
+<p>因此，会有以下结果<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="class"><span class="keyword">class</span> <span class="title">A</span>:</span></span><br><span class="line"><span class="meta">... </span>    @staticmethod</span><br><span class="line"><span class="meta">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">s</span><span class="params">()</span>:</span></span><br><span class="line"><span class="meta">... </span>        print(<span class="string">"非数据描述符"</span>)</span><br><span class="line"><span class="meta">... </span>    @classmethod</span><br><span class="line"><span class="meta">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">c</span><span class="params">(cls)</span>:</span></span><br><span class="line"><span class="meta">... </span>        print(<span class="string">"非数据描述符"</span>)</span><br><span class="line"><span class="meta">... </span>    @property</span><br><span class="line"><span class="meta">... </span>    <span class="function"><span class="keyword">def</span> <span class="title">p</span><span class="params">(self)</span>:</span></span><br><span class="line"><span class="meta">... </span>        <span class="keyword">return</span> <span class="string">"数据描述符"</span></span><br><span class="line">...</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a = A()</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a.s()</span><br><span class="line">非数据描述符</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a.c = <span class="number">1</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a.c</span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a.__dict__</span><br><span class="line">&#123;<span class="string">'c'</span>: <span class="number">1</span>&#125;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a.p</span><br><span class="line"><span class="string">'数据描述符'</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a.p = <span class="number">2</span></span><br><span class="line">Traceback (most recent call last):</span><br><span class="line">  File <span class="string">"&lt;stdin&gt;"</span>, line <span class="number">1</span>, <span class="keyword">in</span> &lt;module&gt;</span><br><span class="line">AttributeError: can<span class="string">'t set attribute</span></span><br><span class="line"><span class="string">&gt;&gt;&gt; a.__dict__['</span>p<span class="string">'] = 2</span></span><br><span class="line"><span class="string">&gt;&gt;&gt; a.__dict__</span></span><br><span class="line"><span class="string">&#123;'</span>c<span class="string">': 1, '</span>p<span class="string">': 2&#125;</span></span><br><span class="line"><span class="string">&gt;&gt;&gt; a.p</span></span><br><span class="line"><span class="string">'</span>数据描述符<span class="string">'</span></span><br></pre></td></tr></table></figure></p>
+<p>好了，如果还能保持清醒，那么就继续看<code>PyObject_GetAttr</code>的源码吧！</p>
+<h3 id="PyObject-GetAttr"><a href="#PyObject-GetAttr" class="headerlink" title="PyObject_GetAttr"></a>PyObject_GetAttr</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// objectc.c.884</span></span><br><span class="line">PyObject *</span><br><span class="line">PyObject_GetAttr(PyObject *v, PyObject *name)</span><br><span class="line">&#123;</span><br><span class="line">    PyTypeObject *tp = Py_TYPE(v);</span><br><span class="line">    <span class="function">assert <span class="title">PyUnicode_Check</span><span class="params">(name)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">    <span class="title">if</span> <span class="params">(tp-&gt;tp_getattro != <span class="literal">NULL</span>)</span></span></span><br><span class="line"><span class="function">        <span class="title">return</span> <span class="params">(*tp-&gt;tp_getattro)</span><span class="params">(v, name)</span></span>;</span><br><span class="line">    <span class="keyword">if</span> (tp-&gt;tp_getattr != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">char</span> *name_str = PyUnicode_AsUTF8(name);</span><br><span class="line">        <span class="keyword">if</span> (name_str == <span class="literal">NULL</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        <span class="keyword">return</span> (*tp-&gt;tp_getattr)(v, name_str);</span><br><span class="line">    &#125;</span><br><span class="line">    PyErr_Format(PyExc_AttributeError,</span><br><span class="line">                 <span class="string">"'%.50s' object has no attribute '%U'"</span>,</span><br><span class="line">                 tp-&gt;tp_name, name);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，tp_getattr 在内部已经被弃用，首选通过 tp_getattro，即<code>PyBaseObject_Type-&gt;PyObject_GenericGetAttr</code>，获取属性。</p>
+<h3 id="PyObject-GenericGetAttr"><a href="#PyObject-GenericGetAttr" class="headerlink" title="PyObject_GenericGetAttr"></a>PyObject_GenericGetAttr</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">PyObject *</span><br><span class="line">PyObject_GenericGetAttr(PyObject *obj, PyObject *name)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> _PyObject_GenericGetAttrWithDict(obj, name, <span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">    Generic attribute getter function that is meant to be put into a type object’s tp_getattro slot. It looks for a descriptor in the dictionary of classes in the object’s MRO as well as an attribute in the object’s __dict__ (if present). As outlined in Implementing Descriptors, data descriptors take preference over instance attributes, while non-data descriptors don’t. Otherwise, an AttributeError is raised.</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>从注释中，可以获取到，通用属性搜索在 typeObject-&gt;tp_getattro 槽中。会在 MRO 及<code>__dict__</code>中寻找描述符。数据描述符优先于实例属性，未找到会报错。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line">PyObject *</span><br><span class="line">_PyObject_GenericGetAttrWithDict(PyObject *obj, PyObject *name, PyObject *dict)</span><br><span class="line">&#123;</span><br><span class="line">    PyTypeObject *tp = Py_TYPE(obj);</span><br><span class="line">    PyObject *descr = <span class="literal">NULL</span>;</span><br><span class="line">    PyObject *res = <span class="literal">NULL</span>;</span><br><span class="line">    descrgetfunc f;</span><br><span class="line">    Py_ssize_t dictoffset;</span><br><span class="line">    PyObject **dictptr;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (tp-&gt;tp_dict == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (PyType_Ready(tp) &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">goto</span> done;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* Look for a name through the MRO */</span></span><br><span class="line">    descr = _PyType_Lookup(tp, name);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 尝试在 instance.__class__.__mro__ 链中寻找描述符 */</span></span><br><span class="line">    f = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">if</span> (descr != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        Py_INCREF(descr);</span><br><span class="line">        f = descr-&gt;ob_type-&gt;tp_descr_get;</span><br><span class="line">        <span class="keyword">if</span> (f != <span class="literal">NULL</span> &amp;&amp; PyDescr_IsData(descr)) &#123;</span><br><span class="line">            <span class="comment">/* 数据描述符，调用 __get__(self, instance, owner) */</span></span><br><span class="line">            res = f(descr, obj, (PyObject *)obj-&gt;ob_type);</span><br><span class="line">            <span class="keyword">goto</span> done;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 获取 __dict__ */</span></span><br><span class="line">    <span class="keyword">if</span> (dict == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">/* Inline _PyObject_GetDictPtr */</span></span><br><span class="line">        dictoffset = tp-&gt;tp_dictoffset;</span><br><span class="line">        <span class="keyword">if</span> (dictoffset != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (dictoffset &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">// 变长对象 dictoffset 负处理</span></span><br><span class="line">            &#125;</span><br><span class="line">            dictptr = (PyObject **) ((<span class="keyword">char</span> *)obj + dictoffset);</span><br><span class="line">            dict = *dictptr;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 尝试在 instance.__dict__ 中寻找 */</span></span><br><span class="line">    <span class="keyword">if</span> (dict != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        Py_INCREF(dict);</span><br><span class="line">        res = PyDict_GetItem(dict, name);</span><br><span class="line">        <span class="keyword">if</span> (res != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            Py_INCREF(res);</span><br><span class="line">            Py_DECREF(dict);</span><br><span class="line">            <span class="keyword">goto</span> done;</span><br><span class="line">        &#125;</span><br><span class="line">        Py_DECREF(dict);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* 处理找到描述符，但不是数据描述符 */</span></span><br><span class="line">    <span class="keyword">if</span> (f != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        res = f(descr, obj, (PyObject *)Py_TYPE(obj));</span><br><span class="line">        <span class="keyword">goto</span> done;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 处理，找到描述符，但无 __get__ 方法，返回描述符 */</span></span><br><span class="line">    <span class="keyword">if</span> (descr != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        res = descr;</span><br><span class="line">        descr = <span class="literal">NULL</span>;</span><br><span class="line">        <span class="keyword">goto</span> done;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* 什么都没找到，最终报错 */</span></span><br><span class="line">    PyErr_Format(PyExc_AttributeError,</span><br><span class="line">                 <span class="string">"'%.50s' object has no attribute '%U'"</span>,</span><br><span class="line">                 tp-&gt;tp_name, name);</span><br><span class="line">  done:</span><br><span class="line">    Py_XDECREF(descr);</span><br><span class="line">    Py_DECREF(name);</span><br><span class="line">    <span class="keyword">return</span> res;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，具体逻辑跟描述符优先级中的内容一模一样，沿着优先级一步一步尝试获取。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>至此，我们通过<code>LOAD_BUILD_CLASS + CALL_FUNCTION</code>指令，进入到 C 函数 <code>builtin___build_class__(NULL, (FuncObject, &quot;A&quot;), NULL)</code> ，在其中通过<code>PyEval_EvalCodeEx</code>将 FuncObject 执行后存储到 ns 中，然后进入到<code>meta(name_str, bases_tuple, namespace_dict)</code>。最终我们进入<code>PyType_Type-&gt;tp_new</code>，完成类的内存分配、初始化，创建类并返回。</p>
+<p>通过<code>LOAD_NAME + CALL_FUNCTION</code>，进入 C 函数<code>PyBaseObject_Type-&gt;tp_new</code>，完成实例的创建，通过<code>classObject.__init__</code>完成实例的初始化。</p>
+<p>通过<code>LOAD_NAME + LOAD_ATTR</code>，进入<code>PyObject_GetAttr</code>，沿着属性访问优先级链<code>描述符 + mro + __dict__</code>，依此尝试获取属性。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CPython3-6源码/" rel="tag"># CPython3.6源码</a>
+          
+            <a href="/tags/类机制/" rel="tag"># 类机制</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/28/1.CPython3.6源码分析/1.10.Python 类机制/" rel="next" title="【CPython3.6源码分析】Python 类机制">
+                <i class="fa fa-chevron-left"></i> 【CPython3.6源码分析】Python 类机制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/" rel="prev" title="【CPython3.6源码分析】Python 环境初始化">
+                【CPython3.6源码分析】Python 环境初始化 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">2.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义类"><span class="nav-number">3.</span> <span class="nav-text">自定义类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CodeObject：demo-py"><span class="nav-number">3.1.</span> <span class="nav-text">CodeObject：demo.py</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CALL-FUNCTION"><span class="nav-number">3.2.</span> <span class="nav-text">CALL_FUNCTION</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyCFunction-FastCallDict"><span class="nav-number">3.3.</span> <span class="nav-text">_PyCFunction_FastCallDict</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#build-class"><span class="nav-number">3.4.</span> <span class="nav-text">build_class</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PEP3115"><span class="nav-number">3.4.1.</span> <span class="nav-text">PEP3115</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#builtin-build-class"><span class="nav-number">3.4.2.</span> <span class="nav-text">builtin___build_class__</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CodeObject：Class-A"><span class="nav-number">3.5.</span> <span class="nav-text">CodeObject：Class A</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyObject-FastCallDict"><span class="nav-number">3.6.</span> <span class="nav-text">_PyObject_FastCallDict</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#type-call"><span class="nav-number">3.7.</span> <span class="nav-text">type_call()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#type-new"><span class="nav-number">3.8.</span> <span class="nav-text">type_new()</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#type-x"><span class="nav-number">3.8.1.</span> <span class="nav-text">type(x)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#确定-metatype"><span class="nav-number">3.8.2.</span> <span class="nav-text">确定 metatype</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#slot"><span class="nav-number">3.8.3.</span> <span class="nav-text">slot</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Allocate"><span class="nav-number">3.8.4.</span> <span class="nav-text">Allocate</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Gc-amp-Ready"><span class="nav-number">3.8.5.</span> <span class="nav-text">Gc&amp;Ready</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实例化自定义类"><span class="nav-number">4.</span> <span class="nav-text">实例化自定义类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#object-new"><span class="nav-number">4.1.</span> <span class="nav-text">object_new</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#访问实例属性"><span class="nav-number">5.</span> <span class="nav-text">访问实例属性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LOAD-ATTR"><span class="nav-number">5.1.</span> <span class="nav-text">LOAD_ATTR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#描述符协议"><span class="nav-number">5.2.</span> <span class="nav-text">描述符协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#描述符优先级"><span class="nav-number">5.3.</span> <span class="nav-text">描述符优先级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyObject-GetAttr"><span class="nav-number">5.4.</span> <span class="nav-text">PyObject_GetAttr</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyObject-GenericGetAttr"><span class="nav-number">5.5.</span> <span class="nav-text">PyObject_GenericGetAttr</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">He11oLx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a></div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/';
+          this.page.identifier = '2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/';
+          this.page.title = '【CPython3.6源码分析】Python 自定义类';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

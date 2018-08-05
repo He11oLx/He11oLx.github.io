@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CPython3.6源码," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="前言Python 的 GIL 可谓“大名鼎鼎”，正是由它控制着字节码解释器的执行权限。跟操作系统的进程调度一样，Python 必然会存在一个调度机制，决定了什么时候该进行线程切换。Python 也通过时间片的方式，挂起当前线程，切换其他线程。1234567sys.getcheckinterval()、sys.setcheckinterval()在 Python3.2 中已经被弃用sys.getsw">
+<meta name="keywords" content="CPython3.6源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【CPython3.6源码分析】Python 多线程机制">
+<meta property="og:url" content="http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="前言Python 的 GIL 可谓“大名鼎鼎”，正是由它控制着字节码解释器的执行权限。跟操作系统的进程调度一样，Python 必然会存在一个调度机制，决定了什么时候该进行线程切换。Python 也通过时间片的方式，挂起当前线程，切换其他线程。1234567sys.getcheckinterval()、sys.setcheckinterval()在 Python3.2 中已经被弃用sys.getsw">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-08-05T07:15:43.630Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【CPython3.6源码分析】Python 多线程机制">
+<meta name="twitter:description" content="前言Python 的 GIL 可谓“大名鼎鼎”，正是由它控制着字节码解释器的执行权限。跟操作系统的进程调度一样，Python 必然会存在一个调度机制，决定了什么时候该进行线程切换。Python 也通过时间片的方式，挂起当前线程，切换其他线程。1234567sys.getcheckinterval()、sys.setcheckinterval()在 Python3.2 中已经被弃用sys.getsw">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/"/>
+
+
+
+
+
+  <title>【CPython3.6源码分析】Python 多线程机制 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【CPython3.6源码分析】Python 多线程机制</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-04T18:00:00+08:00">
+                2018-08-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Python 的 GIL 可谓“大名鼎鼎”，正是由它控制着字节码解释器的执行权限。跟操作系统的进程调度一样，Python 必然会存在一个调度机制，决定了什么时候该进行线程切换。Python 也通过时间片的方式，挂起当前线程，切换其他线程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sys.getcheckinterval()、sys.setcheckinterval()</span><br><span class="line">在 Python3.2 中已经被弃用</span><br><span class="line">sys.getswitchinterval()、sys.setswitchinterval()</span><br><span class="line"></span><br><span class="line">/* microseconds (the Python API uses seconds, though) */</span><br><span class="line">#define DEFAULT_INTERVAL 5000</span><br><span class="line">static unsigned long gil_interval = DEFAULT_INTERVAL;</span><br></pre></td></tr></table></figure></p>
+<p>从3.2起，Python 的线程时间片控制，由以前的指令数改为了时间控制，默认0.005秒，可通过API进行更改。线程调度策略，依然是由操作系统决定，解释器仅参与GIL的释放和申请。</p>
+<a id="more"></a>
+<h2 id="thread"><a href="#thread" class="headerlink" title="_thread"></a>_thread</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// _threadmodule.c</span></span><br><span class="line">PyMODINIT_FUNC</span><br><span class="line">PyInit__thread(<span class="keyword">void</span>)&#123;</span><br><span class="line">    m = PyModule_Create(&amp;threadmodule);</span><br><span class="line">    PyThread_init_thread();</span><br><span class="line">    <span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">PyModuleDef</span> <span class="title">threadmodule</span> = &#123;</span> ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyMethodDef thread_methods[] = &#123;</span><br><span class="line">    &#123;<span class="string">"start_new_thread"</span>,(PyCFunction)thread_PyThread_start_new_thread,</span><br><span class="line">     METH_VARARGS, start_new_doc&#125;,</span><br><span class="line">     ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>_thread</code>是一个标准的 C 模块，通过上面这熟悉的套路，让我们可以直接在 Python 中使用 C 函数。创建线程正是通过<code>_thread.start_new_thread()</code>实现。</p>
+<p><span id="start_new_thread"></span></p>
+<h2 id="start-new-thread"><a href="#start-new-thread" class="headerlink" title="start_new_thread"></a>start_new_thread</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">thread_PyThread_start_new_thread(PyObject *self, PyObject *fargs)</span><br><span class="line">&#123;</span><br><span class="line">    PyObject *func, *args, *keyw = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">bootstate</span> *<span class="title">boot</span>;</span></span><br><span class="line">    <span class="keyword">long</span> ident;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!PyArg_UnpackTuple(fargs, <span class="string">"start_new_thread"</span>, <span class="number">2</span>, <span class="number">3</span>,</span><br><span class="line">                           &amp;func, &amp;args, &amp;keyw))</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    assert PyCallable_Check(func), "first arg must be callable"</span><br><span class="line">    assert PyTuple_Check(args),  "2nd arg must be a tuple"</span><br><span class="line">    assert keyw == <span class="literal">NULL</span> <span class="keyword">or</span> PyDict_Check(keyw),</span><br><span class="line">                <span class="string">"optional 3rd arg must be a dictionary"</span></span><br><span class="line">    <span class="comment">/* 创建 bootstate 结构 */</span></span><br><span class="line">    boot = PyMem_NEW(struct bootstate, <span class="number">1</span>);</span><br><span class="line">    boot-&gt;interp = PyThreadState_GET()-&gt;interp;</span><br><span class="line">    boot-&gt;func = func;</span><br><span class="line">    boot-&gt;args = args;</span><br><span class="line">    boot-&gt;keyw = keyw;</span><br><span class="line">    boot-&gt;tstate = _PyThreadState_Prealloc(boot-&gt;interp);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 初始化 Python 多线程环境 */</span></span><br><span class="line">    PyEval_InitThreads();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 创建系统 原生线程 */</span></span><br><span class="line">    ident = PyThread_start_new_thread(t_bootstrap, (<span class="keyword">void</span>*) boot);</span><br><span class="line">    <span class="keyword">return</span> PyLong_FromLong(ident);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，在C函数中，func/args都是通过参数 fargs 以元组的形式传入。然后创建 boot 结构体，初始化线程环境，创建线程，返回线程 id。</p>
+<p><span id="PyEval_InitThreads"></span></p>
+<h3 id="PyEval-InitThreads"><a href="#PyEval-InitThreads" class="headerlink" title="PyEval_InitThreads"></a>PyEval_InitThreads</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ceval.c.230</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">PyEval_InitThreads</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (gil_created())</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    create_gil();</span><br><span class="line">    take_gil(PyThreadState_GET());</span><br><span class="line">    main_thread = PyThread_get_thread_ident();</span><br><span class="line">    <span class="keyword">if</span> (!pending_lock)</span><br><span class="line">        pending_lock = PyThread_allocate_lock();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此时，主线程暂未开启 GIL，直接进入创建 GIL环节，然后持有 GIL，创建信号量。完成后返回<a href="#start_new_thread">start_new_thread</a>。</p>
+<h4 id="create-gil"><a href="#create-gil" class="headerlink" title="create_gil"></a>create_gil</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">create_gil</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="comment">/* 基于 pthread 线程库</span></span><br><span class="line"><span class="comment">static COND_T gil_cond;    // PyCOND_T = PyCOND_T = pthread_cond_t</span></span><br><span class="line"><span class="comment">static MUTEX_T gil_mutex;  // MUTEX_T = PyMUTEX_T = pthread_mutex_t</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 创建默认的互斥锁 pthread_mutex_init(&amp;gil_mutex, NULL) */</span></span><br><span class="line">    MUTEX_INIT(gil_mutex);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 初始化条件变量 pthread_cond_init(&amp;gil_cond, NULL) */</span></span><br><span class="line">    COND_INIT(gil_cond);</span><br><span class="line"></span><br><span class="line">    _Py_atomic_store_relaxed(&amp;gil_last_holder, <span class="number">0</span>);</span><br><span class="line">    _Py_ANNOTATE_RWLOCK_CREATE(&amp;gil_locked);</span><br><span class="line">    _Py_atomic_store_explicit(&amp;gil_locked, <span class="number">0</span>, _Py_memory_order_release);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>利用 C 模块，创建互斥锁、初始化条件变量。改变 gil_locked 的值，完成 GIL 的创建工作。</p>
+<h4 id="take-gil"><a href="#take-gil" class="headerlink" title="take_gil"></a>take_gil</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ceval_gil.h.67</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">take_gil</span><span class="params">(PyThreadState *tstate)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    MUTEX_LOCK(gil_mutex);    <span class="comment">// 加锁</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!_Py_atomic_load_relaxed(&amp;gil_locked))</span><br><span class="line">        <span class="comment">// 获取 GIL，若已释放，直接获取，跳转</span></span><br><span class="line">        <span class="keyword">goto</span> _ready;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (_Py_atomic_load_relaxed(&amp;gil_locked)) &#123;</span><br><span class="line">        <span class="comment">// GIL 未释放</span></span><br><span class="line">        <span class="keyword">int</span> timed_out = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">unsigned</span> <span class="keyword">long</span> saved_switchnum;</span><br><span class="line">        <span class="comment">// 记录切换次数</span></span><br><span class="line">        saved_switchnum = gil_switch_number;</span><br><span class="line">        <span class="comment">// 利用 pthread_cond_tim 阻塞等待超时</span></span><br><span class="line">        COND_TIMED_WAIT(gil_cond, gil_mutex, INTERVAL, timed_out);</span><br><span class="line">        <span class="comment">/* 等待超时，仍未释放, 发送释放请求信号 */</span></span><br><span class="line">        <span class="keyword">if</span> (timed_out &amp;&amp;</span><br><span class="line">            _Py_atomic_load_relaxed(&amp;gil_locked) &amp;&amp;</span><br><span class="line">            gil_switch_number == saved_switchnum) &#123;</span><br><span class="line">            <span class="comment">// 设置 gil_drop_request=1，eval_breaker=1</span></span><br><span class="line">            SET_GIL_DROP_REQUEST();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">_ready:</span><br><span class="line">    <span class="comment">/* We now hold the GIL */</span></span><br><span class="line">    _Py_atomic_store_relaxed(&amp;gil_locked, <span class="number">1</span>); <span class="comment">// 设置 GIL 占用</span></span><br><span class="line">    _Py_ANNOTATE_RWLOCK_ACQUIRED(&amp;gil_locked, <span class="comment">/*is_write=*/</span><span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (tstate != (PyThreadState*)_Py_atomic_load_relaxed(&amp;gil_last_holder)) &#123;</span><br><span class="line">        _Py_atomic_store_relaxed(&amp;gil_last_holder, (<span class="keyword">uintptr_t</span>)tstate);</span><br><span class="line">        ++gil_switch_number;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (_Py_atomic_load_relaxed(&amp;gil_drop_request)) &#123;</span><br><span class="line">        <span class="comment">// 重置 gil_drop_request=0</span></span><br><span class="line">        RESET_GIL_DROP_REQUEST();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (tstate-&gt;async_exc != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        _PyEval_SignalAsyncExc();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    MUTEX_UNLOCK(gil_mutex);    <span class="comment">// 解锁</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>整个申请释放GIL的过程，都被互斥锁 gil_mutex 锁住。如果 GIL 被占用，将进行等待，超时后改变全局变量，给持有线程发送信号。竞争到 GIL 后，重置全局变量，返回<a href="#PyEval_InitThreads">PyEval_InitThreads</a>。</p>
+<h4 id="PyThread-allocate-lock"><a href="#PyThread-allocate-lock" class="headerlink" title="PyThread_allocate_lock"></a>PyThread_allocate_lock</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> PyThread_type_lock pending_lock = <span class="number">0</span>; <span class="comment">/* for pending calls */</span></span><br><span class="line"></span><br><span class="line"><span class="function">PyThread_type_lock <span class="title">PyThread_allocate_lock</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">sem_t</span> *lock;    <span class="comment">// 声明信号量指针</span></span><br><span class="line">    <span class="keyword">int</span> status, error = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!initialized)</span><br><span class="line">        PyThread_init_thread();</span><br><span class="line"></span><br><span class="line">    lock = (<span class="keyword">sem_t</span> *)PyMem_RawMalloc(<span class="keyword">sizeof</span>(<span class="keyword">sem_t</span>));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (lock) &#123;</span><br><span class="line">        <span class="comment">// 初始化信号量，0表示仅当前进程内使用，1表示信号量初始值</span></span><br><span class="line">        status = sem_init(lock,<span class="number">0</span>,<span class="number">1</span>);</span><br><span class="line">        CHECK_STATUS(<span class="string">"sem_init"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (PyThread_type_lock)lock;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建一个初始状态为1的信号量，返回<a href="#PyEval_InitThreads">PyEval_InitThreads</a>。</p>
+<h3 id="PyThread-start-new-thread"><a href="#PyThread-start-new-thread" class="headerlink" title="PyThread_start_new_thread"></a>PyThread_start_new_thread</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ident = PyThread_start_new_thread(t_bootstrap, (void*) boot);</span></span><br><span class="line"><span class="keyword">long</span></span><br><span class="line">PyThread_start_new_thread(<span class="keyword">void</span> (*func)(<span class="keyword">void</span> *), <span class="keyword">void</span> *arg)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">pthread_t</span> th;    <span class="comment">// 创建线程对象</span></span><br><span class="line">    <span class="keyword">int</span> status;</span><br><span class="line">    <span class="keyword">if</span> (!initialized)</span><br><span class="line">        PyThread_init_thread();</span><br><span class="line"></span><br><span class="line">    status = pthread_create(&amp;th,</span><br><span class="line">                             (<span class="keyword">pthread_attr_t</span>*)<span class="literal">NULL</span>,</span><br><span class="line">                             (<span class="keyword">void</span>* (*)(<span class="keyword">void</span> *))func,</span><br><span class="line">                             (<span class="keyword">void</span> *)arg</span><br><span class="line">                             );</span><br><span class="line">    pthread_detach(th); <span class="comment">// 设置为 joinable，自动释放资源</span></span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">long</span>) th; <span class="comment">// 线程 id 存放在 &amp;th。</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>利用 pthread 库，创建新的线程，返回线程 id。此时新的线程，传入的 fun 是 函数 t_bootstrap，而参数 arg 是一个 bootstrap 结构体。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">bootstate</span> &#123;</span></span><br><span class="line">    PyInterpreterState *interp;</span><br><span class="line">    PyObject *func;</span><br><span class="line">    PyObject *args;</span><br><span class="line">    PyObject *keyw;</span><br><span class="line">    PyThreadState *tstate;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>线程开始执行，就是执行 t_bootstrap(bootstrap)。</p>
+<h4 id="t-bootstrap"><a href="#t-bootstrap" class="headerlink" title="t_bootstrap"></a>t_bootstrap</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">t_bootstrap(<span class="keyword">void</span> *boot_raw)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">bootstate</span> *<span class="title">boot</span> = (<span class="title">struct</span> <span class="title">bootstate</span> *) <span class="title">boot_raw</span>;</span></span><br><span class="line">    PyThreadState *tstate;</span><br><span class="line">    PyObject *res;</span><br><span class="line"></span><br><span class="line">    tstate = boot-&gt;tstate;</span><br><span class="line">    tstate-&gt;thread_id = PyThread_get_thread_ident();</span><br><span class="line">    _PyThreadState_Init(tstate);</span><br><span class="line">    PyEval_AcquireThread(tstate);    <span class="comment">// 竞争 GIL</span></span><br><span class="line">    nb_threads++;</span><br><span class="line">    res = PyEval_CallObjectWithKeywords(    <span class="comment">// 执行函数</span></span><br><span class="line">        boot-&gt;func, boot-&gt;args, boot-&gt;keyw);</span><br><span class="line">    ...</span><br><span class="line">    PyMem_DEL(boot_raw);            <span class="comment">// 销毁线程</span></span><br><span class="line">    nb_threads--;</span><br><span class="line">    PyThreadState_Clear(tstate);</span><br><span class="line">    PyThreadState_DeleteCurrent();</span><br><span class="line">    PyThread_exit_thread();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="PyEval-AcquireThread"><a href="#PyEval-AcquireThread" class="headerlink" title="PyEval_AcquireThread"></a>PyEval_AcquireThread</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ceval.c.272</span></span><br><span class="line"><span class="keyword">void</span></span><br><span class="line">PyEval_AcquireThread(PyThreadState *tstate)</span><br><span class="line">&#123;</span><br><span class="line">    assert tstate != <span class="literal">NULL</span></span><br><span class="line">    <span class="comment">/* Check someone has called PyEval_InitThreads() to create the lock */</span></span><br><span class="line">    assert(gil_created());</span><br><span class="line">    take_gil(tstate);</span><br><span class="line">    <span class="keyword">if</span> (PyThreadState_Swap(tstate) != <span class="literal">NULL</span>)</span><br><span class="line">        Py_FatalError(</span><br><span class="line">            <span class="string">"PyEval_AcquireThread: non-NULL old thread state"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>很明显，在<code>take_gil</code>中进入等待 GIL。获得 GIL 后，执行<code>PyEval_CallObjectWithKeywords</code>，执行相应用户代码。</p>
+<h2 id="线程切换"><a href="#线程切换" class="headerlink" title="线程切换"></a>线程切换</h2><h3 id="EvalFrameDefault"><a href="#EvalFrameDefault" class="headerlink" title="EvalFrameDefault"></a>EvalFrameDefault</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">PyObject *</span><br><span class="line">_PyEval_EvalFrameDefault(PyFrameObject *f, <span class="keyword">int</span> throwflag)&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">if</span> (_Py_atomic_load_relaxed(&amp;eval_breaker)) &#123;</span><br><span class="line">            <span class="keyword">if</span> (_Py_OPCODE(*next_instr) == SETUP_FINALLY ||</span><br><span class="line">                    _Py_OPCODE(*next_instr) == YIELD_FROM) &#123;</span><br><span class="line">                <span class="keyword">goto</span> fast_next_opcode;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (_Py_atomic_load_relaxed(&amp;pendingcalls_to_do)) &#123;</span><br><span class="line">                <span class="keyword">if</span> (Py_MakePendingCalls() &lt; <span class="number">0</span>)</span><br><span class="line">                    <span class="keyword">goto</span> error;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (_Py_atomic_load_relaxed(&amp;gil_drop_request)) &#123;</span><br><span class="line">                <span class="comment">/* Give another thread a chance */</span></span><br><span class="line">                <span class="keyword">if</span> (PyThreadState_Swap(<span class="literal">NULL</span>) != tstate)</span><br><span class="line">                    Py_FatalError(<span class="string">"ceval: tstate mix-up"</span>);</span><br><span class="line">                drop_gil(tstate);</span><br><span class="line"></span><br><span class="line">                <span class="comment">/* Other threads may run now */</span></span><br><span class="line">                take_gil(tstate);</span><br><span class="line"></span><br><span class="line">                <span class="comment">/* Check if we should make a quick exit. */</span></span><br><span class="line">                <span class="keyword">if</span> (_Py_Finalizing &amp;&amp; _Py_Finalizing != tstate) &#123;</span><br><span class="line">                    drop_gil(tstate);</span><br><span class="line">                    PyThread_exit_thread();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (PyThreadState_Swap(tstate) != <span class="literal">NULL</span>)</span><br><span class="line">                    Py_FatalError(<span class="string">"ceval: orphan tstate"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，当检测到 eval_breaker、gil_drop_request 时，会被动的释放 GIL，跟其他线程一起再次竞争 GIL。从源码中还能发现，遇到<code>SETUP_FINALLY、YIELD_FROM</code>是不会被调度的。</p>
+<h3 id="pysleep"><a href="#pysleep" class="headerlink" title="pysleep"></a>pysleep</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// timemodule.c.224</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> PyObject * <span class="title">time_sleep</span><span class="params">(PyObject *self, PyObject *obj)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    _PyTime_t secs;    <span class="comment">// typedef int64_t _PyTime_t;</span></span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">if</span> (pysleep(secs) != <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>用户可以通过 time.sleep() 主动挂起线程，释放GIL。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">pysleep</span><span class="params">(_PyTime_t secs)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    _PyTime_t deadline, monotonic;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">timeval</span> <span class="title">timeout</span>;</span></span><br><span class="line">    <span class="keyword">int</span> err = <span class="number">0</span>;</span><br><span class="line">    deadline = _PyTime_GetMonotonicClock() + secs;</span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (_PyTime_AsTimeval(secs, &amp;timeout, _PyTime_ROUND_CEILING) &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        <span class="comment">/* Linux上，通过宏 保存 ThreadState 状态，释放 GIL */</span></span><br><span class="line">        Py_BEGIN_ALLOW_THREADS</span><br><span class="line">        <span class="comment">// 调用 select，利用 timeout 参数，实现挂起线程</span></span><br><span class="line">        err = select(<span class="number">0</span>, (fd_set *)<span class="number">0</span>, (fd_set *)<span class="number">0</span>, (fd_set *)<span class="number">0</span>, &amp;timeout);</span><br><span class="line">        <span class="comment">// 宏调用 PyEval_RestoreThread，竞争 GIL</span></span><br><span class="line">        Py_END_ALLOW_THREADS</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* sleep was interrupted by SIGINT */</span></span><br><span class="line">        <span class="keyword">if</span> (PyErr_CheckSignals())</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">        monotonic = _PyTime_GetMonotonicClock();</span><br><span class="line">        secs = deadline - monotonic;</span><br><span class="line">        <span class="keyword">if</span> (secs &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="comment">/* retry with the recomputed delay */</span></span><br><span class="line">    &#125; <span class="keyword">while</span> (<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，pysleep是一个区分平台的函数。上面只列出了 Linux 下的代码，利用宏，实现 GIL 的释放和再次申请。</p>
+<h2 id="线程销毁"><a href="#线程销毁" class="headerlink" title="线程销毁"></a>线程销毁</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">res = PyEval_CallObjectWithKeywords(    <span class="comment">// 执行函数</span></span><br><span class="line">    boot-&gt;func, boot-&gt;args, boot-&gt;keyw);</span><br><span class="line">...</span><br><span class="line">PyMem_DEL(boot_raw);</span><br><span class="line">nb_threads--;</span><br><span class="line">PyThreadState_Clear(tstate);</span><br><span class="line">PyThreadState_DeleteCurrent();</span><br><span class="line">PyThread_exit_thread();</span><br></pre></td></tr></table></figure>
+<p>子线程的整个生命周期都在<code>t_bootstrap</code>函数中，一旦函数执行完成，将会进入线程销毁环节。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">PyThreadState_Clear</span><span class="params">(PyThreadState *tstate)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (Py_VerboseFlag &amp;&amp; tstate-&gt;frame != <span class="literal">NULL</span>)</span><br><span class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,</span><br><span class="line">          <span class="string">"PyThreadState_Clear: warning: thread still has a frame\n"</span>);</span><br><span class="line">    Py_CLEAR(tstate-&gt;frame);</span><br><span class="line">    Py_CLEAR(tstate-&gt;dict);</span><br><span class="line">        ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>清理当前线程持有的对象。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">PyThreadState_DeleteCurrent</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyThreadState *tstate = GET_TSTATE();</span><br><span class="line">    tstate_delete_common(tstate); <span class="comment">// 调整链表</span></span><br><span class="line">    <span class="keyword">if</span> (autoInterpreterState &amp;&amp; PyThread_get_key_value(autoTLSkey) == tstate)</span><br><span class="line">        PyThread_delete_key_value(autoTLSkey);</span><br><span class="line">    SET_TSTATE(<span class="literal">NULL</span>);</span><br><span class="line">    PyEval_ReleaseLock();    <span class="comment">// 释放 GIL</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">tstate_delete_common(PyThreadState *tstate)</span><br><span class="line">&#123;</span><br><span class="line">    PyInterpreterState *interp;</span><br><span class="line">    interp = tstate-&gt;interp;</span><br><span class="line">    HEAD_LOCK();    <span class="comment">// PyThread_acquire_lock(head_mutex, WAIT_LOCK)</span></span><br><span class="line">    <span class="keyword">if</span> (tstate-&gt;prev)</span><br><span class="line">        tstate-&gt;prev-&gt;next = tstate-&gt;next;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        interp-&gt;tstate_head = tstate-&gt;next;</span><br><span class="line">    <span class="keyword">if</span> (tstate-&gt;next)</span><br><span class="line">        tstate-&gt;next-&gt;prev = tstate-&gt;prev;</span><br><span class="line">    HEAD_UNLOCK(); <span class="comment">// PyThread_release_lock(head_mutex)</span></span><br><span class="line">    <span class="keyword">if</span> (tstate-&gt;on_delete != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        tstate-&gt;on_delete(tstate-&gt;on_delete_data);</span><br><span class="line">    &#125;</span><br><span class="line">    PyMem_RawFree(tstate);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PyEval_ReleaseLock(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">    drop_gil((PyThreadState*)_Py_atomic_load_relaxed(</span><br><span class="line">        &amp;_PyThreadState_Current));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调整 ThreadState 链表，删除当前 tstate，释放内存。完事后释放 GIL，结束整个线程。</p>
+<h2 id="GIL-总结"><a href="#GIL-总结" class="headerlink" title="GIL 总结"></a>GIL 总结</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">Py_atomic_int</span> &#123;</span></span><br><span class="line">    <span class="keyword">atomic_int</span> _value;</span><br><span class="line">&#125; _Py_atomic_int;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> _Py_atomic_int gil_locked = &#123;<span class="number">-1</span>&#125;;</span><br><span class="line"><span class="keyword">static</span> _Py_atomic_int gil_drop_request = &#123;<span class="number">0</span>&#125;;</span><br><span class="line"><span class="keyword">static</span> _Py_atomic_int eval_breaker = &#123;<span class="number">0</span>&#125;;</span><br><span class="line"><span class="keyword">static</span> _Py_atomic_int pendingcalls_to_do = &#123;<span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">long</span> main_thread = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">static</span> PyThread_type_lock pending_lock = <span class="number">0</span>; <span class="comment">/* for pending calls */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> COND_T gil_cond;</span><br><span class="line"><span class="keyword">static</span> MUTEX_T gil_mutex;</span><br></pre></td></tr></table></figure>
+<p>源码参见<code>ceval_gil.h</code>：</p>
+<ul>
+<li>GIL 实际上是一个 原子变量 gil_locked，初始为 -1，表示未启用</li>
+<li>互斥锁 gil_mutex 保护修改动作</li>
+<li>条件变量 gil_cond 用于等待 GIL</li>
+<li>持有 GIL 的线程执行 PyEval_EvalFrameEx 期间，必须能够接收到其他线程发送的释放请求</li>
+<li>每次循环都将检查变量 gil_drop_request/eval_breaker</li>
+<li>部分指令如’YIELD_FROM’会忽略释放请求</li>
+<li>想要申请 GIL 的线程，必须在条件变量 cil_cond 上等待，直至超时</li>
+<li>超时时间可通过<code>sys.{get,set}switchinterval()</code>进行获取、修改</li>
+<li>等待超时且未释放，会设置 gil_drop_request/eval_breaker = 1</li>
+<li>子线程获取到 GIL 后，会在 t_bootstrap 函数内，完成其整个生命周期</li>
+</ul>
+<h2 id="Threading"><a href="#Threading" class="headerlink" title="Threading"></a>Threading</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Rename some stuff so "from threading import *" is safe</span></span><br><span class="line">_start_new_thread = _thread.start_new_thread</span><br><span class="line">_allocate_lock = _thread.allocate_lock</span><br><span class="line">_set_sentinel = _thread._set_sentinel</span><br><span class="line">get_ident = _thread.get_ident</span><br><span class="line">ThreadError = _thread.error</span><br><span class="line"></span><br><span class="line">_active_limbo_lock = _allocate_lock()</span><br><span class="line">_active = &#123;&#125;    <span class="comment"># maps thread id to Thread object</span></span><br><span class="line">_limbo = &#123;&#125;</span><br><span class="line">_dangling = WeakSet()</span><br></pre></td></tr></table></figure>
+<p>Threading 是线程标准库，通过源码可以发现，它纯粹就是对 <code>_thread.c</code> 的封装，甚至是直接改了个名。</p>
+<h3 id="Class-Thread"><a href="#Class-Thread" class="headerlink" title="Class Thread"></a>Class Thread</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Thread</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, group=None, target=None, name=None,</span></span></span><br><span class="line"><span class="function"><span class="params">             args=<span class="params">()</span>, kwargs=None, *, daemon=None)</span>:</span></span><br><span class="line"></span><br><span class="line">        self._target = target</span><br><span class="line">        _dangling.add(self)</span><br><span class="line">        ....</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">with</span> _active_limbo_lock:</span><br><span class="line">            _limbo[self] = self    // 记录到 limbo</span><br><span class="line">        _start_new_thread(self._bootstrap, ())</span><br><span class="line">        ...</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_bootstrap</span><span class="params">(self)</span>:</span></span><br><span class="line">        self._bootstrap_inner()</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_bootstrap_inner</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">with</span> _active_limbo_lock:</span><br><span class="line">            _active[self._ident] = self</span><br><span class="line">            <span class="keyword">del</span> _limbo[self]    // 从 limbo 移动到 active</span><br><span class="line">        ...</span><br><span class="line">        self.run()</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">run</span><span class="params">(self)</span>:</span></span><br><span class="line">        self._target(*self._args, **self._kwargs)</span><br></pre></td></tr></table></figure>
+<p>查看 Thread 类可以发现，一层层嵌套，最终还是用 <code>_thread.start_new_thread</code>来创建新的线程，换汤不换药。</p>
+<h3 id="API"><a href="#API" class="headerlink" title="API"></a>API</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">active_count</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">with</span> _active_limbo_lock:</span><br><span class="line">        <span class="keyword">return</span> len(_active) + len(_limbo)</span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">current_thread</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> _active[get_ident()]</span><br></pre></td></tr></table></figure>
+<p>通过源码，能发现。threading 将已经 start，但暂未启动原生线程的放入了 limbo中。并且，只要放入了 limbo 就算是已经 active。对两个字典 active/limbo 的操作，都在 _thread.allocate_lock 的保护下。</p>
+<p>另外，threading 模块还提供了一些其他线程间同步工具，例如递归锁RLock、条件变量Condition、信号量Semaphore、事件Event。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CPython3-6源码/" rel="tag"># CPython3.6源码</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/" rel="next" title="【CPython3.6源码分析】Python 环境初始化">
+                <i class="fa fa-chevron-left"></i> 【CPython3.6源码分析】Python 环境初始化
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/" rel="prev" title="【CPython3.6源码分析】Python 内存管理机制">
+                【CPython3.6源码分析】Python 内存管理机制 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">17</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#thread"><span class="nav-number">2.</span> <span class="nav-text">_thread</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#start-new-thread"><span class="nav-number">3.</span> <span class="nav-text">start_new_thread</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyEval-InitThreads"><span class="nav-number">3.1.</span> <span class="nav-text">PyEval_InitThreads</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#create-gil"><span class="nav-number">3.1.1.</span> <span class="nav-text">create_gil</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#take-gil"><span class="nav-number">3.1.2.</span> <span class="nav-text">take_gil</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PyThread-allocate-lock"><span class="nav-number">3.1.3.</span> <span class="nav-text">PyThread_allocate_lock</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyThread-start-new-thread"><span class="nav-number">3.2.</span> <span class="nav-text">PyThread_start_new_thread</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#t-bootstrap"><span class="nav-number">3.2.1.</span> <span class="nav-text">t_bootstrap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PyEval-AcquireThread"><span class="nav-number">3.2.2.</span> <span class="nav-text">PyEval_AcquireThread</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程切换"><span class="nav-number">4.</span> <span class="nav-text">线程切换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#EvalFrameDefault"><span class="nav-number">4.1.</span> <span class="nav-text">EvalFrameDefault</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pysleep"><span class="nav-number">4.2.</span> <span class="nav-text">pysleep</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程销毁"><span class="nav-number">5.</span> <span class="nav-text">线程销毁</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GIL-总结"><span class="nav-number">6.</span> <span class="nav-text">GIL 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Threading"><span class="nav-number">7.</span> <span class="nav-text">Threading</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Class-Thread"><span class="nav-number">7.1.</span> <span class="nav-text">Class Thread</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#API"><span class="nav-number">7.2.</span> <span class="nav-text">API</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">He11oLx</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a></div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/';
+          this.page.identifier = '2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/';
+          this.page.title = '【CPython3.6源码分析】Python 多线程机制';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
