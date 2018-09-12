@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="web,tornado," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="参考资料 Tornado GitHub: 5.1  前言 Tornado is a Python web framework and asynchronous networking library。  包含以下几个方面：  A web framework，继承 RequestHandler 创建 application Client- and server-side implementions o">
+<meta name="keywords" content="web,tornado">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Python Web 系列】Tornado 源码分析">
+<meta property="og:url" content="http://he11olx.com/2018/09/12/2.Python Web/2.6.Tornado 源码分析/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考资料 Tornado GitHub: 5.1  前言 Tornado is a Python web framework and asynchronous networking library。  包含以下几个方面：  A web framework，继承 RequestHandler 创建 application Client- and server-side implementions o">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://he11olx.com/2018/09/12/2.Python%20Web/2.6.Tornado%20源码分析/_images/_tornado框架模_1536546604_31900.png">
+<meta property="og:updated_time" content="2018-09-12T13:20:47.131Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Python Web 系列】Tornado 源码分析">
+<meta name="twitter:description" content="参考资料 Tornado GitHub: 5.1  前言 Tornado is a Python web framework and asynchronous networking library。  包含以下几个方面：  A web framework，继承 RequestHandler 创建 application Client- and server-side implementions o">
+<meta name="twitter:image" content="http://he11olx.com/2018/09/12/2.Python%20Web/2.6.Tornado%20源码分析/_images/_tornado框架模_1536546604_31900.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/09/12/2.Python Web/2.6.Tornado 源码分析/"/>
+
+
+
+
+
+  <title>【Python Web 系列】Tornado 源码分析 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/2.Python Web/2.6.Tornado 源码分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【Python Web 系列】Tornado 源码分析</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/2.Python Web/2.6.Tornado 源码分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/2.Python Web/2.6.Tornado 源码分析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv">
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="http://www.tornadoweb.org/en/stable/" target="_blank" rel="noopener">Tornado</a></li>
+<li><a href="https://github.com/tornadoweb/tornado/tree/v5.1.0" target="_blank" rel="noopener">GitHub: 5.1</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+<p>Tornado is a Python web framework and asynchronous networking library。</p>
+</blockquote>
+<p>包含以下几个方面：</p>
+<ul>
+<li>A web framework，继承 RequestHandler 创建 application</li>
+<li>Client- and server-side implementions of HTTP (HTTPServer and AsyncHTTPClient).</li>
+<li>An asynchronous networking library including the classes IOLoop and IOStream</li>
+<li>A coroutine library (tornado.gen)，现已经推荐使用 Native Cocoutine。</li>
+<li>虽然兼容其他WSGI server/client，但无法发挥 Tornado 的高并发、长连接特点</li>
+</ul>
+<a id="more"></a>
+<p><img src="_images/_tornado框架模_1536546604_31900.png" alt="Tornado框架模型"></p>
+<p>从<a href="http://www.nowamagic.net/academy/detail/13321014" target="_blank" rel="noopener">上图</a>可以看出，Tornado 可以分为四层：</p>
+<ul>
+<li>EVENT 处理 IO 事件，这一层已经由 asyncio 来实现</li>
+<li>TCP 实现了 TCP 服务器，负责数据传输</li>
+<li>HTTP/HTTPS，基于 HTTP 协议，实现了 服务端和客户端</li>
+<li>WEB框架，基于认证/DB/Wsgi/模板/本地化，实现 Web 框架</li>
+</ul>
+<p>Tornado 使用单线程的事件循环来处理每个连接，在 Tornado5.0+，Py3.5+中：</p>
+<ul>
+<li>IOLoop 已是对官方库 asyncio.io_loop 的封装</li>
+<li>异步占位符 Future，现已推荐使用 Native coroutines</li>
+</ul>
+<h2 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tornado.ioloop</span><br><span class="line"><span class="keyword">import</span> tornado.web</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainHandler</span><span class="params">(tornado.web.RequestHandler)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get</span><span class="params">(self)</span>:</span></span><br><span class="line">        self.write(<span class="string">"Hello, world"</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    application = tornado.web.Application([</span><br><span class="line">        (<span class="string">r"/"</span>, MainHandler),</span><br><span class="line">    ])</span><br><span class="line">    application.listen(<span class="number">4000</span>)</span><br><span class="line">    tornado.ioloop.IOLoop.current().start()</span><br></pre></td></tr></table></figure>
+<h2 id="Application"><a href="#Application" class="headerlink" title="Application"></a>Application</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tornado.web.py</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span><span class="params">(ReversibleRouter)</span>:</span></span><br><span class="line">	  <span class="string">""" A collection of request handlers that make up a web application."""</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, handlers=None, default_host=None, transforms=None,</span></span></span><br><span class="line"><span class="function"><span class="params">                 **settings)</span>:</span></span><br><span class="line">			...</span><br></pre></td></tr></table></figure>
+<p>web.Application 是 tornado 作为 Web 框架最核心的类。在初始化时传入了：</p>
+<ul>
+<li>handlers，路由及对应 处理类列表</li>
+<li>settings，UI模块、静态文件等配置参数</li>
+<li>transforms，分块压缩配置</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># application.listen(4000)</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Application</span><span class="params">(ReversibleRouter)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">listen</span><span class="params">(self, port, address=<span class="string">""</span>, **kwargs)</span>:</span></span><br><span class="line">        <span class="keyword">from</span> tornado.httpserver <span class="keyword">import</span> HTTPServer</span><br><span class="line">        server = HTTPServer(self, **kwargs)</span><br><span class="line">        server.listen(port, address)</span><br><span class="line">        <span class="keyword">return</span> server</span><br></pre></td></tr></table></figure>
+<p>在 application.listen 中，可以发现，实际上调用的是 HTTPServer().listen()。</p>
+<h3 id="HTTPServer"><a href="#HTTPServer" class="headerlink" title="HTTPServer()"></a>HTTPServer()</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Configurable</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__new__</span><span class="params">(cls, *args, **kwargs)</span>:</span></span><br><span class="line">        base = cls.configurable_base()</span><br><span class="line">        init_kwargs = &#123;&#125;</span><br><span class="line">        <span class="keyword">if</span> cls <span class="keyword">is</span> base:</span><br><span class="line">            impl = cls.configured_class()</span><br><span class="line">            <span class="keyword">if</span> base.__impl_kwargs:</span><br><span class="line">                init_kwargs.update(base.__impl_kwargs)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            impl = cls</span><br><span class="line">        init_kwargs.update(kwargs)</span><br><span class="line">        <span class="keyword">if</span> impl.configurable_base() <span class="keyword">is</span> <span class="keyword">not</span> base:</span><br><span class="line">            <span class="keyword">return</span> impl(*args, **init_kwargs)</span><br><span class="line">        instance = super(Configurable, cls).__new__(impl)</span><br><span class="line">        instance.initialize(*args, **init_kwargs)</span><br><span class="line">        <span class="keyword">return</span> instance</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HTTPServer</span><span class="params">(TCPServer, Configurable,</span></span></span><br><span class="line"><span class="class"><span class="params">                 httputil.HTTPServerConnectionDelegate)</span>:</span>   </span><br><span class="line">    	<span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, *args, **kwargs)</span>:</span></span><br><span class="line">       <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line">		<span class="function"><span class="keyword">def</span> <span class="title">initialize</span><span class="params">(self, request_callback, no_keep_alive=False,</span></span></span><br><span class="line"><span class="function"><span class="params">                   xheaders=False, ssl_options=None, protocol=None,</span></span></span><br><span class="line"><span class="function"><span class="params">                   decompress_request=False,</span></span></span><br><span class="line"><span class="function"><span class="params">                   chunk_size=None, max_header_size=None,</span></span></span><br><span class="line"><span class="function"><span class="params">                   idle_connection_timeout=None, body_timeout=None,</span></span></span><br><span class="line"><span class="function"><span class="params">                   max_body_size=None, max_buffer_size=None,</span></span></span><br><span class="line"><span class="function"><span class="params">                   trusted_downstream=None)</span>:</span></span><br><span class="line">			...</span><br><span class="line">			TCPServer.__init__(self,...)</span><br></pre></td></tr></table></figure>
+<p>我们注意到，HTTPServer 继承了 Configurable，并且后者定义了 new 方法。<br>在 new 方法中，整合实例化参数，调用 initialize，构建实例化对象并返回。<br>其中：</p>
+<ul>
+<li>参数 request_callback == Application()</li>
+<li>将自身初始化为 TCPServer 对象</li>
+</ul>
+<h3 id="TCPServer-listen"><a href="#TCPServer-listen" class="headerlink" title="TCPServer.listen"></a>TCPServer.listen</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TCPServer</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">listen</span><span class="params">(self, port, address=<span class="string">""</span>)</span>:</span></span><br><span class="line">        sockets = bind_sockets(port, address=address)</span><br><span class="line">        self.add_sockets(sockets)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">add_sockets</span><span class="params">(self, sockets)</span>:</span></span><br><span class="line">        <span class="keyword">for</span> sock <span class="keyword">in</span> sockets:</span><br><span class="line">            self._sockets[sock.fileno()] = sock</span><br><span class="line">            self._handlers[sock.fileno()] = add_accept_handler(</span><br><span class="line">                sock, self._handle_connection)</span><br></pre></td></tr></table></figure>
+<p>如上，HTTPServer.listen 继承父类 TCPServer.listen。在 add_sockets 中，将执行很重要一个函数<code>add_accept_handler</code>。</p>
+<h3 id="add-accept-handler"><a href="#add-accept-handler" class="headerlink" title="add_accept_handler"></a>add_accept_handler</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_accept_handler</span><span class="params">(sock, callback)</span>:</span></span><br><span class="line">    io_loop = IOLoop.current()</span><br><span class="line">    removed = [<span class="keyword">False</span>]</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">accept_handler</span><span class="params">(fd, events)</span>:</span></span><br><span class="line">        <span class="comment"># for 循环，限制单次处理最大 128 个</span></span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> xrange(_DEFAULT_BACKLOG):</span><br><span class="line">            <span class="keyword">if</span> removed[<span class="number">0</span>]:</span><br><span class="line">                <span class="keyword">return</span></span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                connection, address = sock.accept()</span><br><span class="line">            <span class="keyword">except</span> socket.error <span class="keyword">as</span> e:</span><br><span class="line">                <span class="keyword">if</span> errno_from_exception(e) <span class="keyword">in</span> _ERRNO_WOULDBLOCK:</span><br><span class="line">                    <span class="keyword">return</span></span><br><span class="line">                <span class="keyword">if</span> errno_from_exception(e) == errno.ECONNABORTED:</span><br><span class="line">                    <span class="keyword">continue</span></span><br><span class="line">                <span class="keyword">raise</span></span><br><span class="line">            set_close_exec(connection.fileno())</span><br><span class="line">            callback(connection, address)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">remove_handler</span><span class="params">()</span>:</span></span><br><span class="line">        io_loop.remove_handler(sock)</span><br><span class="line">        removed[<span class="number">0</span>] = <span class="keyword">True</span></span><br><span class="line"></span><br><span class="line">    io_loop.add_handler(sock, accept_handler, IOLoop.READ)</span><br><span class="line">    <span class="keyword">return</span> remove_handler</span><br></pre></td></tr></table></figure>
+<p>在 add_accept_handler 中，将 socket 放入 io_loop，当有连接请求，会调用闭包函数 accept_handler。<br>在其中执行 sock.accept()，获取与客户端连接 conn，调用回调函数 <code>TCPServer._handle_connection</code>，处理连接。</p>
+<h3 id="TCPServer-handle-connection"><a href="#TCPServer-handle-connection" class="headerlink" title="TCPServer._handle_connection"></a>TCPServer._handle_connection</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TCPServer</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_handle_connection</span><span class="params">(self, connection, address)</span>:</span></span><br><span class="line">        <span class="comment"># Socket-based non-blocking Rader&amp;Witer，有省略</span></span><br><span class="line">        stream = IOStream(connection,</span><br><span class="line">                  max_buffer_size=self.max_buffer_size,</span><br><span class="line">                  read_chunk_size=self.read_chunk_size)</span><br><span class="line"></span><br><span class="line">        future = self.handle_stream(stream, address)</span><br><span class="line">        <span class="keyword">if</span> future <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">            IOLoop.current().add_future(gen.convert_yielded(future),</span><br><span class="line">                                        <span class="keyword">lambda</span> f: f.result())</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HTTPServer</span><span class="params">(TCPServer,...)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">handle_stream</span><span class="params">(self, stream, address)</span>:</span></span><br><span class="line">        context = _HTTPRequestContext(stream, address,</span><br><span class="line">                                      self.protocol,</span><br><span class="line">                                      self.trusted_downstream)</span><br><span class="line">        conn = HTTP1ServerConnection(</span><br><span class="line">            stream, self.conn_params, context)</span><br><span class="line">        self._connections.add(conn)</span><br><span class="line">        conn.start_serving(self)</span><br></pre></td></tr></table></figure>
+<p>如上，正式在 handle_connection 中，执行了 <code>io_loop.add_future</code>。<br>将 conn 封装非阻塞的 IOStream， 然后添加上下文 _HTTPRequestContext，封装成 HTTP1Connection，放入了 io_loop 中。</p>
+<h3 id="HTTP1ServerConnection"><a href="#HTTP1ServerConnection" class="headerlink" title="HTTP1ServerConnection"></a>HTTP1ServerConnection</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="string">conn.start_serving(self)    # self, 在此处是 HTTPServer</span></span><br><span class="line"><span class="string">"""</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HTTP1ServerConnection</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start_serving</span><span class="params">(self, delegate)</span>:</span></span><br><span class="line">        self._serving_future = self._server_request_loop(delegate)</span><br><span class="line">        self.stream.io_loop.add_future(self._serving_future,</span><br><span class="line">                                       <span class="keyword">lambda</span> f: f.result())</span><br><span class="line"><span class="meta">    @gen.coroutine</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_server_request_loop</span><span class="params">(self, delegate)</span>:</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">                conn = HTTP1Connection(self.stream, <span class="keyword">False</span>,</span><br><span class="line">                                       self.params, self.context)</span><br><span class="line">                request_delegate = delegate.start_request(self, conn)</span><br><span class="line">                <span class="keyword">try</span>:</span><br><span class="line">                    ret = <span class="keyword">yield</span> conn.read_response(request_delegate)</span><br><span class="line">                <span class="keyword">except</span> (iostream.StreamClosedError,</span><br><span class="line">                        iostream.UnsatisfiableReadError):</span><br><span class="line">                    <span class="keyword">return</span></span><br><span class="line">                <span class="keyword">except</span> _QuietException:</span><br><span class="line">                    <span class="comment"># This exception was already logged.</span></span><br><span class="line">                    conn.close()</span><br><span class="line">                    <span class="keyword">return</span></span><br><span class="line">                <span class="keyword">except</span> Exception:</span><br><span class="line">                    gen_log.error(<span class="string">"Uncaught exception"</span>, exc_info=<span class="keyword">True</span>)</span><br><span class="line">                    conn.close()</span><br><span class="line">                    <span class="keyword">return</span></span><br><span class="line">                <span class="keyword">if</span> <span class="keyword">not</span> ret:</span><br><span class="line">                    <span class="keyword">return</span></span><br><span class="line">                <span class="keyword">yield</span> gen.moment</span><br><span class="line">        <span class="keyword">finally</span>:</span><br><span class="line">            delegate.on_close(self)</span><br></pre></td></tr></table></figure>
+<p>通过 while 循环，不断的读取数据，完成请求处理。在其中，delegate.start_request，调用的是<code>HTTPServer().start_request</code>。</p>
+<p>注意，这个地方，有一个小技巧：</p>
+<ul>
+<li>_server_request_loop，本身是一个 yiled 生成器</li>
+<li>gen.coroutine 装饰器，会调用 next()，消费生成器</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">result = func(*args, **kwargs)</span><br><span class="line"><span class="keyword">if</span> isinstance(result, GeneratorType):</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment"># 此处，会消费 gen，进入 _server_request_loop</span></span><br><span class="line">    <span class="comment"># 然后进入，conn.read_response(request_delegate)，获取结果</span></span><br><span class="line">    yielded = next(result)</span><br><span class="line">    </span><br><span class="line">    future = _create_future()</span><br><span class="line">    runner = Runner(result, future, yielded)</span><br><span class="line">    future.add_done_callback(<span class="keyword">lambda</span> _: runner)</span><br></pre></td></tr></table></figure>
+<h3 id="start-request"><a href="#start-request" class="headerlink" title="start_request"></a>start_request</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># request_delegate = delegate.start_request(self, conn) </span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HTTPServer</span><span class="params">(TCPServer, Configurable,</span></span></span><br><span class="line"><span class="class"><span class="params">                 httputil.HTTPServerConnectionDelegate)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start_request</span><span class="params">(self, server_conn, request_conn)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> isinstance(self.request_callback, httputil.HTTPServerConnectionDelegate):</span><br><span class="line">            delegate = self.request_callback.start_request(server_conn, request_conn)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            delegate = _CallableAdapter(self.request_callback, request_conn)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> self.xheaders:</span><br><span class="line">            delegate = _ProxyAdapter(delegate, request_conn)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> delegate</span><br></pre></td></tr></table></figure>
+<p>在 HTTPServer.initialize() 中，request_callback 被初始化为 Application()。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Application -&gt; ReversibleRouter -&gt; Router -&gt; HTTPServerConnectionDelegate</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Router</span><span class="params">(httputil.HTTPServerConnectionDelegate)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start_request</span><span class="params">(self, server_conn, request_conn)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> _RoutingDelegate(self, server_conn, request_conn)</span><br></pre></td></tr></table></figure>
+<p>根据 Application 继承链，将调用 Router.start_request，得到一个 RoutingDelegate 对象。<br>被 <code>yield conn.read_response(request_delegate)</code> 消费。</p>
+<h3 id="read-response"><a href="#read-response" class="headerlink" title="read_response"></a>read_response</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># yield conn.read_response(_RoutingDelegate())</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">HTTP1Connection</span><span class="params">(httputil.HTTPConnection)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">read_response</span><span class="params">(self, delegate)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> self.params.decompress:</span><br><span class="line">            delegate = _GzipMessageDelegate(delegate, self.params.chunk_size)</span><br><span class="line">        <span class="keyword">return</span> self._read_message(delegate)</span><br><span class="line"><span class="meta">    @gen.coroutine    </span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_read_message</span><span class="params">(self, delegate)</span>:</span></span><br><span class="line">        <span class="string">""" 读取 IOStream</span></span><br><span class="line"><span class="string">        1. yield header_data</span></span><br><span class="line"><span class="string">        2. start_line, headers 解析请求行</span></span><br><span class="line"><span class="string">        3. headers_received(start_line, headers)，匹配 Handler</span></span><br><span class="line"><span class="string">        """</span></span><br></pre></td></tr></table></figure>
+<p>此处，再次通过 @gen.coroutine  生成器，消费 _read_message。<br>在 read_response，从 socket 读取数据，供用户代码使用。<br>当 read_message 把请求头 yield 之后，会返回到 <a href="mailto:`@gen.coroutine" target="_blank" rel="noopener">`@gen.coroutine</a>` 装饰器代码逻辑中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># result: read_message 生成器</span><br><span class="line">yielded = next(result)        # yielded: 生成器 next 的结果，请求头</span><br><span class="line"></span><br><span class="line"># 返回到此处，继续执行</span><br><span class="line">future = _create_future()     # future：新的 Future 对象</span><br><span class="line">runner = Runner(result, future, yielded)</span><br><span class="line">future.add_done_callback(lambda _: runner)</span><br></pre></td></tr></table></figure></p>
+<p>此时，会进入 Runner 的实例化流程，然后调用 run 方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Runner</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, gen, result_future, first_yielded)</span>:</span></span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">if</span> self.handle_yield(first_yielded):</span><br><span class="line">            gen = result_future = first_yielded = <span class="keyword">None</span></span><br><span class="line">            self.run()</span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">run</span><span class="params">(self)</span>:</span></span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">            value = future.result()</span><br><span class="line">            yielded = self.gen.send(value)</span><br></pre></td></tr></table></figure>
+<p>在此处，循环消费 read_message，直到读取完所有请求体。<br>注意，在读取到请求头，再次进入 read_message 时，会先解析请求行，找到 handler。</p>
+<h3 id="实例化-HandlerDelegate-对象"><a href="#实例化-HandlerDelegate-对象" class="headerlink" title="实例化 HandlerDelegate 对象"></a>实例化 HandlerDelegate 对象</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># delegate.headers_received(start_line, headers)</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_RoutingDelegate</span><span class="params">(httputil.HTTPMessageDelegate)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, router, server_conn, request_conn)</span>:</span></span><br><span class="line">        self.server_conn = server_conn    </span><br><span class="line">        self.request_conn = request_conn</span><br><span class="line">        self.delegate = <span class="keyword">None</span></span><br><span class="line">        self.router = router  <span class="comment"># 用户的 Application</span></span><br><span class="line">        </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">headers_received</span><span class="params">(self, start_line, headers)</span>:</span></span><br><span class="line">        <span class="comment"># 1. 封装 request 对象</span></span><br><span class="line">        request = httputil.HTTPServerRequest(</span><br><span class="line">            connection=self.request_conn,</span><br><span class="line">            server_connection=self.server_conn,</span><br><span class="line">            start_line=start_line, headers=headers)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 在 Application 中寻找对应的 router，_HandlerDelegate 对象</span></span><br><span class="line">        <span class="comment"># 封装到 _RoutingDelegate.delegate 属性上</span></span><br><span class="line">        self.delegate = self.router.find_handler(request)</span><br><span class="line">        <span class="keyword">if</span> self.delegate <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">            app_log.debug(<span class="string">"Delegate for %s %s request not found"</span>,</span><br><span class="line">                          start_line.method, start_line.path)</span><br><span class="line">            self.delegate = _DefaultMessageDelegate(self.request_conn)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> self.delegate.headers_received(start_line, headers)</span><br></pre></td></tr></table></figure>
+<p>然后进入 <code>_RoutingDelegate.finish()</code>，进入到<code>_RoutingDelegate.delegate.finish()</code>。<br>HandlerDelegate 实例对象，包含很多信息：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_HandlerDelegate</span><span class="params">(httputil.HTTPMessageDelegate)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, application, request, handler_class, handler_kwargs,</span></span></span><br><span class="line"><span class="function"><span class="params">                 path_args, path_kwargs)</span>:</span></span><br><span class="line">        self.application = application</span><br><span class="line">        self.connection = request.connection</span><br><span class="line">        self.request = request</span><br><span class="line">        self.handler_class = handler_class</span><br><span class="line">        self.handler_kwargs = handler_kwargs <span class="keyword">or</span> &#123;&#125;</span><br><span class="line">        self.path_args = path_args <span class="keyword">or</span> []</span><br><span class="line">        self.path_kwargs = path_kwargs <span class="keyword">or</span> &#123;&#125;</span><br><span class="line">        self.chunks = []</span><br><span class="line">        self.stream_request_body = _has_stream_request_body(self.handler_class)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">execute</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="comment"># 创建用户 handler 类实例对象</span></span><br><span class="line">        self.handler = self.handler_class(self.application, self.request,</span><br><span class="line">                                          **self.handler_kwargs)</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment"># 准备执行 用户代码</span></span><br><span class="line">        self.handler._execute(transforms, *self.path_args,</span><br><span class="line">                                      **self.path_kwargs)</span><br></pre></td></tr></table></figure></p>
+<p>在 execute 中，会实例化 HandClass 对象，调用 _execute 准备执行用户代码。<br>注意，execute 也是一个被  @gen.coroutine 装饰的函数。</p>
+<h3 id="RequestHandler-execute"><a href="#RequestHandler-execute" class="headerlink" title="RequestHandler._execute()"></a>RequestHandler._execute()</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RequestHandler</span><span class="params">(object)</span>:</span></span><br><span class="line"><span class="meta">    @gen.coroutine</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_execute</span><span class="params">(self, transforms, *args, **kwargs)</span>:</span></span><br><span class="line">        <span class="string">"""Executes this request with the given output transforms."""</span></span><br><span class="line">        self._transforms = transforms</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="keyword">if</span> self.request.method <span class="keyword">not</span> <span class="keyword">in</span> self.SUPPORTED_METHODS:</span><br><span class="line">                <span class="keyword">raise</span> HTTPError(<span class="number">405</span>)</span><br><span class="line">            self.path_args = [self.decode_argument(arg) <span class="keyword">for</span> arg <span class="keyword">in</span> args]</span><br><span class="line">            self.path_kwargs = dict((k, self.decode_argument(v, name=k))</span><br><span class="line">                                    <span class="keyword">for</span> (k, v) <span class="keyword">in</span> kwargs.items())</span><br><span class="line">            <span class="comment"># If XSRF cookies are turned on, reject form submissions without</span></span><br><span class="line">            <span class="comment"># the proper cookie</span></span><br><span class="line">            <span class="keyword">if</span> self.request.method <span class="keyword">not</span> <span class="keyword">in</span> (<span class="string">"GET"</span>, <span class="string">"HEAD"</span>, <span class="string">"OPTIONS"</span>) <span class="keyword">and</span> \</span><br><span class="line">                    self.application.settings.get(<span class="string">"xsrf_cookies"</span>):</span><br><span class="line">                self.check_xsrf_cookie()</span><br><span class="line">            </span><br><span class="line">            result = self.prepare()</span><br><span class="line">            <span class="keyword">if</span> result <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">                result = <span class="keyword">yield</span> result</span><br><span class="line">            <span class="keyword">if</span> self._prepared_future <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">                <span class="comment"># Tell the Application we've finished with prepare()</span></span><br><span class="line">                <span class="comment"># and are ready for the body to arrive.</span></span><br><span class="line">                future_set_result_unless_cancelled(self._prepared_future, <span class="keyword">None</span>)</span><br><span class="line">            <span class="keyword">if</span> self._finished:</span><br><span class="line">                <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> _has_stream_request_body(self.__class__):</span><br><span class="line">                <span class="comment"># In streaming mode request.body is a Future that signals</span></span><br><span class="line">                <span class="comment"># the body has been completely received.  The Future has no</span></span><br><span class="line">                <span class="comment"># result; the data has been passed to self.data_received</span></span><br><span class="line">                <span class="comment"># instead.</span></span><br><span class="line">                <span class="keyword">try</span>:</span><br><span class="line">                    <span class="keyword">yield</span> self.request.body</span><br><span class="line">                <span class="keyword">except</span> iostream.StreamClosedError:</span><br><span class="line">                    <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">            method = getattr(self, self.request.method.lower())</span><br><span class="line">            result = method(*self.path_args, **self.path_kwargs)</span><br><span class="line">            <span class="keyword">if</span> result <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">                result = <span class="keyword">yield</span> result</span><br><span class="line">            <span class="keyword">if</span> self._auto_finish <span class="keyword">and</span> <span class="keyword">not</span> self._finished:</span><br><span class="line">                self.finish()</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                self._handle_request_exception(e)</span><br><span class="line">            <span class="keyword">except</span> Exception:</span><br><span class="line">                app_log.error(<span class="string">"Exception in exception handler"</span>, exc_info=<span class="keyword">True</span>)</span><br><span class="line">            <span class="keyword">finally</span>:</span><br><span class="line">                <span class="comment"># Unset result to avoid circular references</span></span><br><span class="line">                result = <span class="keyword">None</span></span><br><span class="line">            <span class="keyword">if</span> (self._prepared_future <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span></span><br><span class="line">                    <span class="keyword">not</span> self._prepared_future.done()):</span><br><span class="line">                <span class="comment"># In case we failed before setting _prepared_future, do it</span></span><br><span class="line">                <span class="comment"># now (to unblock the HTTP server).  Note that this is not</span></span><br><span class="line">                <span class="comment"># in a finally block to avoid GC issues prior to Python 3.4.</span></span><br><span class="line">                self._prepared_future.set_result(<span class="keyword">None</span>)</span><br></pre></td></tr></table></figure>
+<p>如上，execute 的代码逻辑，跟 Django/Flask 类似：</p>
+<ol>
+<li>处理 405</li>
+<li>处理 XSRF</li>
+<li>prepare-&gt;hook before method</li>
+<li>调用 method()</li>
+<li>用户代码执行 self.write() 写入结果</li>
+<li>自动/手动执行 sefl.finish() 完成请求</li>
+<li>调用 RequestHandler.flush() WEB 框架层执行结束</li>
+<li>HTTP 层开始执行，write data to socket</li>
+</ol>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>Tornador 作为 WEB 框架，会经历以下几个步骤：</p>
+<ol>
+<li>准备阶段<ol>
+<li>接收路由表，参数，创建 Application 实例对象</li>
+</ol>
+</li>
+<li>Socket.bind+listen<ol>
+<li>创建 HTTPServer 实例化对象，其继承自 TCPServer</li>
+<li>TCPServer.listen，将执行 socket.bind+listen，并将 sock-handle_connection 放入 io_loop 中</li>
+</ol>
+</li>
+<li>启动事件循环<ol>
+<li>最刚开始，io_loop 只监听了 bind 的 Socket</li>
+</ol>
+</li>
+<li>连接请求 Accept()<ol>
+<li>一旦监听到请求，将执行回调，在 handle_connection 中将执行 sock.accept()，获取到 conn</li>
+<li>将 conn 封装成非阻塞的 IOStream，添加上下文，封装成协程对象，放入 io_loop</li>
+</ol>
+</li>
+<li>HTTP 请求处理<ol>
+<li>在 HTTP1Connection 中，read_message，读取请求体，解析请求行，匹配 Handler</li>
+<li>进入 RequestHandler._execute() 执行用户层代码逻辑</li>
+<li>返回 HTTP 层，将数据写入到 socket 完成请求响应</li>
+</ol>
+</li>
+</ol>
+<h2 id="IOLoop"><a href="#IOLoop" class="headerlink" title="IOLoop"></a>IOLoop</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">IOLoop</span><span class="params">(Configurable)</span>:</span></span><br><span class="line"><span class="meta">    @staticmethod</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">current</span><span class="params">(instance=True)</span>:</span></span><br><span class="line">        <span class="string">""" Returns the current thread's `IOLoop` """</span></span><br><span class="line">        <span class="keyword">if</span> asyncio <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">        		...</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">                loop = asyncio.get_event_loop()</span><br><span class="line">            <span class="keyword">except</span> (RuntimeError, AssertionError):</span><br><span class="line">                <span class="keyword">if</span> <span class="keyword">not</span> instance:</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">None</span></span><br><span class="line">                <span class="keyword">raise</span></span><br><span class="line">            <span class="keyword">try</span>:</span><br><span class="line">            		 <span class="comment"># IOLoop._ioloop_for_asyncio = dict()</span></span><br><span class="line">                <span class="keyword">return</span> IOLoop._ioloop_for_asyncio[loop] </span><br><span class="line">            <span class="keyword">except</span> KeyError:</span><br><span class="line">                <span class="keyword">if</span> instance:</span><br><span class="line">                    <span class="keyword">from</span> tornado.platform.asyncio <span class="keyword">import</span> AsyncIOMainLoop</span><br><span class="line">                    current = AsyncIOMainLoop(make_current=<span class="keyword">True</span>)</span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    current = <span class="keyword">None</span></span><br><span class="line">        <span class="keyword">return</span> current</span><br></pre></td></tr></table></figure>
+<p>如上，当存在 asyncio 模块时，返回的是 AsyncIOMainLoop() 对象</p>
+<h3 id="AsyncIOMainLoop"><a href="#AsyncIOMainLoop" class="headerlink" title="AsyncIOMainLoop"></a>AsyncIOMainLoop</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AsyncIOMainLoop</span><span class="params">(BaseAsyncIOLoop)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">initialize</span><span class="params">(self, **kwargs)</span>:</span></span><br><span class="line">        super(AsyncIOMainLoop, self).initialize(asyncio.get_event_loop(), **kwargs)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseAsyncIOLoop</span><span class="params">(IOLoop)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">initialize</span><span class="params">(self, asyncio_loop, **kwargs)</span>:</span></span><br><span class="line">        self.asyncio_loop = asyncio_loop</span><br><span class="line">        self.handlers = &#123;&#125;</span><br><span class="line">        <span class="comment"># Set of fds listening for reads/writes</span></span><br><span class="line">        self.readers = set()</span><br><span class="line">        self.writers = set()</span><br><span class="line">        self.closing = <span class="keyword">False</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> loop <span class="keyword">in</span> list(IOLoop._ioloop_for_asyncio):</span><br><span class="line">            <span class="keyword">if</span> loop.is_closed():</span><br><span class="line">                <span class="keyword">del</span> IOLoop._ioloop_for_asyncio[loop]</span><br><span class="line">        IOLoop._ioloop_for_asyncio[asyncio_loop] = self</span><br><span class="line">        super(BaseAsyncIOLoop, self).initialize(**kwargs)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">IOLoop</span><span class="params">(Configurable)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">initialize</span><span class="params">(self, make_current=None)</span>:</span></span><br><span class="line">        <span class="keyword">if</span> make_current <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">            <span class="keyword">if</span> IOLoop.current(instance=<span class="keyword">False</span>) <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">                self.make_current()</span><br><span class="line">        <span class="keyword">elif</span> make_current:</span><br><span class="line">            current = IOLoop.current(instance=<span class="keyword">False</span>)</span><br><span class="line">            <span class="comment"># AsyncIO loops can already be current by this point.</span></span><br><span class="line">            <span class="keyword">if</span> current <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span> current <span class="keyword">is</span> <span class="keyword">not</span> self:</span><br><span class="line">                <span class="keyword">raise</span> RuntimeError(<span class="string">"current IOLoop already exists"</span>)</span><br><span class="line">            self.make_current()</span><br><span class="line"> </span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Configurable</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__new__</span><span class="params">(cls, *args, **kwargs)</span>:</span></span><br><span class="line">				...</span><br><span class="line">			  instance = super(Configurable, cls).__new__(impl)</span><br><span class="line">			  instance.initialize(*args, **init_kwargs)</span><br><span class="line">			  <span class="keyword">return</span> instance</span><br></pre></td></tr></table></figure>
+<p>如上，实例化时，通过不断的 super() 调用 initialize，将 asyncio_loop 封装成 AsyncIOMainLoop 对象返回。</p>
+<h3 id="start"><a href="#start" class="headerlink" title="start"></a>start</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseAsyncIOLoop</span><span class="params">(IOLoop)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            old_loop = asyncio.get_event_loop()</span><br><span class="line">        <span class="keyword">except</span> (RuntimeError, AssertionError):</span><br><span class="line">            old_loop = <span class="keyword">None</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            self._setup_logging()</span><br><span class="line">            asyncio.set_event_loop(self.asyncio_loop)</span><br><span class="line">            self.asyncio_loop.run_forever()</span><br><span class="line">        <span class="keyword">finally</span>:</span><br><span class="line">            asyncio.set_event_loop(old_loop)</span><br></pre></td></tr></table></figure>
+<p>执行 AsyncIOMainLoop().start()，最终调用的是 <code>asyncio_loop.run_forever()</code>。<br>在 asyncio 模块介绍中，已经知道：在run_forever中，通过while True不断的执行run_once方法，完成整个事件驱动的循环调度。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/web/" rel="tag"># web</a>
+          
+            <a href="/tags/tornado/" rel="tag"># tornado</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/12/3.协程相关/3.3.asyncio 模块介绍/" rel="next" title="【Python 协程系列】asyncio 模块介绍">
+                <i class="fa fa-chevron-left"></i> 【Python 协程系列】asyncio 模块介绍
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">1.</span> <span class="nav-text">参考资料</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">2.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Demo"><span class="nav-number">3.</span> <span class="nav-text">Demo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Application"><span class="nav-number">4.</span> <span class="nav-text">Application</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTPServer"><span class="nav-number">4.1.</span> <span class="nav-text">HTTPServer()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCPServer-listen"><span class="nav-number">4.2.</span> <span class="nav-text">TCPServer.listen</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#add-accept-handler"><span class="nav-number">4.3.</span> <span class="nav-text">add_accept_handler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TCPServer-handle-connection"><span class="nav-number">4.4.</span> <span class="nav-text">TCPServer._handle_connection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HTTP1ServerConnection"><span class="nav-number">4.5.</span> <span class="nav-text">HTTP1ServerConnection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#start-request"><span class="nav-number">4.6.</span> <span class="nav-text">start_request</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#read-response"><span class="nav-number">4.7.</span> <span class="nav-text">read_response</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例化-HandlerDelegate-对象"><span class="nav-number">4.8.</span> <span class="nav-text">实例化 HandlerDelegate 对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RequestHandler-execute"><span class="nav-number">4.9.</span> <span class="nav-text">RequestHandler._execute()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">4.10.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IOLoop"><span class="nav-number">5.</span> <span class="nav-text">IOLoop</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AsyncIOMainLoop"><span class="nav-number">5.1.</span> <span class="nav-text">AsyncIOMainLoop</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#start"><span class="nav-number">5.2.</span> <span class="nav-text">start</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <!--
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>  
+  <span class="with-love">Hello,world!</span>
+  <span class="author" itemprop="copyrightHolder">I'm He11oLx</span>
+
+  
+</div>
+-->
+
+<div class="copyright">
+  <span class='with-love'>
+    Hello,world!
+    <i class="fa fa-user"></i>
+    I'm Lx.
+    </span>
+UV: <span id="busuanzi_value_site_pv"></span>
+PV: <span id="busuanzi_value_site_uv"></span>
+</div>
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/09/12/2.Python Web/2.6.Tornado 源码分析/';
+          this.page.identifier = '2018/09/12/2.Python Web/2.6.Tornado 源码分析/';
+          this.page.title = '【Python Web 系列】Tornado 源码分析';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="coroutine," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="参考资料 Data Model PEP492 PEP525  前言1234567891011121314PEP 255 -- Simple GeneratorsPython-Version:	2.2PEP 342 -- Coroutines via Enhanced GeneratorsPython-Version:	2.5PEP 380 -- Syntax for Delegating to a">
+<meta name="keywords" content="coroutine">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Python 协程系列】Python 原生协程">
+<meta property="og:url" content="http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考资料 Data Model PEP492 PEP525  前言1234567891011121314PEP 255 -- Simple GeneratorsPython-Version:	2.2PEP 342 -- Coroutines via Enhanced GeneratorsPython-Version:	2.5PEP 380 -- Syntax for Delegating to a">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://docs.python.org/3/_images/tulip_coro.png">
+<meta property="og:updated_time" content="2018-09-12T13:15:13.124Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Python 协程系列】Python 原生协程">
+<meta name="twitter:description" content="参考资料 Data Model PEP492 PEP525  前言1234567891011121314PEP 255 -- Simple GeneratorsPython-Version:	2.2PEP 342 -- Coroutines via Enhanced GeneratorsPython-Version:	2.5PEP 380 -- Syntax for Delegating to a">
+<meta name="twitter:image" content="https://docs.python.org/3/_images/tulip_coro.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/"/>
+
+
+
+
+
+  <title>【Python 协程系列】Python 原生协程 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【Python 协程系列】Python 原生协程</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/3.协程相关/3.2.Python 原生协程/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/3.协程相关/3.2.Python 原生协程/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv">
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://docs.python.org/3/reference/datamodel.html#async-iterators" target="_blank" rel="noopener">Data Model</a></li>
+<li><a href="https://www.python.org/dev/peps/pep-0492/" target="_blank" rel="noopener">PEP492</a></li>
+<li><a href="https://www.python.org/dev/peps/pep-0525/" target="_blank" rel="noopener">PEP525</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">PEP 255 -- Simple Generators</span><br><span class="line">Python-Version:	2.2</span><br><span class="line"></span><br><span class="line">PEP 342 -- Coroutines via Enhanced Generators</span><br><span class="line">Python-Version:	2.5</span><br><span class="line"></span><br><span class="line">PEP 380 -- Syntax for Delegating to a Subgenerator</span><br><span class="line">Python-Version:	3.3</span><br><span class="line"></span><br><span class="line">PEP 492 -- Coroutines with async and await syntax</span><br><span class="line">Python-Version:	3.5</span><br><span class="line"></span><br><span class="line">PEP 525 -- Asynchronous Generators</span><br><span class="line">Python-Version:	3.6</span><br></pre></td></tr></table></figure>
+<p>emm…上面算是 Python 中 Coroutines 的发展史了，具体内容可以参考 PEP。</p>
+<a id="more"></a>
+<p><span id="name-explain"></span></p>
+<h2 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h2><h3 id="Generator"><a href="#Generator" class="headerlink" title="Generator"></a>Generator</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">def _g():</span><br><span class="line">    yield 1</span><br><span class="line">GeneratorType = type(_g())</span><br><span class="line"></span><br><span class="line">Generator functions</span><br><span class="line">    A function or method which uses the yield statement.</span><br><span class="line">    不能  yield from Native corotine</span><br><span class="line">    When called always returns an iterator object.</span><br><span class="line"></span><br><span class="line">iterator</span><br><span class="line">    通过 iterator.__next__() 方法，执行 body 直到 yield</span><br></pre></td></tr></table></figure>
+<h3 id="Native-coroutine"><a href="#Native-coroutine" class="headerlink" title="Native coroutine"></a>Native coroutine</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">async def _c():</span><br><span class="line">    pass</span><br><span class="line">CoroutineType = type(_c())</span><br><span class="line"></span><br><span class="line">Coroutine functions</span><br><span class="line">    A function or method which is defined using async def.</span><br><span class="line">    When called always returns an coroutine object.</span><br><span class="line"></span><br><span class="line">Coroutine Objects</span><br><span class="line">    是 awaitable，可以调用 __await__()</span><br><span class="line">    不支持 __iter__ 、__next__ 、迭代</span><br></pre></td></tr></table></figure>
+<h3 id="Asynchronous-generator、"><a href="#Asynchronous-generator、" class="headerlink" title="Asynchronous generator、"></a>Asynchronous generator、</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">async def _ag():</span><br><span class="line">    yield</span><br><span class="line">AsyncGeneratorType = type(ag())</span><br><span class="line"></span><br><span class="line">Asynchronous generator functions</span><br><span class="line">    同时使用 async def + yield</span><br><span class="line">    When called always returns an asynchronous iterator object.</span><br></pre></td></tr></table></figure>
+<h3 id="Asynchronous-iterator"><a href="#Asynchronous-iterator" class="headerlink" title="Asynchronous iterator"></a>Asynchronous iterator</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Asynchronous iterable</span><br><span class="line">    异步可迭代对象，定义了 __aiter__ 方法，可以用作 asycn for</span><br><span class="line">    返回一个异步迭代器</span><br><span class="line"></span><br><span class="line">Asynchronous iterator</span><br><span class="line">    异步迭代器，定义了 __anext__ 方法，返回一个 awaitable</span><br><span class="line">    类似的 class 同时定义 aiter + anext，既是异步可迭代，又是异步迭代器</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义对象</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AsyncIterable</span>:</span></span><br><span class="line">    <span class="comment"># 实现 __aiter__、__anext__方法</span></span><br><span class="line">    <span class="comment"># 或者 C_API：tp_as_async.am_aiter/am_anext</span></span><br><span class="line">    <span class="comment"># 停止迭代 must raise StopAsyncIteration</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__aiter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">__anext__</span><span class="params">(self)</span>:</span></span><br><span class="line">        data = <span class="keyword">await</span> self.fetch_data()</span><br><span class="line">        <span class="keyword">if</span> data:</span><br><span class="line">            <span class="keyword">return</span> data</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">raise</span> StopAsyncIteration</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">fetch_data</span><span class="params">(self)</span>:</span></span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line"><span class="comment"># 迭代，并且支持 async for-else 逻辑</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">for</span> TARGET <span class="keyword">in</span> ITER:</span><br><span class="line">    BLOCK</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    BLOCK2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行逻辑</span></span><br><span class="line">iter = (ITER)</span><br><span class="line">iter = type(iter).__aiter__(iter)</span><br><span class="line">running = <span class="keyword">True</span></span><br><span class="line"><span class="keyword">while</span> running:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        TARGET = <span class="keyword">await</span> type(iter).__anext__(iter)</span><br><span class="line">    <span class="keyword">except</span> StopAsyncIteration:</span><br><span class="line">        running = <span class="keyword">False</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        BLOCK</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    BLOCK2</span><br></pre></td></tr></table></figure>
+<h3 id="Generator-based-coroutine"><a href="#Generator-based-coroutine" class="headerlink" title="Generator-based coroutine"></a>Generator-based coroutine</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@types.coroutine</span><br><span class="line">def gen():</span><br><span class="line">    yield 1</span><br><span class="line"></span><br><span class="line">Generator-based coroutine function</span><br><span class="line">    被 @types.coroutine 装饰的 generaotr func</span><br><span class="line">    可以使用 yield from Native corotine</span><br><span class="line">    执行了 func.__code__.co_flags |= CO_ITERABLE_COROUTINE</span><br><span class="line">    When called 返回一个 Generator-based coroutine</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Generator-based coroutine</span><br><span class="line">    Returned from a generator-based coroutine function.</span><br></pre></td></tr></table></figure>
+<h3 id="Coroutine"><a href="#Coroutine" class="headerlink" title="Coroutine"></a>Coroutine</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Coroutine object</span><br><span class="line">    Co-routine 协作式例程，简称 协程</span><br><span class="line">    Either native coroutine object or generator-based coroutine object.</span><br><span class="line">    必须使用 an event loop or a scheduler to run coroutines.</span><br></pre></td></tr></table></figure>
+<h3 id="Future-like-object"><a href="#Future-like-object" class="headerlink" title="Future-like object"></a>Future-like object</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Future-like object</span><br><span class="line">    定义了 __await__ 方法，或 tp_as_async-&gt;am_await 方法</span><br><span class="line">    returning an iterator.</span><br><span class="line"></span><br><span class="line">    可以在 coroutine 中被 await 消费</span><br><span class="line">    执行 await Future-like-obj 会一直挂起，直到 __await__ 方法完成</span><br><span class="line">    and returns the result.</span><br></pre></td></tr></table></figure>
+<h3 id="Awaitable"><a href="#Awaitable" class="headerlink" title="Awaitable"></a>Awaitable</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Awaitable</span><br><span class="line">    def isawaitable(object):</span><br><span class="line">        &quot;&quot;&quot; 改动自 inspect.isawaitable() &quot;&quot;&quot;</span><br><span class="line"></span><br><span class="line">        # Native coroutine</span><br><span class="line">        a = isinstance(object, types.CoroutineType)</span><br><span class="line"></span><br><span class="line">        # Generator-based coroutine</span><br><span class="line">        b = isinstance(object, types.GeneratorType) and</span><br><span class="line">            bool(object.gi_code.co_flags &amp; CO_ITERABLE_COROUTINE)</span><br><span class="line"></span><br><span class="line">        # Future-like object</span><br><span class="line">        c = isinstance(object, collections.abc.Awaitable)</span><br><span class="line"></span><br><span class="line">        return a or b or c</span><br></pre></td></tr></table></figure>
+<h3 id="Asynchronous-context-manager"><a href="#Asynchronous-context-manager" class="headerlink" title="Asynchronous context manager"></a>Asynchronous context manager</h3><p>异步上下文管理求，定义了 <code>__aenter__</code> and <code>__aexit__</code> 方法，可以用作 async with。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义管理器</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AsyncContextManager</span>:</span></span><br><span class="line">    <span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">__aenter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">await</span> log(<span class="string">'entering context'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">__aexit__</span><span class="params">(self, exc_type, exc, tb)</span>:</span></span><br><span class="line">        <span class="keyword">await</span> log(<span class="string">'exiting context'</span>)</span><br><span class="line">    <span class="comment"># __aenter__ and __aexit__. Both must return an awaitable.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 实现</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">with</span> EXPR <span class="keyword">as</span> VAR:</span><br><span class="line">    BLOCK</span><br><span class="line"></span><br><span class="line"><span class="comment"># 执行逻辑</span></span><br><span class="line">mgr = (EXPR)</span><br><span class="line">aexit = type(mgr).__aexit__</span><br><span class="line">aenter = type(mgr).__aenter__(mgr)</span><br><span class="line"></span><br><span class="line">VAR = <span class="keyword">await</span> aenter</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    BLOCK</span><br><span class="line"><span class="keyword">except</span>:</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> <span class="keyword">await</span> aexit(mgr, *sys.exc_info()):</span><br><span class="line">        <span class="keyword">raise</span></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">await</span> aexit(mgr, <span class="keyword">None</span>, <span class="keyword">None</span>, <span class="keyword">None</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">#  It is a SyntaxError to use async with outside of an async def function.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># demo</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">commit</span><span class="params">(session, data)</span>:</span></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> session.transaction():</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">await</span> session.update(data)</span><br><span class="line">            ...</span><br><span class="line"></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">with</span> lock:</span><br><span class="line">        ...</span><br></pre></td></tr></table></figure></p>
+<h2 id="生成器"><a href="#生成器" class="headerlink" title="生成器"></a>生成器</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">gen_func</span><span class="params">()</span>:</span></span><br><span class="line">    result1 = <span class="keyword">yield</span> <span class="string">'yield-1'</span></span><br><span class="line">    print(<span class="string">f'result 1: <span class="subst">&#123;result1&#125;</span>'</span>)</span><br><span class="line">    result2 = <span class="keyword">yield</span> <span class="string">'yield-2'</span></span><br><span class="line">    print(<span class="string">f'result 2: <span class="subst">&#123;result2&#125;</span>'</span>)</span><br><span class="line"></span><br><span class="line">gen = gen_func()</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> inspect; <span class="keyword">assert</span> inspect.isgeneratorfunction(gen_func)</span><br><span class="line"><span class="keyword">import</span> types; <span class="keyword">assert</span> isinstance(gen, types.GeneratorType)</span><br><span class="line"></span><br><span class="line">print(gen.send(<span class="keyword">None</span>))</span><br><span class="line">print(gen.send(<span class="string">'send-1'</span>))</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    gen.throw(GeneratorExit)</span><br><span class="line"><span class="keyword">except</span> (StopIteration, GeneratorExit):</span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">raise</span> RuntimeError(<span class="string">"generator ignored GeneratorExit"</span>)</span><br></pre></td></tr></table></figure>
+<p>先看看数据结构吧。</p>
+<h3 id="PyGen-Type"><a href="#PyGen-Type" class="headerlink" title="PyGen_Type"></a>PyGen_Type</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"># genobject.c.737</span><br><span class="line">static PyMethodDef gen_methods[] = &#123;</span><br><span class="line">    &#123;&quot;send&quot;,(PyCFunction)_PyGen_Send, METH_O, send_doc&#125;,</span><br><span class="line">    &#123;&quot;throw&quot;,(PyCFunction)gen_throw, METH_VARARGS, throw_doc&#125;,</span><br><span class="line">    &#123;&quot;close&quot;,(PyCFunction)gen_close, METH_NOARGS, close_doc&#125;,</span><br><span class="line">    &#123;NULL, NULL&#125;        /* Sentinel */</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">PyTypeObject PyGen_Type = &#123;</span><br><span class="line">    PyVarObject_HEAD_INIT(&amp;PyType_Type, 0)</span><br><span class="line">    &quot;generator&quot;,                                /* tp_name */</span><br><span class="line">    sizeof(PyGenObject),                        /* tp_basicsize */</span><br><span class="line"></span><br><span class="line">    0,                                          /* tp_as_async */</span><br><span class="line">    PyObject_SelfIter,                          /* tp_iter */</span><br><span class="line">    (iternextfunc)gen_iternext,                 /* tp_iternext */</span><br><span class="line">    gen_methods,                                /* tp_methods */</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="PyGenObject"><a href="#PyGenObject" class="headerlink" title="PyGenObject"></a>PyGenObject</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* _PyGenObject_HEAD defines the initial segment of generator</span></span><br><span class="line"><span class="comment">   and coroutine objects. */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _PyGenObject_HEAD(prefix)                                           \</span></span><br><span class="line">    PyObject_HEAD                                                           \</span><br><span class="line">    <span class="comment">/* Note: gi_frame can be NULL if the generator is "finished" */</span>         \</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">frame</span> *<span class="title">prefix</span>##_<span class="title">frame</span>;</span>                                          \</span><br><span class="line">    <span class="comment">/* True if generator is being executed. */</span>                              \</span><br><span class="line">    <span class="keyword">char</span> prefix##_running;                                                  \</span><br><span class="line">    <span class="comment">/* The code object backing the generator */</span>                             \</span><br><span class="line">    PyObject *prefix##_code;                                                \</span><br><span class="line">    <span class="comment">/* List of weak reference. */</span>                                           \</span><br><span class="line">    PyObject *prefix##_weakreflist;                                         \</span><br><span class="line">    <span class="comment">/* Name of the generator. */</span>                                            \</span><br><span class="line">    PyObject *prefix##_name;                                                \</span><br><span class="line">    <span class="comment">/* Qualified name of the generator. */</span>                                  \</span><br><span class="line">    PyObject *prefix##_qualname;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="comment">/* The gi_ prefix is intended to remind of generator-iterator. */</span></span><br><span class="line">    _PyGenObject_HEAD(gi)</span><br><span class="line">&#125; PyGenObject;</span><br></pre></td></tr></table></figure>
+<h3 id="PyGen-New"><a href="#PyGen-New" class="headerlink" title="PyGen_New"></a>PyGen_New</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// genobject.c.833</span></span><br><span class="line"><span class="function">PyObject * <span class="title">PyGen_New</span><span class="params">(PyFrameObject *f)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> gen_new_with_qualname(&amp;PyGen_Type, f, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">gen_new_with_qualname(PyTypeObject *type, PyFrameObject *f,</span><br><span class="line">                      PyObject *name, PyObject *qualname)</span><br><span class="line">&#123;</span><br><span class="line">    PyGenObject *gen = PyObject_GC_New(PyGenObject, type);</span><br><span class="line">    gen-&gt;gi_frame = f;</span><br><span class="line">    f-&gt;f_gen = (PyObject *) gen;    <span class="comment">// 记录在案！</span></span><br><span class="line">    gen-&gt;gi_code = (PyObject *)(f-&gt;f_code);</span><br><span class="line">    gen-&gt;gi_running = <span class="number">0</span>;            <span class="comment">// 未执行</span></span><br><span class="line">    gen-&gt;gi_weakreflist = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">if</span> (name != <span class="literal">NULL</span>)</span><br><span class="line">        gen-&gt;gi_name = name;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        gen-&gt;gi_name = ((PyCodeObject *)gen-&gt;gi_code)-&gt;co_name;</span><br><span class="line">    <span class="keyword">if</span> (qualname != <span class="literal">NULL</span>)</span><br><span class="line">        gen-&gt;gi_qualname = qualname;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        gen-&gt;gi_qualname = gen-&gt;gi_name;</span><br><span class="line">    _PyObject_GC_TRACK(gen);       <span class="comment">// 挂载到 GC 链</span></span><br><span class="line">    <span class="keyword">return</span> (PyObject *)gen;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>简单的把 Frame-&gt;code_obj，封装成 GenObj，同时关联到 Frame-&gt;f_gen 上。</p>
+<p>这里必须复习下 PyFrameObject:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">frame</span> &#123;</span></span><br><span class="line">    PyObject_VAR_HEAD</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">frame</span> *<span class="title">f_back</span>;</span>      <span class="comment">/* previous frame, or NULL */</span></span><br><span class="line">    PyCodeObject *f_code;       <span class="comment">/* PyCodeObject 对象 */</span></span><br><span class="line"></span><br><span class="line">    PyObject *f_builtins;       <span class="comment">/* builtin symbol table (PyDictObject) */</span></span><br><span class="line">    PyObject *f_globals;        <span class="comment">/* global symbol table (PyDictObject) */</span></span><br><span class="line">    PyObject *f_locals;         <span class="comment">/* local symbol table (any mapping) */</span></span><br><span class="line"></span><br><span class="line">    PyObject **f_valuestack;    <span class="comment">/* 运行时栈 栈底 */</span></span><br><span class="line">    PyObject **f_stacktop;      <span class="comment">/* 运行时栈 栈顶 */</span></span><br><span class="line"></span><br><span class="line">    PyObject *f_trace;          <span class="comment">/* Trace function */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 用于 generator 交换错误信息 */</span></span><br><span class="line">    PyObject *f_exc_type, *f_exc_value, *f_exc_traceback;</span><br><span class="line">    <span class="comment">/* Borrowed reference to a generator, or NULL */</span></span><br><span class="line">    PyObject *f_gen;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> f_lasti;                <span class="comment">/* 上一条字节码指令在 f_code 中的偏移位置 */</span></span><br><span class="line">    <span class="keyword">int</span> f_lineno;               <span class="comment">/* 当前字节码，对应源代码行号</span></span><br><span class="line"><span class="comment">                                   通过 PyFrame_GetLineNumber() 调用*/</span></span><br><span class="line">    <span class="keyword">int</span> f_iblock;               <span class="comment">/* index in f_blockstack */</span></span><br><span class="line">    <span class="keyword">char</span> f_executing;           <span class="comment">/* whether the frame is still executing */</span></span><br><span class="line">    PyTryBlock f_blockstack[CO_MAXBLOCKS]; <span class="comment">/* block 堆栈 */</span></span><br><span class="line">    PyObject *f_localsplus[<span class="number">1</span>];  <span class="comment">/* locals+stack, dynamically sized */</span></span><br><span class="line">&#125; PyFrameObject;</span><br></pre></td></tr></table></figure></p>
+<h3 id="PyGen-Send"><a href="#PyGen-Send" class="headerlink" title="PyGen_Send"></a>PyGen_Send</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br></pre></td><td class="code"><pre><span class="line">PyObject * _PyGen_Send(PyGenObject *gen, PyObject *arg) &#123;</span><br><span class="line">    <span class="keyword">return</span> gen_send_ex(gen, arg, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">gen_send_ex(PyGenObject *gen, PyObject *arg, <span class="keyword">int</span> exc, <span class="keyword">int</span> closing)</span><br><span class="line">&#123;</span><br><span class="line">    PyThreadState *tstate = PyThreadState_GET();</span><br><span class="line">    PyFrameObject *f = gen-&gt;gi_frame;</span><br><span class="line">    PyObject *result;</span><br><span class="line">    <span class="comment">/* `gen` is either:</span></span><br><span class="line"><span class="comment">          * a generator with CO_FUTURE_GENERATOR_STOP flag;</span></span><br><span class="line"><span class="comment">          * a coroutine;</span></span><br><span class="line"><span class="comment">          * a generator with CO_ITERABLE_COROUTINE flag</span></span><br><span class="line"><span class="comment">            (decorated with types.coroutine decorator);</span></span><br><span class="line"><span class="comment">          * an async generator.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="keyword">if</span> (gen-&gt;gi_running) &#123;</span><br><span class="line">        <span class="comment">// 有意思，Gen / Coro / AsyncGen 都走这里</span></span><br><span class="line">        <span class="keyword">char</span> *msg = <span class="string">"generator already executing"</span>;</span><br><span class="line">        <span class="keyword">if</span> (PyCoro_CheckExact(gen)) &#123;</span><br><span class="line">            msg = <span class="string">"coroutine already executing"</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (PyAsyncGen_CheckExact(gen)) &#123;</span><br><span class="line">            msg = <span class="string">"async generator already executing"</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        PyErr_SetString(PyExc_ValueError, msg);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (f == <span class="literal">NULL</span> || f-&gt;f_stacktop == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (PyCoro_CheckExact(gen) &amp;&amp; !closing) &#123;</span><br><span class="line">            <span class="comment">/* `gen` is an exhausted coroutine: raise an error,</span></span><br><span class="line"><span class="comment">               except when called from gen_close(), which should</span></span><br><span class="line"><span class="comment">               always be a silent method. */</span></span><br><span class="line">            PyErr_SetString(</span><br><span class="line">                PyExc_RuntimeError,</span><br><span class="line">                <span class="string">"cannot reuse already awaited coroutine"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (arg &amp;&amp; !exc) &#123;</span><br><span class="line">            <span class="comment">/* `gen` is an exhausted generator:</span></span><br><span class="line"><span class="comment">               only set exception if called from send(). */</span></span><br><span class="line">            <span class="keyword">if</span> (PyAsyncGen_CheckExact(gen)) &#123;</span><br><span class="line">                PyErr_SetNone(PyExc_StopAsyncIteration);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                PyErr_SetNone(PyExc_StopIteration);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (f-&gt;f_lasti == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="comment">/* 上一条字节码指令在 f_code 中的偏移位置，即 gen 未曾执行 */</span></span><br><span class="line">        <span class="keyword">if</span> (arg &amp;&amp; arg != Py_None) &#123;</span><br><span class="line">            <span class="comment">// 第一次只能 send(None)</span></span><br><span class="line">            <span class="keyword">char</span> *msg = <span class="string">"can't send non-None value to a "</span></span><br><span class="line">                        <span class="string">"just-started generator"</span>;</span><br><span class="line">            <span class="keyword">if</span> (PyCoro_CheckExact(gen)) &#123;</span><br><span class="line">                msg = NON_INIT_CORO_MSG;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (PyAsyncGen_CheckExact(gen)) &#123;</span><br><span class="line">                msg = <span class="string">"can't send non-None value to a "</span></span><br><span class="line">                      <span class="string">"just-started async generator"</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            PyErr_SetString(PyExc_TypeError, msg);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">/* Push arg onto the frame's value stack */</span></span><br><span class="line">        result = arg ? arg : Py_None;</span><br><span class="line">        Py_INCREF(result);</span><br><span class="line">        *(f-&gt;f_stacktop++) = result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Generators always return to their most recent caller, not</span></span><br><span class="line"><span class="comment">     * necessarily their creator. */</span></span><br><span class="line">    Py_XINCREF(tstate-&gt;frame);</span><br><span class="line">    assert(f-&gt;f_back == <span class="literal">NULL</span>);</span><br><span class="line">    f-&gt;f_back = tstate-&gt;frame;    <span class="comment">// 构建 frame 链，准备执行函数调用</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 更改状态，在新的 Frame 下执行 */</span></span><br><span class="line">    gen-&gt;gi_running = <span class="number">1</span>;</span><br><span class="line">    result = PyEval_EvalFrameEx(f, exc); <span class="comment">// 执行 gen　代码</span></span><br><span class="line">    gen-&gt;gi_running = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Don't keep the reference to f_back any longer than necessary.  It</span></span><br><span class="line"><span class="comment">     * may keep a chain of frames alive or it could create a reference</span></span><br><span class="line"><span class="comment">     * cycle. */</span></span><br><span class="line">    assert(f-&gt;f_back == tstate-&gt;frame);</span><br><span class="line">    Py_CLEAR(f-&gt;f_back);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (result &amp;&amp; f-&gt;f_stacktop == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">/* Case 1. 处理 return 而不是 yield */</span></span><br><span class="line">        <span class="keyword">if</span> (result == Py_None) &#123;</span><br><span class="line">            <span class="comment">/* Delay exception instantiation if we can */</span></span><br><span class="line">            <span class="keyword">if</span> (PyAsyncGen_CheckExact(gen)) &#123;</span><br><span class="line">                PyErr_SetNone(PyExc_StopAsyncIteration);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                PyErr_SetNone(PyExc_StopIteration);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">/* Async generators 只能 return None */</span></span><br><span class="line">            assert(!PyAsyncGen_CheckExact(gen));</span><br><span class="line">            _PyGen_SetStopIterationValue(result);</span><br><span class="line">        &#125;</span><br><span class="line">        Py_CLEAR(result);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!result &amp;&amp; PyErr_ExceptionMatches(PyExc_StopIteration)) &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">/* Case 2. 处理 raise StopIteration</span></span><br><span class="line"><span class="comment">           Check 是否 from __future__ import generator_stop</span></span><br><span class="line"><span class="comment">           PEP479:</span></span><br><span class="line"><span class="comment">             在 Gen 中 raise StopIteration 会被转换为 RuntimeError</span></span><br><span class="line"><span class="comment">             Py3.5 利用 generator_stop 实现</span></span><br><span class="line"><span class="comment">             Py3.6 会发出警告</span></span><br><span class="line"><span class="comment">             Py3.7 会默认生效</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (PyAsyncGen_CheckExact(gen) &amp;&amp; !result &amp;&amp;</span><br><span class="line">             PyErr_ExceptionMatches(PyExc_StopAsyncIteration)) &#123;</span><br><span class="line">         <span class="comment">/* Case 3. 处理 AsyncGen 中 raise StopAsyncIteration */</span></span><br><span class="line">        <span class="keyword">const</span> <span class="keyword">char</span> *msg = <span class="string">"async generator raised StopAsyncIteration"</span>;</span><br><span class="line">        _PyErr_FormatFromCause(PyExc_RuntimeError, <span class="string">"%s"</span>, msg);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!result || f-&gt;f_stacktop == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">/* 生成器结束，销毁 freame */</span></span><br><span class="line">        PyObject *t, *v, *tb;</span><br><span class="line">        t = f-&gt;f_exc_type;</span><br><span class="line">        v = f-&gt;f_exc_value;</span><br><span class="line">        tb = f-&gt;f_exc_traceback;</span><br><span class="line">        f-&gt;f_exc_type = <span class="literal">NULL</span>;</span><br><span class="line">        f-&gt;f_exc_value = <span class="literal">NULL</span>;</span><br><span class="line">        f-&gt;f_exc_traceback = <span class="literal">NULL</span>;</span><br><span class="line">        Py_XDECREF(t);</span><br><span class="line">        Py_XDECREF(v);</span><br><span class="line">        Py_XDECREF(tb);</span><br><span class="line">        gen-&gt;gi_frame-&gt;f_gen = <span class="literal">NULL</span>;</span><br><span class="line">        gen-&gt;gi_frame = <span class="literal">NULL</span>;</span><br><span class="line">        Py_DECREF(f);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="CodeObject"><a href="#CodeObject" class="headerlink" title="CodeObject"></a>CodeObject</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># t.py</span><br><span class="line">def gen():</span><br><span class="line">    yield 1</span><br><span class="line"></span><br><span class="line">&gt;&gt;&gt; co = compile(open(&apos;t.py&apos;).read(),&apos;t.py&apos;,&apos;exec&apos;); import dis; dis.dis(co)</span><br><span class="line">  1           0 LOAD_CONST               0 (&lt;code object gen at 0x0000028821955270, file &quot;t.py&quot;, line 1&gt;)</span><br><span class="line">              2 LOAD_CONST               1 (&apos;gen&apos;)</span><br><span class="line">              4 MAKE_FUNCTION            0</span><br><span class="line">              6 STORE_NAME               0 (gen)</span><br><span class="line">              8 LOAD_CONST               2 (None)</span><br><span class="line">             10 RETURN_VALUE</span><br><span class="line"></span><br><span class="line">&gt;&gt;&gt; gen = co.co_consts[0]; dis.dis(gen)</span><br><span class="line">  2           0 LOAD_CONST               1 (1)</span><br><span class="line">              2 YIELD_VALUE</span><br><span class="line">              4 POP_TOP</span><br><span class="line">              6 LOAD_CONST               0 (None)</span><br><span class="line">              8 RETURN_VALUE</span><br><span class="line"></span><br><span class="line">.. opcode:: YIELD_VALUE</span><br><span class="line">   Pops TOS and yields it from a :term:`generator`.</span><br></pre></td></tr></table></figure>
+<p>看看<code>YIELD_VALUE</code>会干些什么。</p>
+<h3 id="YIELD-VALUE"><a href="#YIELD-VALUE" class="headerlink" title="YIELD_VALUE"></a>YIELD_VALUE</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">PyObject *</span><br><span class="line">PyEval_EvalFrameEx(PyFrameObject *f, <span class="keyword">int</span> throwflag)</span><br><span class="line">&#123;</span><br><span class="line">    PyThreadState *tstate = PyThreadState_GET();</span><br><span class="line">    <span class="keyword">return</span> tstate-&gt;interp-&gt;eval_frame(f, throwflag);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PyObject *</span><br><span class="line">_PyEval_EvalFrameDefault(PyFrameObject *f, <span class="keyword">int</span> throwflag)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* 通过 f-&gt;f_lasti 记录了字节码执行位置</span></span><br><span class="line"><span class="comment">       通过 f-&gt;f_stacktop 记录栈帧位置</span></span><br><span class="line"><span class="comment">       实现，生成器的 send/yield</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    next_instr = first_instr; <span class="comment">// 指向 co-&gt;co_code</span></span><br><span class="line">    <span class="keyword">if</span> (f-&gt;f_lasti &gt;= <span class="number">0</span>) &#123;    <span class="comment">// f-&gt;f_lasti 记录了上一条指令偏移量</span></span><br><span class="line">        next_instr += f-&gt;f_lasti / <span class="keyword">sizeof</span>(_Py_CODEUNIT) + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    stack_pointer = f-&gt;f_stacktop;</span><br><span class="line">    f-&gt;f_stacktop = <span class="literal">NULL</span>;       <span class="comment">/* remains NULL unless yield suspends frame */</span></span><br><span class="line">    f-&gt;f_executing = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (co-&gt;co_flags &amp; (CO_GENERATOR | CO_COROUTINE | CO_ASYNC_GENERATOR)) &#123;</span><br><span class="line">        <span class="comment">// 生成器在 except 中</span></span><br><span class="line">        <span class="keyword">if</span> (!throwflag &amp;&amp; f-&gt;f_exc_type != <span class="literal">NULL</span> &amp;&amp; f-&gt;f_exc_type != Py_None) &#123;</span><br><span class="line">            <span class="comment">// 从 caller 中，获取 exc 信息</span></span><br><span class="line">            swap_exc_state(tstate, f);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            save_exc_state(tstate, f);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">switch</span> (opcode) &#123;</span><br><span class="line">        TARGET(YIELD_VALUE) &#123;</span><br><span class="line">            retval = POP();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (co-&gt;co_flags &amp; CO_ASYNC_GENERATOR) &#123;</span><br><span class="line">                PyObject *w = _PyAsyncGenValueWrapperNew(retval);</span><br><span class="line">                retval = w;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            f-&gt;f_stacktop = stack_pointer;</span><br><span class="line">            why = WHY_YIELD;</span><br><span class="line">            <span class="keyword">goto</span> fast_yield;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">fast_yield:</span><br><span class="line">    <span class="keyword">if</span> (co-&gt;co_flags &amp; (CO_GENERATOR | CO_COROUTINE | CO_ASYNC_GENERATOR)) &#123;</span><br><span class="line">        <span class="comment">/* 遍历所有 block, 查找是否在 except 中 */</span></span><br><span class="line">        <span class="keyword">int</span> i;</span><br><span class="line">        <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; f-&gt;f_iblock; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (f-&gt;f_blockstack[i].b_type == EXCEPT_HANDLER) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (i == f-&gt;f_iblock)</span><br><span class="line">            <span class="comment">// generator 不保存 caller 的 exc 信息</span></span><br><span class="line">            restore_and_clear_exc_state(tstate, f);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            swap_exc_state(tstate, f);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (tstate-&gt;use_tracing) &#123;       ...       &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* pop frame */</span></span><br><span class="line">exit_eval_frame:</span><br><span class="line">    <span class="keyword">if</span> (PyDTrace_FUNCTION_RETURN_ENABLED())</span><br><span class="line">        dtrace_function_return(f);</span><br><span class="line">    Py_LeaveRecursiveCall();</span><br><span class="line">    f-&gt;f_executing = <span class="number">0</span>;</span><br><span class="line">    tstate-&gt;frame = f-&gt;f_back;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> _Py_CheckFunctionResult(<span class="literal">NULL</span>, retval, <span class="string">"PyEval_EvalFrameEx"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">PyGen_New(FrameObject f)</span><br><span class="line">    gen-&gt;gi_frame = f;</span><br><span class="line">    f-&gt;f_gen = (PyObject *) gen;    // 记录在案！</span><br><span class="line">    gen-&gt;gi_code = (PyObject *)(f-&gt;f_code);</span><br><span class="line">创建 Generator 时：</span><br><span class="line">    会将当前 Frame 作为参数传入</span><br><span class="line">    并且将 Frame 固定在新创建的 gen 上</span><br><span class="line"></span><br><span class="line">PyGen_Send(PyGenObject *gen, PyObject *arg)</span><br><span class="line">    PyFrameObject *f = gen-&gt;gi_frame;</span><br><span class="line">    result = PyEval_EvalFrameEx(f, exc);</span><br><span class="line">        PyEval_EvalFrameEx -&gt; PyEval_EvalFrameDefault:</span><br><span class="line">            if (f-&gt;f_lasti &gt;= 0) &#123;</span><br><span class="line">                next_instr += f-&gt;f_lasti / sizeof(_Py_CODEUNIT) + 1;</span><br><span class="line">            &#125;</span><br><span class="line">            yield:</span><br><span class="line">                tstate-&gt;frame = f-&gt;f_back;</span><br><span class="line">                retrun result</span><br><span class="line">    if (result &amp;&amp; f-&gt;f_stacktop == NULL) &#123; 释放资源 &#125;</span><br><span class="line">    return result</span><br><span class="line">执行 gen.send() ：</span><br><span class="line">    会提取 gen-&gt;gi_frame，调用 EvalFrame 执行字节码</span><br><span class="line">    通过 f-&gt;f_lasti，记录当前执行的位置</span><br><span class="line">    遇到 yield，会将线程对应的 Frame 切换到 gen 的 caller</span><br><span class="line">    if gen 消耗完，会在 PyGen_Send 中释放 gen-&gt;frame, gen自身</span><br><span class="line">    从 PyGen_Send 中 return result 到 caller</span><br></pre></td></tr></table></figure>
+<h2 id="Native-协程"><a href="#Native-协程" class="headerlink" title="Native 协程"></a>Native 协程</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> collections, inspect</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">func</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">native_co_func</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="number">0</span>)</span><br><span class="line">    <span class="keyword">await</span> func()</span><br><span class="line"></span><br><span class="line">native_co = native_co_func()</span><br><span class="line"><span class="keyword">assert</span> isinstance(native_co, collections.Coroutine)</span><br><span class="line"><span class="keyword">assert</span> inspect.isawaitable(native_co)</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    native_co.send(<span class="keyword">None</span>)</span><br><span class="line"><span class="keyword">except</span> StopIteration:</span><br><span class="line">    <span class="keyword">pass</span></span><br></pre></td></tr></table></figure>
+<p>Native Coroutines(原生协程)，源自 <a href="https://www.python.org/dev/peps/pep-0492/" target="_blank" rel="noopener">PEP 492</a>，从 Py3.5 开始引入。不惜增加关键字<code>async awite</code>来打造属于 Python 协程。</p>
+<p>老样子，先看数据结构。</p>
+<h3 id="PyCoro-Type"><a href="#PyCoro-Type" class="headerlink" title="PyCoro_Type"></a>PyCoro_Type</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># genobject.c.983</span></span><br><span class="line"><span class="keyword">static</span> PyMethodDef coro_methods[] = &#123;</span><br><span class="line">    <span class="comment">/* 注意跟 gen_methods[] 对比，目标函数都是同一个 */</span></span><br><span class="line">    &#123;<span class="string">"send"</span>,(PyCFunction)_PyGen_Send, METH_O, coro_send_doc&#125;,</span><br><span class="line">    &#123;<span class="string">"throw"</span>,(PyCFunction)gen_throw, METH_VARARGS, coro_throw_doc&#125;,</span><br><span class="line">    &#123;<span class="string">"close"</span>,(PyCFunction)gen_close, METH_NOARGS, coro_close_doc&#125;,</span><br><span class="line">    &#123;<span class="literal">NULL</span>, <span class="literal">NULL</span>&#125;        <span class="comment">/* Sentinel */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyAsyncMethods coro_as_async = &#123;</span><br><span class="line">    (unaryfunc)coro_await,                      <span class="comment">/* am_await */</span></span><br><span class="line">    <span class="number">0</span>,                                          <span class="comment">/* am_aiter */</span></span><br><span class="line">    <span class="number">0</span>                                           <span class="comment">/* am_anext */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">PyTypeObject PyCoro_Type = &#123;</span><br><span class="line">    PyVarObject_HEAD_INIT(&amp;PyType_Type, <span class="number">0</span>)</span><br><span class="line">    <span class="string">"coroutine"</span>,                                <span class="comment">/* tp_name */</span></span><br><span class="line">    <span class="keyword">sizeof</span>(PyCoroObject),                       <span class="comment">/* tp_basicsize */</span></span><br><span class="line">    # 生成器，并未定义 tp_as_async 方法</span><br><span class="line">    &amp;coro_as_async,                             <span class="comment">/* tp_as_async */</span></span><br><span class="line">    # 原生协程，不支持迭代器协议</span><br><span class="line">    <span class="number">0</span>,                                          <span class="comment">/* tp_iter */</span></span><br><span class="line">    <span class="number">0</span>,                                          <span class="comment">/* tp_iternext */</span></span><br><span class="line"></span><br><span class="line">    coro_methods,                               <span class="comment">/* tp_methods */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>从定义可以看出，协程和生成器一样，都有同样的<code>send/throw/close</code>方法，并且协程支持<code>await</code>方法。</p>
+<h3 id="PyCoroObject"><a href="#PyCoroObject" class="headerlink" title="PyCoroObject"></a>PyCoroObject</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* _PyGenObject_HEAD defines the initial segment of generator</span></span><br><span class="line"><span class="comment">   and coroutine objects. */</span></span><br><span class="line"></span><br><span class="line"><span class="meta"># genobject.h.51</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    _PyGenObject_HEAD(cr)</span><br><span class="line">&#125; PyCoroObject;</span><br></pre></td></tr></table></figure>
+<p>从上可以看出，协程和生成器，在C层面结构体定义是一模一样。或者说，在 Python 中生成器是协程的基础。</p>
+<h3 id="Chain-coroutines"><a href="#Chain-coroutines" class="headerlink" title="Chain coroutines"></a>Chain coroutines</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span><span class="params">(x, y)</span>:</span></span><br><span class="line">    print(<span class="string">"Compute %s + %s ..."</span> % (x, y))</span><br><span class="line">    <span class="keyword">await</span> asyncio.sleep(<span class="number">1.0</span>)</span><br><span class="line">    <span class="keyword">return</span> x + y</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">print_sum</span><span class="params">(x, y)</span>:</span></span><br><span class="line">    result = <span class="keyword">await</span> compute(x, y)</span><br><span class="line">    print(<span class="string">"%s + %s = %s"</span> % (x, y, result))</span><br><span class="line"></span><br><span class="line">loop = asyncio.get_event_loop()</span><br><span class="line">loop.run_until_complete(print_sum(<span class="number">1</span>, <span class="number">2</span>))</span><br><span class="line">loop.close()</span><br></pre></td></tr></table></figure>
+<p><img src="https://docs.python.org/3/_images/tulip_coro.png" alt="调用链"></p>
+<h3 id="小结-1"><a href="#小结-1" class="headerlink" title="小结"></a>小结</h3><p>Python在编译时，通过对 <code>fun.__code__.co_flags</code> 字段，进行区分：</p>
+<ul>
+<li><p>CO_GENERATOR 用于 def + yield</p>
+<ul>
+<li>inspect.CO_GENERATOR == 32</li>
+<li>isinstance(gen(), types.GeneratorType)</li>
+</ul>
+</li>
+<li><p>CO_COROUTINE 用于 async def</p>
+<ul>
+<li>inspect.CO_COROUTINE == 128</li>
+<li>isinstance(coro(), types.CoroutineType)</li>
+</ul>
+</li>
+<li><p>CO_ITERABLE_COROUTINE 用于 @types.coroutine+def+yield</p>
+<ul>
+<li>inspect.CO_ITERABLE_COROUTINE == 256</li>
+<li>isinstance(co_gen(), types.GeneratorType)</li>
+<li><code>bool(co_gen.__code__.co_flags &amp; 256) == True</code></li>
+</ul>
+</li>
+<li><p>CO_ASYNC_GENERATOR 用于 async def + yield [+ await]</p>
+<ul>
+<li>inspect.CO_ASYNC_GENERATOR == 512</li>
+<li>isinstance(async_gen(), types.AsyncGeneratorType)</li>
+<li><code>bool(async_gen.__code__.co_flags &amp; 512) == True</code></li>
+</ul>
+</li>
+</ul>
+<ol>
+<li>原生协程没有实现 <code>__iter__</code> and <code>__next__</code>methods，因此<ol>
+<li>不能用于 iter(), list(), tuple() and other built-ins.</li>
+<li>不能用于 for..in 迭代</li>
+</ol>
+</li>
+<li>普通生成器不能 yield from 原生协程，否则 TypeError.</li>
+<li>生成器协程 (即：@types.coroutine) 可以使用 yield from 原生协程对象</li>
+</ol>
+<h2 id="异步生成器"><a href="#异步生成器" class="headerlink" title="异步生成器"></a>异步生成器</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> asyncio</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">ticker</span><span class="params">(delay, to)</span>:</span></span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(to):</span><br><span class="line">        <span class="keyword">yield</span> i</span><br><span class="line">        <span class="keyword">await</span> asyncio.sleep(delay)</span><br><span class="line"></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">run</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">async</span> <span class="keyword">for</span> i <span class="keyword">in</span> ticker(<span class="number">1</span>, <span class="number">10</span>):</span><br><span class="line">        print(i)</span><br><span class="line"></span><br><span class="line">loop = asyncio.get_event_loop()</span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    loop.run_until_complete(run())</span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    loop.close()</span><br></pre></td></tr></table></figure>
+<p>Asynchronous Generators(异步生成器)，源自<a href="https://www.python.org/dev/peps/pep-0525/" target="_blank" rel="noopener">PEP 525</a>，从 Py3.6 开始引入：</p>
+<ul>
+<li>简单的说，就是 async + yield</li>
+<li>支持异步迭代协议：aiter、anext，可以用作 async for</li>
+<li>跟协程类似，也需要 event loop 来执行</li>
+<li>性能上，同常规生成器类似，比异步迭代器快</li>
+</ul>
+<h3 id="PyAsyncGen-Type"><a href="#PyAsyncGen-Type" class="headerlink" title="PyAsyncGen_Type"></a>PyAsyncGen_Type</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># genobject.h.1420</span></span><br><span class="line"><span class="keyword">static</span> PyMethodDef async_gen_methods[] = &#123;</span><br><span class="line">    &#123;<span class="string">"asend"</span>, (PyCFunction)async_gen_asend, METH_O, async_asend_doc&#125;,</span><br><span class="line">    &#123;<span class="string">"athrow"</span>,(PyCFunction)async_gen_athrow, METH_VARARGS, async_athrow_doc&#125;,</span><br><span class="line">    &#123;<span class="string">"aclose"</span>, (PyCFunction)async_gen_aclose, METH_NOARGS, async_aclose_doc&#125;,</span><br><span class="line">    &#123;<span class="literal">NULL</span>, <span class="literal">NULL</span>&#125;        <span class="comment">/* Sentinel */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyAsyncMethods async_gen_as_async = &#123;</span><br><span class="line">    <span class="number">0</span>,                                          <span class="comment">/* am_await */</span></span><br><span class="line">    # 支持 异步迭代协议</span><br><span class="line">    PyObject_SelfIter,                          <span class="comment">/* am_aiter */</span></span><br><span class="line">    (unaryfunc)async_gen_anext                  <span class="comment">/* am_anext */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">PyTypeObject PyAsyncGen_Type = &#123;</span><br><span class="line">    PyVarObject_HEAD_INIT(&amp;PyType_Type, <span class="number">0</span>)</span><br><span class="line">    <span class="string">"async_generator"</span>,                          <span class="comment">/* tp_name */</span></span><br><span class="line">    &amp;async_gen_as_async,                        <span class="comment">/* tp_as_async */</span></span><br><span class="line"></span><br><span class="line">    # 异步生成器，本身不支持 普通迭代协议</span><br><span class="line">    <span class="number">0</span>,                                          <span class="comment">/* tp_iter */</span></span><br><span class="line">    <span class="number">0</span>,                                          <span class="comment">/* tp_iternext */</span></span><br><span class="line">    async_gen_methods,                          <span class="comment">/* tp_methods */</span></span><br><span class="line">    _PyGen_Finalize,                            <span class="comment">/* tp_finalize */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">genfunc</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">yield</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">yield</span> <span class="number">2</span></span><br><span class="line"></span><br><span class="line">agen = genfunc()</span><br><span class="line"></span><br><span class="line"><span class="keyword">assert</span> agen.__aiter__() <span class="keyword">is</span> gen</span><br><span class="line"></span><br><span class="line"><span class="keyword">assert</span> <span class="keyword">await</span> agen.__anext__() == <span class="number">1</span></span><br><span class="line"><span class="keyword">assert</span> <span class="keyword">await</span> agen.__anext__() == <span class="number">2</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">await</span> agen.__anext__()  <span class="comment"># This line will raise StopAsyncIteration.</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># agen.__aiter__(): Returns agen.</span><br><span class="line"># agen.__anext__(): Returns an awaitable,</span><br><span class="line"></span><br><span class="line"># agen.asend(val): Returns an awaitable,</span><br><span class="line"># agen.athrow(typ, [val, [tb]]): Returns an awaitable,</span><br><span class="line"># agen.aclose(): Returns an awaitable,</span><br><span class="line"></span><br><span class="line"># agen.__name__ and agen.__qualname__: 可读可写</span><br><span class="line"></span><br><span class="line"># agen.ag_await: 正等待的对象(None). 类似当前可用的 gi_yieldfrom for generators and cr_await for coroutines.</span><br><span class="line"># agen.ag_frame, agen.ag_running, and agen.ag_code: 同生成器一样</span><br><span class="line"></span><br><span class="line"># StopIteration and StopAsyncIteration 被替换为 RuntimeError，并且不上抛。</span><br></pre></td></tr></table></figure>
+<h3 id="终止"><a href="#终止" class="headerlink" title="终止"></a>终止</h3><p>当 异步生成器，若在 async with 语句块内使用 yield ，生成器被gc时，会导致占用的资源无法释放。</p>
+<p>为此：</p>
+<ol>
+<li>引入了 aclose 方法，类似于普通生成器的 close()，只是需要 event loop 来执行 aclose()。</li>
+<li>try finally 语句块下，不能使用 yield，否则 Raise a RuntimeError。注意 async with 等效于 try。</li>
+<li>sys module添加两个方法：set_asyncgen_hooks() 、 get_asyncgen_hooks()<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># asyncio/base_events.py</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseEventLoop</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">run_forever</span><span class="params">(self)</span>:</span></span><br><span class="line">        ...</span><br><span class="line">        old_hooks = sys.get_asyncgen_hooks()</span><br><span class="line">        <span class="comment"># returns a namedtuple-like structure with firstiter and finalizer fields.</span></span><br><span class="line"></span><br><span class="line">        sys.set_asyncgen_hooks(finalizer=self._finalize_asyncgen)</span><br><span class="line">        <span class="comment"># set_asyncgen_hooks is thread-specific</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            ...</span><br><span class="line">        <span class="keyword">finally</span>:</span><br><span class="line">            sys.set_asyncgen_hooks(*old_hooks)</span><br><span class="line">            ...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">_finalize_asyncgen</span><span class="params">(self, gen)</span>:</span></span><br><span class="line">        self.create_task(gen.aclose())</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>sys.set_asyncgen_hooks() accepts two arguments:</p>
+<ul>
+<li>firstiter: a callable which will be called when an asynchronous generator is iterated for the first time.</li>
+<li>finalizer: a callable which will be called when an asynchronous generator is about to be GCed.</li>
+</ul>
+<h2 id="过程调用"><a href="#过程调用" class="headerlink" title="过程调用"></a>过程调用</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">foo</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">bar</span><span class="params">()</span>:</span></span><br><span class="line">    print(foo())</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> dis</span><br><span class="line">dis.dis(bar)</span><br><span class="line"></span><br><span class="line"><span class="number">4</span>         <span class="number">0</span> LOAD_GLOBAL              <span class="number">0</span> (<span class="keyword">print</span>)</span><br><span class="line">          <span class="number">2</span> LOAD_GLOBAL              <span class="number">1</span> (foo)</span><br><span class="line">          <span class="number">4</span> CALL_FUNCTION            <span class="number">0</span></span><br><span class="line">          <span class="number">6</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">          <span class="number">8</span> POP_TOP</span><br><span class="line">         <span class="number">10</span> LOAD_CONST               <span class="number">0</span> (<span class="keyword">None</span>)</span><br><span class="line">         <span class="number">12</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">foo</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">async</span> <span class="function"><span class="keyword">def</span> <span class="title">bar</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="keyword">await</span> foo())</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> dis</span><br><span class="line">dis.dis(bar)</span><br><span class="line"></span><br><span class="line"><span class="number">4</span>         <span class="number">0</span> LOAD_GLOBAL              <span class="number">0</span> (<span class="keyword">print</span>)</span><br><span class="line">          <span class="number">2</span> LOAD_GLOBAL              <span class="number">1</span> (foo)</span><br><span class="line">          <span class="number">4</span> CALL_FUNCTION            <span class="number">0</span></span><br><span class="line">          <span class="number">6</span> GET_AWAITABLE</span><br><span class="line">          <span class="number">8</span> LOAD_CONST               <span class="number">0</span> (<span class="keyword">None</span>)</span><br><span class="line">         <span class="number">10</span> YIELD_FROM</span><br><span class="line">         <span class="number">12</span> CALL_FUNCTION            <span class="number">1</span></span><br><span class="line">         <span class="number">14</span> POP_TOP</span><br><span class="line">         <span class="number">16</span> LOAD_CONST               <span class="number">0</span> (<span class="keyword">None</span>)</span><br><span class="line">         <span class="number">18</span> RETURN_VALUE</span><br></pre></td></tr></table></figure>
+<p>对比两个版本，发现多出：GET_AWAITABLE、YIELD_FROM</p>
+<ul>
+<li>CALL_FUNCTION：执行 foo()，获取到 coroutine object，并入栈</li>
+<li>GET_AWAITABLE：从栈顶弹出一个对象，获取到 awaitable 对象并入栈</li>
+<li>YIELD_FROM：获取栈顶元素 v=POP()，调用 _PyGen_Send(…, v)，并返回结果</li>
+</ul>
+<h3 id="GET-AWAITABLE"><a href="#GET-AWAITABLE" class="headerlink" title="GET_AWAITABLE"></a>GET_AWAITABLE</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># ceval.c.2040</span></span><br><span class="line">TARGET(GET_AWAITABLE) &#123;</span><br><span class="line">    PyObject *iterable = TOP();</span><br><span class="line">    PyObject *iter = _PyCoro_GetAwaitableIter(iterable);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (iter != <span class="literal">NULL</span> &amp;&amp; PyCoro_CheckExact(iter)) &#123;</span><br><span class="line">        PyObject *yf = _PyGen_yf((PyGenObject*)iter);</span><br><span class="line">        <span class="comment">/* `iter` is a coroutine object that is being awaited,</span></span><br><span class="line"><span class="comment">            `yf` is a pointer to the current awaitable being awaited on.</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">            asert yf == NULL</span></span><br><span class="line"><span class="comment">            raise RuntimeError("coroutine is being awaited already")</span></span><br><span class="line"><span class="comment">        */</span></span><br><span class="line">    &#125;</span><br><span class="line">    SET_TOP(iter); <span class="comment">/* Even if it's NULL */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (iter == <span class="literal">NULL</span>) &#123; <span class="keyword">goto</span> error; &#125;</span><br><span class="line"></span><br><span class="line">    PREDICT(LOAD_CONST);</span><br><span class="line">    DISPATCH();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用 GetAwaitableIter，传入一个  iterable，得到一个 awaitable对象，否则 会报错。</p>
+<h3 id="PyCoro-GetAwaitableIter"><a href="#PyCoro-GetAwaitableIter" class="headerlink" title="_PyCoro_GetAwaitableIter"></a>_PyCoro_GetAwaitableIter</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># genobject.c.876</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> *   核心逻辑：returns an awaitable for `o`:</span></span><br><span class="line"><span class="comment"> *     - `o` if `o` is a coroutine-object;</span></span><br><span class="line"><span class="comment"> *     - `type(o)-&gt;tp_as_async-&gt;am_await(o)`</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *   Raises a TypeError if it's not possible to return</span></span><br><span class="line"><span class="comment"> *   an awaitable and returns NULL.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">PyObject * _PyCoro_GetAwaitableIter(PyObject *o)</span><br><span class="line">&#123;</span><br><span class="line">    unaryfunc getter = <span class="literal">NULL</span>;</span><br><span class="line">    PyTypeObject *ot;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PyCoro_CheckExact(o) || gen_is_coroutine(o)) &#123;</span><br><span class="line">        <span class="keyword">return</span> o;    <span class="comment">/* 'o' is a coroutine. */</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ot = Py_TYPE(o);</span><br><span class="line">    <span class="keyword">if</span> (ot-&gt;tp_as_async != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        getter = ot-&gt;tp_as_async-&gt;am_await;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (getter != <span class="literal">NULL</span>) &#123;</span><br><span class="line">        PyObject *res = (*getter)(o);</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta"># genobject.c.933</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> PyObject * <span class="title">coro_await</span><span class="params">(PyCoroObject *coro)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyCoroWrapper *cw = PyObject_GC_New(PyCoroWrapper, &amp;_PyCoroWrapper_Type);</span><br><span class="line">    cw-&gt;cw_coroutine = coro;</span><br><span class="line">    <span class="keyword">return</span> (PyObject *)cw;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，coroutine 是天然的 awaitable对象。或者调用 type(o)-&gt;tp_as_async-&gt;am_await(o) 得到一个 awaitable对象。</p>
+<p>实现了 tp_as_async 方法的有：coroutine、aiter_wrapper、async_generator_asend、async_generator_athrow。</p>
+<h3 id="PyCoroWrapper-Type"><a href="#PyCoroWrapper-Type" class="headerlink" title="PyCoroWrapper_Type"></a>PyCoroWrapper_Type</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># genobject.c.1088</span></span><br><span class="line"><span class="keyword">static</span> PyMethodDef coro_wrapper_methods[] = &#123;</span><br><span class="line">    &#123;<span class="string">"send"</span>,(PyCFunction)coro_wrapper_send, METH_O, coro_send_doc&#125;,</span><br><span class="line">    &#123;<span class="string">"throw"</span>,(PyCFunction)coro_wrapper_throw, METH_VARARGS, coro_throw_doc&#125;,</span><br><span class="line">    &#123;<span class="string">"close"</span>,(PyCFunction)coro_wrapper_close, METH_NOARGS, coro_close_doc&#125;,</span><br><span class="line">    &#123;<span class="literal">NULL</span>, <span class="literal">NULL</span>&#125;        <span class="comment">/* Sentinel */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta"># genobject.c.859</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    PyCoroObject *cw_coroutine;</span><br><span class="line">&#125; PyCoroWrapper;</span><br><span class="line"></span><br><span class="line"><span class="meta"># genobject.c.1095</span></span><br><span class="line">PyTypeObject _PyCoroWrapper_Type = &#123;</span><br><span class="line">    PyVarObject_HEAD_INIT(&amp;PyType_Type, <span class="number">0</span>)</span><br><span class="line">    <span class="string">"coroutine_wrapper"</span>,</span><br><span class="line">    <span class="keyword">sizeof</span>(PyCoroWrapper),                      <span class="comment">/* tp_basicsize */</span></span><br><span class="line"></span><br><span class="line">    # 实现 迭代器协议</span><br><span class="line">    PyObject_SelfIter,                          <span class="comment">/* tp_iter */</span></span><br><span class="line">    (iternextfunc)coro_wrapper_iternext,        <span class="comment">/* tp_iternext */</span></span><br><span class="line"></span><br><span class="line">    # 实现 协程的method</span><br><span class="line">    coro_wrapper_methods,                       <span class="comment">/* tp_methods */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="YIELD-FROM"><a href="#YIELD-FROM" class="headerlink" title="YIELD_FROM"></a>YIELD_FROM</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta"># ceval.c.2076</span></span><br><span class="line">TARGET(YIELD_FROM) &#123;</span><br><span class="line">    PyObject *v = POP();</span><br><span class="line">    PyObject *receiver = TOP();</span><br><span class="line">    <span class="keyword">int</span> err;</span><br><span class="line">    <span class="keyword">if</span> (PyGen_CheckExact(receiver) || PyCoro_CheckExact(receiver)) &#123;</span><br><span class="line">        <span class="comment">// 如果是 generaotr / corotine，调用 Send()</span></span><br><span class="line">        retval = _PyGen_Send((PyGenObject *)receiver, v);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 其他 Awaitable 对象，迭代下一个元素</span></span><br><span class="line">        _Py_IDENTIFIER(send);</span><br><span class="line">        <span class="keyword">if</span> (v == Py_None)</span><br><span class="line">            retval = Py_TYPE(receiver)-&gt;tp_iternext(receiver);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            retval = _PyObject_CallMethodIdObjArgs(receiver, &amp;PyId_send, v, <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    Py_DECREF(v);</span><br><span class="line">    <span class="keyword">if</span> (retval == <span class="literal">NULL</span>) &#123;</span><br><span class="line">        <span class="comment">// 进入销毁流程</span></span><br><span class="line">        PyObject *val;</span><br><span class="line">        <span class="keyword">if</span> (tstate-&gt;c_tracefunc != <span class="literal">NULL</span></span><br><span class="line">                &amp;&amp; PyErr_ExceptionMatches(PyExc_StopIteration))</span><br><span class="line">            call_exc_trace(tstate-&gt;c_tracefunc, tstate-&gt;c_traceobj, tstate, f);</span><br><span class="line">        err = _PyGen_FetchStopIterationValue(&amp;val);</span><br><span class="line">        <span class="keyword">if</span> (err &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">goto</span> error;</span><br><span class="line">        Py_DECREF(receiver);</span><br><span class="line">        SET_TOP(val);</span><br><span class="line">        DISPATCH();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/* receiver remains on stack, retval is value to be yielded */</span></span><br><span class="line">    f-&gt;f_stacktop = stack_pointer;</span><br><span class="line">    why = WHY_YIELD;</span><br><span class="line">    <span class="comment">/* and repeat... */</span></span><br><span class="line">    assert(f-&gt;f_lasti &gt;= (<span class="keyword">int</span>)<span class="keyword">sizeof</span>(_Py_CODEUNIT));</span><br><span class="line">    f-&gt;f_lasti -= <span class="keyword">sizeof</span>(_Py_CODEUNIT);</span><br><span class="line">    <span class="keyword">goto</span> fast_yield;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/coroutine/" rel="tag"># coroutine</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/" rel="next" title="【Python 协程系列】Gevent 源码分析">
+                <i class="fa fa-chevron-left"></i> 【Python 协程系列】Gevent 源码分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/12/2.Python Web/2.4.Django 源码分析/" rel="prev" title="【Python Web 系列】Django 源码分析">
+                【Python Web 系列】Django 源码分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">1.</span> <span class="nav-text">参考资料</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">2.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#名词解释"><span class="nav-number">3.</span> <span class="nav-text">名词解释</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Generator"><span class="nav-number">3.1.</span> <span class="nav-text">Generator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Native-coroutine"><span class="nav-number">3.2.</span> <span class="nav-text">Native coroutine</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Asynchronous-generator、"><span class="nav-number">3.3.</span> <span class="nav-text">Asynchronous generator、</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Asynchronous-iterator"><span class="nav-number">3.4.</span> <span class="nav-text">Asynchronous iterator</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Generator-based-coroutine"><span class="nav-number">3.5.</span> <span class="nav-text">Generator-based coroutine</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Coroutine"><span class="nav-number">3.6.</span> <span class="nav-text">Coroutine</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Future-like-object"><span class="nav-number">3.7.</span> <span class="nav-text">Future-like object</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Awaitable"><span class="nav-number">3.8.</span> <span class="nav-text">Awaitable</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Asynchronous-context-manager"><span class="nav-number">3.9.</span> <span class="nav-text">Asynchronous context manager</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成器"><span class="nav-number">4.</span> <span class="nav-text">生成器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyGen-Type"><span class="nav-number">4.1.</span> <span class="nav-text">PyGen_Type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyGenObject"><span class="nav-number">4.2.</span> <span class="nav-text">PyGenObject</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyGen-New"><span class="nav-number">4.3.</span> <span class="nav-text">PyGen_New</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyGen-Send"><span class="nav-number">4.4.</span> <span class="nav-text">PyGen_Send</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CodeObject"><span class="nav-number">4.5.</span> <span class="nav-text">CodeObject</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#YIELD-VALUE"><span class="nav-number">4.6.</span> <span class="nav-text">YIELD_VALUE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">4.7.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Native-协程"><span class="nav-number">5.</span> <span class="nav-text">Native 协程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyCoro-Type"><span class="nav-number">5.1.</span> <span class="nav-text">PyCoro_Type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyCoroObject"><span class="nav-number">5.2.</span> <span class="nav-text">PyCoroObject</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Chain-coroutines"><span class="nav-number">5.3.</span> <span class="nav-text">Chain coroutines</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结-1"><span class="nav-number">5.4.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异步生成器"><span class="nav-number">6.</span> <span class="nav-text">异步生成器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PyAsyncGen-Type"><span class="nav-number">6.1.</span> <span class="nav-text">PyAsyncGen_Type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#属性"><span class="nav-number">6.2.</span> <span class="nav-text">属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#终止"><span class="nav-number">6.3.</span> <span class="nav-text">终止</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#过程调用"><span class="nav-number">7.</span> <span class="nav-text">过程调用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GET-AWAITABLE"><span class="nav-number">7.1.</span> <span class="nav-text">GET_AWAITABLE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyCoro-GetAwaitableIter"><span class="nav-number">7.2.</span> <span class="nav-text">_PyCoro_GetAwaitableIter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PyCoroWrapper-Type"><span class="nav-number">7.3.</span> <span class="nav-text">PyCoroWrapper_Type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#YIELD-FROM"><span class="nav-number">7.4.</span> <span class="nav-text">YIELD_FROM</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <!--
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>  
+  <span class="with-love">Hello,world!</span>
+  <span class="author" itemprop="copyrightHolder">I'm He11oLx</span>
+
+  
+</div>
+-->
+
+<div class="copyright">
+  <span class='with-love'>
+    Hello,world!
+    <i class="fa fa-user"></i>
+    I'm Lx.
+    </span>
+UV: <span id="busuanzi_value_site_pv"></span>
+PV: <span id="busuanzi_value_site_uv"></span>
+</div>
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/';
+          this.page.identifier = '2018/09/12/3.协程相关/3.2.Python 原生协程/';
+          this.page.title = '【Python 协程系列】Python 原生协程';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

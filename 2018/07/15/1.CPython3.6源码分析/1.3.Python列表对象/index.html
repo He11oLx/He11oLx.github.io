@@ -91,7 +91,7 @@
 <meta property="og:site_name" content="Lx&#39;s Blog">
 <meta property="og:description" content="参考 List Objects  前言123Another generally useful object type is a list of object pointers.This is a mutable type: the list items can be changed, and items can beadded or removed.  Out-of-range indices o">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-08-05T07:11:46.706Z">
+<meta property="og:updated_time" content="2018-08-09T12:10:09.571Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【CPython3.6源码分析】PyListObject">
 <meta name="twitter:description" content="参考 List Objects  前言123Another generally useful object type is a list of object pointers.This is a mutable type: the list items can be changed, and items can beadded or removed.  Out-of-range indices o">
@@ -386,8 +386,8 @@
 
           
             <span class="post-meta-divider">|</span>
-            <span class="page-pv"><i class="fa fa-file-o">本文总阅读量</i>
-            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>次
+            <span class="page-pv">
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
             </span>
           
 
@@ -427,7 +427,7 @@
 <li>ob_size 标记了元素个数</li>
 </ul>
 <h2 id="PyList-Type"><a href="#PyList-Type" class="headerlink" title="PyList_Type"></a>PyList_Type</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// listobject.c.2624</span></span><br><span class="line">PyTypeObject PyList_Type = &#123;</span><br><span class="line">    PyVarObject_HEAD_INIT(&amp;PyType_Type, <span class="number">0</span>)</span><br><span class="line">    <span class="string">"list"</span>,</span><br><span class="line">    <span class="keyword">sizeof</span>(PyListObject),</span><br><span class="line">    <span class="number">0</span>,</span><br><span class="line">    (destructor)list_dealloc,   <span class="comment">/* tp_dealloc */</span></span><br><span class="line">    PyType_GenericAlloc,          <span class="comment">/* tp_alloc */</span></span><br><span class="line">    PyType_GenericNew,            <span class="comment">/* tp_new */</span></span><br><span class="line">    (initproc)list_init,          <span class="comment">/* tp_init */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>在之前的 PyLong_Type、PyUnicode_Type中，<code>tp_new</code>都是单独定义的函数。而在<code>PyList_Type</code>中，是通用的 <code>PyType_Generic*</code> 函数。下面，我们就来看下他们的逻辑。</p>
+<p>在之前的 PyLong_Type、PyUnicode_Type中，<code>tp_new</code>都是单独定义的函数。<br>而在<code>PyList_Type</code>中，是通用的 <code>PyType_Generic*</code> 函数。下面，我们就来看下他们的逻辑。</p>
 <h3 id="PyType-GenericNew"><a href="#PyType-GenericNew" class="headerlink" title="PyType_GenericNew"></a>PyType_GenericNew</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// typeobject.c.958</span></span><br><span class="line">PyObject *</span><br><span class="line">PyType_GenericNew(PyTypeObject *type, PyObject *args, PyObject *kwds)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">return</span> type-&gt;tp_alloc(type, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// typeobject.c.928</span></span><br><span class="line"><span class="function">PyObject * <span class="title">PyType_GenericAlloc</span><span class="params">(PyTypeObject *type, Py_ssize_t nitems)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    PyObject *obj;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">size_t</span> size = _PyObject_VAR_SIZE(type, nitems+<span class="number">1</span>);</span><br><span class="line">    <span class="comment">/* note that we need to add one, for the sentinel */</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PyType_IS_GC(type))</span><br><span class="line">        obj = _PyObject_GC_Malloc(size);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        obj = (PyObject *)PyObject_MALLOC(size);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (obj == <span class="literal">NULL</span>));</span><br><span class="line">        <span class="keyword">return</span> PyErr_NoMemory();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(obj, <span class="string">'\0'</span>, size);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (type-&gt;tp_flags &amp; Py_TPFLAGS_HEAPTYPE)</span><br><span class="line">        Py_INCREF(type);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (type-&gt;tp_itemsize == <span class="number">0</span>)</span><br><span class="line">        (<span class="keyword">void</span>)PyObject_INIT(obj, type);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        (<span class="keyword">void</span>) PyObject_INIT_VAR((PyVarObject *)obj, type, nitems);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (PyType_IS_GC(type))</span><br><span class="line">        _PyObject_GC_TRACK(obj);</span><br><span class="line">    <span class="keyword">return</span> obj;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// objimpl.h.141</span></span><br><span class="line"><span class="comment">/* Macros trading binary compatibility for speed. See also pymem.h.</span></span><br><span class="line"><span class="comment">   Note that these macros expect non-NULL object pointers.*/</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PyObject_INIT(op, typeobj) \</span></span><br><span class="line">    ( Py_TYPE(op) = (typeobj), _Py_NewReference((PyObject *)(op)), (op) )</span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> PyObject_INIT_VAR(op, typeobj, size) \</span></span><br><span class="line">    ( Py_SIZE(op) = (size), PyObject_INIT((op), (typeobj)) )</span><br></pre></td></tr></table></figure>
 <p>如上，具体细节不在深究，能够看出一个轮廓：</p>
 <ol>
@@ -633,7 +633,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-count">28</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -655,7 +655,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-count">24</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

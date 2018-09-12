@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="WSGI," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="前言对一个 Python Web 开发者来说，PEP333/PEP3333，是必须熟悉的。都什么年代了，我们自然直接看 3333。 PEP 3333PEP3333，描述了 Web 服务器与 Python Web 应用程序或框架之间的建议标准接口，以促进跨各种 Web 服务器的应用程序的可移植性，形成类似于Java 的 “servlet” API。  CGI：Common Gateway Inter">
+<meta name="keywords" content="WSGI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Python Web 系列】WSGI">
+<meta property="og:url" content="http://he11olx.com/2018/09/12/2.Python Web/2.1.WSGI/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="前言对一个 Python Web 开发者来说，PEP333/PEP3333，是必须熟悉的。都什么年代了，我们自然直接看 3333。 PEP 3333PEP3333，描述了 Web 服务器与 Python Web 应用程序或框架之间的建议标准接口，以促进跨各种 Web 服务器的应用程序的可移植性，形成类似于Java 的 “servlet” API。  CGI：Common Gateway Inter">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-09-12T13:20:27.125Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Python Web 系列】WSGI">
+<meta name="twitter:description" content="前言对一个 Python Web 开发者来说，PEP333/PEP3333，是必须熟悉的。都什么年代了，我们自然直接看 3333。 PEP 3333PEP3333，描述了 Web 服务器与 Python Web 应用程序或框架之间的建议标准接口，以促进跨各种 Web 服务器的应用程序的可移植性，形成类似于Java 的 “servlet” API。  CGI：Common Gateway Inter">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/09/12/2.Python Web/2.1.WSGI/"/>
+
+
+
+
+
+  <title>【Python Web 系列】WSGI | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/2.Python Web/2.1.WSGI/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【Python Web 系列】WSGI</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/2.Python Web/2.1.WSGI/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/2.Python Web/2.1.WSGI/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv">
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>对一个 Python Web 开发者来说，PEP333/PEP3333，是必须熟悉的。都什么年代了，我们自然直接看 3333。</p>
+<h2 id="PEP-3333"><a href="#PEP-3333" class="headerlink" title="PEP 3333"></a>PEP 3333</h2><p>PEP3333，描述了 Web 服务器与 Python Web 应用程序或框架之间的建议标准接口，<br>以促进跨各种 Web 服务器的应用程序的可移植性，形成类似于Java 的 “servlet” API。</p>
+<ul>
+<li>CGI：Common Gateway Interface，<a href="https://tools.ietf.org/html/draft-coar-cgi-v11-03" target="_blank" rel="noopener">通用网关接口</a></li>
+<li>WSGI：(Python)Web Server Gateway Interface，<a href="https://www.python.org/dev/peps/pep-3333/" target="_blank" rel="noopener">Python服务器网关接口</a></li>
+</ul>
+<a id="more"></a>
+<h3 id="接口说明"><a href="#接口说明" class="headerlink" title="接口说明"></a>接口说明</h3><p>WSGI 接口有两个方面：<code>服务器/网关</code>侧，以及<code>应用程序/框架</code>侧。服务器调用应用程序提供的可调用对象。<br>提供该对象的具体方式取决于服务器或网关，可以通过脚本或配置文件的形式指定。<br>可调用对象，是指一个<code>函数/方法/具有__call__方法的实例</code>。</p>
+<p>为了适配 Py3 中的字符串 Unicode，WSGI 定义了两种字符串：</p>
+<ul>
+<li><code>Native</code>字符串（str），用于请求/响应标头和元数据</li>
+<li><code>Bytestrings</code>(bytes)，用于请求响应体</li>
+</ul>
+<p>这就要注意了，在 Py3 中，<code>str</code>对应<code>UnicodeType</code>，<code>bytestring</code>对应<code>BytesType</code>。而上述<code>Native</code>字符串，encode(‘latin-1’) 后得到 Bytestrings。<br>意味着，str 虽然是 Unicode，但也只是支持<code>ISO-8859-1</code>编码部分(\u0000~\u00FF)。</p>
+<h3 id="应用程序侧"><a href="#应用程序侧" class="headerlink" title="应用程序侧"></a>应用程序侧</h3><p>应用程序/框架，提供给 Server 的可调用对象，接受两个位置参数<code>environ/start_response</code></p>
+<ul>
+<li>位置 1：environ，一个字典，封装了请求的相关信息 + CGI 风格的环境变量</li>
+<li>位置 2：start_response，一个可调用对象，传入<code>status, response_header[, exc_info]</code>三个位置参数<ul>
+<li>status 是形如 <code>200 OK</code> 的状态字符串</li>
+<li>headers 是一个元组列表，形如 <code>[(header_name, header_value)]</code>，注意大小写不敏感</li>
+<li>可选参数 exc_info，在传递错误信息时使用</li>
+<li>客户端侧，不使用<code>start_response()</code>的返回值</li>
+</ul>
+</li>
+<li><code>app(environ，start_response)</code>返回一个能迭代出 bytestrings 的可迭代对象</li>
+<li>应用程序必须保证，先调用 start_response，才迭代出 bytestrings</li>
+</ul>
+<h3 id="服务器侧"><a href="#服务器侧" class="headerlink" title="服务器侧"></a>服务器侧</h3><p>在服务器侧最终的结果，是直接通过<code>app(environ，start_response)</code>得到</p>
+<ul>
+<li>start_response 必须返回一个可调用对象，接收一个<code>bytestring</code> 对象作为参数</li>
+<li>仅对响应内容进行编码传输，不更改内容，且不返回迭代器的任何属性</li>
+<li>如果能够调用<code>close(iterable)</code>，服务器必须请求结束后调用该方法</li>
+<li>WSGI服务器、网关和中间件不能拖延任何块的传输，要么立即发送块，要么保证应用程序侧连接不断开</li>
+</ul>
+<h3 id="中间件"><a href="#中间件" class="headerlink" title="中间件"></a>中间件</h3><p>只要符合 WSGI 协议，就可以接入到整个应用链中。因此，诞生了中间件<code>Middleware</code>。其可以：</p>
+<ul>
+<li>从 server 端接收，并改写信息，定位到不同的应用程序</li>
+<li>从 app 端接收，改写信息，发送不同的格式内容</li>
+</ul>
+<h3 id="环境变量"><a href="#环境变量" class="headerlink" title="环境变量"></a>环境变量</h3><p>environ 字典中，不仅含有 CGI 中的部分参数，还包含 WSGI 定义的变量。</p>
+<p>CGI 中的变量，注意也必须是 string 类型：</p>
+<ul>
+<li>REQUEST_METHOD： 请求方法，是个字符串，’GET’, ‘POST’等</li>
+<li>SCRIPT_NAME： HTTP 请求的 path 中的用于查找到 app 对象的部分，比如 Web 服务器可以根据 path 的一部分来决定请求由哪个virtual host处理</li>
+<li>PATH_INFO： HTTP 请求的 path 中剩余的部分，也就是 application 要处理的部分</li>
+<li>QUERY_STRING： HTTP 请求中的查询字符串，URL中?后面的内容</li>
+<li>CONTENT_TYPE： HTTP headers中的content-type内容</li>
+<li>CONTENT_LENGTH： HTTP headers中的content-length内容</li>
+<li>SERVER_NAME和SERVER_PORT： 服务器名和端口，这两个值和前面的SCRIPT_NAME, PATH_INFO拼起来可以得到完整的URL路径</li>
+<li>SERVER_PROTOCOL： HTTP 协议版本，HTTP/1.0或者HTTP/1.1</li>
+<li>HTTP_*： 和请求中的headers对应<br>示例：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&quot;SERVER_NAME&quot;: &quot;DESKTOP&quot;,</span><br><span class="line">&quot;SERVER_PORT&quot;: &quot;8080&quot;,</span><br><span class="line">&quot;CONTENT_LENGTH&quot;: &quot;&quot;,</span><br><span class="line">&quot;SCRIPT_NAME&quot;: &quot;&quot;,</span><br><span class="line">&quot;SERVER_PROTOCOL&quot;: &quot;HTTP/1.1&quot;,</span><br><span class="line">&quot;SERVER_SOFTWARE&quot;: &quot;WSGIServer/0.2&quot;,</span><br><span class="line">&quot;REQUEST_METHOD&quot;: &quot;GET&quot;,</span><br><span class="line">&quot;QUERY_STRING&quot;: &quot;&quot;,</span><br><span class="line">&quot;CONTENT_TYPE&quot;: &quot;text/plain&quot;,</span><br><span class="line"></span><br><span class="line">&quot;HTTP_HOST&quot;: &quot;127.0.0.1:8080&quot;,</span><br><span class="line">&quot;HTTP_CONNECTION&quot;: &quot;keep-alive&quot;,</span><br><span class="line">&quot;HTTP_CACHE_CONTROL&quot;: &quot;max-age=0&quot;,</span><br><span class="line">&quot;HTTP_USER_AGENT&quot;: &quot;Mozilla/5.0 ,</span><br><span class="line">&quot;HTTP_UPGRADE_INSECURE_REQUESTS&quot;: &quot;1&quot;,</span><br><span class="line">&quot;HTTP_ACCEPT&quot;: &quot;text/html,application/xhtml+xml,application/xml;q=0.8&quot;,</span><br><span class="line">&quot;HTTP_DNT&quot;: &quot;1&quot;,</span><br><span class="line">&quot;HTTP_ACCEPT_ENCODING&quot;: &quot;gzip, deflate, br&quot;,</span><br><span class="line">&quot;HTTP_ACCEPT_LANGUAGE&quot;: &quot;zh-CN,zh;q=0.9,ca;q=0.8&quot;,</span><br><span class="line">&quot;HTTP_COOKIE&quot;:&quot;csrftoken=w6V4gyp0o9doePer5oDrlDCwtxeaWxq&quot;,</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>WSGI 变量：</p>
+<ul>
+<li>wsgi.version：表示WSGI版本，一个元组(1, 0)，表示版本1.0</li>
+<li>wsgi.url_scheme：http或者https</li>
+<li>wsgi.input：一个类文件的输入流，application可以通过这个获取HTTP request body</li>
+<li>wsgi.errors：一个输出流，当应用程序出错时，可以将错误信息写入这里</li>
+<li>wsgi.multithread：当application对象可能被多个线程同时调用时，这个值需要为True</li>
+<li>wsgi.multiprocess：当application对象可能被多个进程同时调用时，这个值需要为True</li>
+<li>wsgi.run_once：当server期望application对象在进程的生命周期内只被调用一次时，该值为True<br>示例：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&quot;wsgi.input&quot;: &quot;&lt;_io.BufferedReader name=448&gt;&quot;,</span><br><span class="line">&quot;wsgi.errors&quot;: &quot;&lt;_io.TextIOWrapper name=&apos;&lt;stderr&gt;&apos; mode=&apos;w&apos; encoding=&apos;UTF-8&apos;&gt;&quot;,</span><br><span class="line">&quot;wsgi.version&quot;: &quot;(1, 0)&quot;,</span><br><span class="line">&quot;wsgi.run_once&quot;: &quot;False&quot;,</span><br><span class="line">&quot;wsgi.url_scheme&quot;: &quot;http&quot;,</span><br><span class="line">&quot;wsgi.multithread&quot;: &quot;True&quot;,</span><br><span class="line">&quot;wsgi.multiprocess&quot;: &quot;False&quot;,</span><br><span class="line">&quot;wsgi.file_wrapper&quot;: &quot;&lt;class &apos;wsgiref.util.FileWrapper&apos;&gt;&quot;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h2 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h2><h3 id="SimpleApp"><a href="#SimpleApp" class="headerlink" title="SimpleApp"></a>SimpleApp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">simple_app</span><span class="params">(environ, start_response)</span>:</span></span><br><span class="line">    status = <span class="string">'200 OK'</span></span><br><span class="line">    response_headers = [(<span class="string">'Content-type'</span>, <span class="string">'text/html; charset=utf-8'</span>)]</span><br><span class="line">    start_response(status, response_headers)</span><br><span class="line">    <span class="keyword">return</span> [<span class="string">b"&lt;h1&gt;Hello,world!  I'm Lx.&lt;/h1&gt;"</span>]</span><br></pre></td></tr></table></figure>
+<h3 id="SimpleServer"><a href="#SimpleServer" class="headerlink" title="SimpleServer"></a>SimpleServer</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> socket</span><br><span class="line"><span class="keyword">from</span> io <span class="keyword">import</span> StringIO</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> datetime</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SimpleServer</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, address, application)</span>:</span></span><br><span class="line">        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span><br><span class="line">        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="number">1</span>)</span><br><span class="line">        self.socket.bind(address)</span><br><span class="line">        self.socket.listen(<span class="number">1</span>)</span><br><span class="line">        self.host = address[<span class="number">0</span>]</span><br><span class="line">        self.port = address[<span class="number">1</span>]</span><br><span class="line">        self.application = application</span><br><span class="line">        self.headers_set = []</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">serve_forever</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">while</span> <span class="keyword">True</span>:</span><br><span class="line">            self.connection, client_address = self.socket.accept()</span><br><span class="line">            self.handle_request()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">handle_request</span><span class="params">(self)</span>:</span></span><br><span class="line">        request_data = self.connection.recv(<span class="number">1024</span>).decode()</span><br><span class="line">        self.get_url_parameter(request_data)</span><br><span class="line">        result = self.application(self.get_environ(), self.start_response)</span><br><span class="line">        self.finish_response(result)</span><br><span class="line">        print(<span class="string">f"[<span class="subst">&#123;time.strftime(<span class="string">'%Y-%m-%d %H:%M:%S'</span>)&#125;</span>]"</span>,</span><br><span class="line">              <span class="string">f"<span class="subst">&#123;self.request_headline&#125;</span> <span class="subst">&#123;self.headers_set[<span class="number">0</span>]&#125;</span>"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_url_parameter</span><span class="params">(self, reqest_data)</span>:</span></span><br><span class="line">        request_lines = reqest_data.splitlines()</span><br><span class="line">        self.request_headline = request_lines[<span class="number">0</span>]</span><br><span class="line">        self.request_dict = &#123;<span class="string">'Path'</span>: request_lines[<span class="number">0</span>]&#125;</span><br><span class="line">        <span class="keyword">for</span> itm <span class="keyword">in</span> request_lines[<span class="number">1</span>:]:</span><br><span class="line">            <span class="keyword">if</span> <span class="string">':'</span> <span class="keyword">in</span> itm:</span><br><span class="line">                self.request_dict[itm.split(<span class="string">':'</span>)[<span class="number">0</span>]] = itm.split(<span class="string">':'</span>)[<span class="number">1</span>]</span><br><span class="line">        self.request_method, self.path, self.request_version = \</span><br><span class="line">                            self.request_dict.get(<span class="string">'Path'</span>).split()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_environ</span><span class="params">(self)</span>:</span></span><br><span class="line">        env = &#123;</span><br><span class="line">            <span class="string">'REQUEST_METHOD'</span>: self.request_method,</span><br><span class="line">            <span class="string">'PATH_INFO'</span>: self.path,</span><br><span class="line">            <span class="string">'SERVER_NAME'</span>: self.host,</span><br><span class="line">            <span class="string">'SERVER_PORT'</span>: str(self.port),</span><br><span class="line">            <span class="string">'USER_AGENT'</span>: self.request_dict.get(<span class="string">'User-Agent'</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        environ = dict(os.environ.items())</span><br><span class="line">        environ[<span class="string">'wsgi.version'</span>] = <span class="string">"(1, 0)"</span>,</span><br><span class="line">        environ[<span class="string">'wsgi.input'</span>] = StringIO(),</span><br><span class="line">        environ[<span class="string">'wsgi.errors'</span>] = sys.stderr</span><br><span class="line">        environ[<span class="string">'wsgi.version'</span>] = (<span class="number">1</span>, <span class="number">0</span>)</span><br><span class="line">        environ[<span class="string">'wsgi.multithread'</span>] = <span class="keyword">False</span></span><br><span class="line">        environ[<span class="string">'wsgi.multiprocess'</span>] = <span class="keyword">True</span></span><br><span class="line">        environ[<span class="string">'wsgi.run_once'</span>] = <span class="keyword">True</span></span><br><span class="line">        <span class="keyword">if</span> environ.get(<span class="string">'HTTPS'</span>, <span class="string">'off'</span>) <span class="keyword">in</span> (<span class="string">'on'</span>, <span class="string">'1'</span>):</span><br><span class="line">            environ[<span class="string">'wsgi.url_scheme'</span>] = <span class="string">'https'</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            environ[<span class="string">'wsgi.url_scheme'</span>] = <span class="string">'http'</span></span><br><span class="line">        environ.update(env)</span><br><span class="line">        <span class="keyword">return</span> environ</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start_response</span><span class="params">(self, status, response_headers, exc_info=None)</span>:</span></span><br><span class="line">        headers = [</span><br><span class="line">            (<span class="string">'Date'</span>, time.strftime(<span class="string">'%a, %d %b %Y %H:%M:%S GMT'</span>)),</span><br><span class="line">            (<span class="string">'Server'</span>, <span class="string">'SimpleServer'</span>),</span><br><span class="line">        ]</span><br><span class="line">        self.headers_set[:] = [status, response_headers + headers]</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">finish_response</span><span class="params">(self, app_data)</span>:</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            response = <span class="string">'HTTP/1.1 &#123;&#125;\r\n'</span>.format(self.headers_set[<span class="number">0</span>])</span><br><span class="line">            <span class="keyword">for</span> header <span class="keyword">in</span> self.headers_set[<span class="number">1</span>]:</span><br><span class="line">                response += <span class="string">'&#123;0&#125;: &#123;1&#125;\r\n'</span>.format(*header)</span><br><span class="line">            response += <span class="string">'\r\n'</span></span><br><span class="line">            response = response.encode()</span><br><span class="line">            <span class="keyword">if</span> isinstance(app_data, bytes):</span><br><span class="line">                response += app_data</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="keyword">for</span> info <span class="keyword">in</span> app_data:</span><br><span class="line">                    response += info</span><br><span class="line">            self.connection.sendall(response)</span><br><span class="line">        <span class="keyword">finally</span>:</span><br><span class="line">            self.connection.close()</span><br></pre></td></tr></table></figure>
+<h3 id="SimpleServerApp"><a href="#SimpleServerApp" class="headerlink" title="SimpleServerApp"></a>SimpleServerApp</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">SimpleServerApp</span><span class="params">()</span>:</span></span><br><span class="line">    httpd = SimpleServer((<span class="string">'0.0.0.0'</span>, <span class="number">8080</span>), simple_app)</span><br><span class="line">    print(<span class="string">'WSGI Server Start Serving...http://127.0.0.1:8080'</span>)</span><br><span class="line">    httpd.serve_forever()</span><br></pre></td></tr></table></figure>
+<h3 id="Middleware"><a href="#Middleware" class="headerlink" title="Middleware"></a>Middleware</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> werkzeug.wrappers <span class="keyword">import</span> Request, Response</span><br><span class="line"><span class="keyword">from</span> werkzeug.wsgi <span class="keyword">import</span> SharedDataMiddleware</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Shortly</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">dispatch_request</span><span class="params">(self, request)</span>:</span></span><br><span class="line">        response = Response()</span><br><span class="line">        response.headers[<span class="string">'Content-Type'</span>] = <span class="string">'text/html'</span></span><br><span class="line">        <span class="keyword">if</span> request.path == <span class="string">'/'</span>:</span><br><span class="line">            response.data = <span class="string">'&lt;h1&gt;Hello World!&lt;/h1&gt;'</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            response.data = <span class="string">"Path&gt;&gt;&gt;%s"</span> % request.path</span><br><span class="line">        <span class="keyword">return</span> response</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">wsgi_app</span><span class="params">(self, environ, start_response)</span>:</span></span><br><span class="line">        request = Request(environ)</span><br><span class="line">        response = self.dispatch_request(request)</span><br><span class="line">        <span class="keyword">return</span> response(environ, start_response)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self, environ, start_response)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.wsgi_app(environ, start_response)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">create_app</span><span class="params">(with_static=True)</span>:</span></span><br><span class="line">    app = Shortly()</span><br><span class="line">    <span class="keyword">if</span> with_static:</span><br><span class="line">        app.wsgi_app = SharedDataMiddleware(app.wsgi_app, &#123;</span><br><span class="line">            <span class="string">'/static'</span>: os.path.join(os.path.dirname(__file__), <span class="string">'static'</span>)</span><br><span class="line">        &#125;)</span><br><span class="line">    <span class="keyword">return</span> app</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/WSGI/" rel="tag"># WSGI</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/12/2.Python Web/2.4.Django 源码分析/" rel="next" title="【Python Web 系列】Django 源码分析">
+                <i class="fa fa-chevron-left"></i> 【Python Web 系列】Django 源码分析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/12/2.Python Web/2.5.Django 一些 trick/" rel="prev" title="【Python Web 系列】Django 一些 trick">
+                【Python Web 系列】Django 一些 trick <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PEP-3333"><span class="nav-number">2.</span> <span class="nav-text">PEP 3333</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#接口说明"><span class="nav-number">2.1.</span> <span class="nav-text">接口说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#应用程序侧"><span class="nav-number">2.2.</span> <span class="nav-text">应用程序侧</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务器侧"><span class="nav-number">2.3.</span> <span class="nav-text">服务器侧</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#中间件"><span class="nav-number">2.4.</span> <span class="nav-text">中间件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#环境变量"><span class="nav-number">2.5.</span> <span class="nav-text">环境变量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Demo"><span class="nav-number">3.</span> <span class="nav-text">Demo</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SimpleApp"><span class="nav-number">3.1.</span> <span class="nav-text">SimpleApp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SimpleServer"><span class="nav-number">3.2.</span> <span class="nav-text">SimpleServer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SimpleServerApp"><span class="nav-number">3.3.</span> <span class="nav-text">SimpleServerApp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Middleware"><span class="nav-number">3.4.</span> <span class="nav-text">Middleware</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <!--
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>  
+  <span class="with-love">Hello,world!</span>
+  <span class="author" itemprop="copyrightHolder">I'm He11oLx</span>
+
+  
+</div>
+-->
+
+<div class="copyright">
+  <span class='with-love'>
+    Hello,world!
+    <i class="fa fa-user"></i>
+    I'm Lx.
+    </span>
+UV: <span id="busuanzi_value_site_pv"></span>
+PV: <span id="busuanzi_value_site_uv"></span>
+</div>
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/09/12/2.Python Web/2.1.WSGI/';
+          this.page.identifier = '2018/09/12/2.Python Web/2.1.WSGI/';
+          this.page.title = '【Python Web 系列】WSGI';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

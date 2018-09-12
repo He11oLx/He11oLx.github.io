@@ -486,7 +486,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/2.Python Web/2.6.Tornado 源码分析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
@@ -505,7 +505,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/" itemprop="url">【CPython3.6源码分析】Python 垃圾回收</a></h2>
+                <a class="post-title-link" href="/2018/09/12/2.Python Web/2.6.Tornado 源码分析/" itemprop="url">【Python Web 系列】Tornado 源码分析</a></h2>
         
 
         <div class="post-meta">
@@ -519,8 +519,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-05T18:00:00+08:00">
-                2018-08-05
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
               </time>
             
 
@@ -560,9 +560,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/#comments" itemprop="discussionUrl">
+                <a href="/2018/09/12/2.Python Web/2.6.Tornado 源码分析/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/09/12/2.Python Web/2.6.Tornado 源码分析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -591,20 +591,24 @@
 
       
         
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>垃圾回收一般分为两个阶段：</p>
-<ul>
-<li>垃圾检测，从所有已分配的内存中识别出可以回收和不可以回收的内存</li>
-<li>垃圾回收，是系统从掌握在检测阶段标识出的可回收内存</li>
+          <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="http://www.tornadoweb.org/en/stable/" target="_blank" rel="noopener">Tornado</a></li>
+<li><a href="https://github.com/tornadoweb/tornado/tree/v5.1.0" target="_blank" rel="noopener">GitHub: 5.1</a></li>
 </ul>
-<p>Python 基于古老的引用计数，必须在每次分配和释放内存时，加入 计数 的动作。<br>引用计数，其特点和缺点都很明显</p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+<p>Tornado is a Python web framework and asynchronous networking library。</p>
+</blockquote>
+<p>包含以下几个方面：</p>
 <ul>
-<li>优点：实时性，发生在整个程序运行期间</li>
-<li>缺点：循环引用</li>
+<li>A web framework，继承 RequestHandler 创建 application</li>
+<li>Client- and server-side implementions of HTTP (HTTPServer and AsyncHTTPClient).</li>
+<li>An asynchronous networking library including the classes IOLoop and IOStream</li>
+<li>A coroutine library (tornado.gen)，现已经推荐使用 Native Cocoutine。</li>
+<li>虽然兼容其他WSGI server/client，但无法发挥 Tornado 的高并发、长连接特点</li>
 </ul>
-<p>Python 为了解决循环引用，引入了标记清除和分代收集两种技术。<br>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/08/05/1.CPython3.6源码分析/1.15. Python 垃圾回收/#more" rel="contents">
+            <a class="btn" href="/2018/09/12/2.Python Web/2.6.Tornado 源码分析/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -655,7 +659,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/2.Python Web/2.3.Flask 一些 trick/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
@@ -674,7 +678,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/" itemprop="url">【CPython3.6源码分析】Python 内存管理机制</a></h2>
+                <a class="post-title-link" href="/2018/09/12/2.Python Web/2.3.Flask 一些 trick/" itemprop="url">【Python Web 系列】Flask 一些 trick</a></h2>
         
 
         <div class="post-meta">
@@ -688,8 +692,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-05T12:00:00+08:00">
-                2018-08-05
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
               </time>
             
 
@@ -729,9 +733,164 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/#comments" itemprop="discussionUrl">
+                <a href="/2018/09/12/2.Python Web/2.3.Flask 一些 trick/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/09/12/2.Python Web/2.3.Flask 一些 trick/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>留坑，待上传</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/2.Python Web/2.2.Flask 源码分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/12/2.Python Web/2.2.Flask 源码分析/" itemprop="url">【Python Web 系列】Flask 源码分析</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/2.Python Web/2.2.Flask 源码分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/2.Python Web/2.2.Flask 源码分析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -761,833 +920,344 @@
       
         
           <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a href="https://www.python.org/dev/peps/pep-0445/" target="_blank" rel="noopener">PEP445</a></li>
-<li><a href="https://docs.python.org/3/c-api/memory.html#default-memory-allocators" target="_blank" rel="noopener">default-memory-allocators</a></li>
+<li><a href="http://flask.pocoo.org/" target="_blank" rel="noopener">Flask 官网</a></li>
+<li><a href="http://werkzeug.pocoo.org/docs/0.14/" target="_blank" rel="noopener">werkzeug 官网</a></li>
 </ul>
-<h2 id="内存策略"><a href="#内存策略" class="headerlink" title="内存策略"></a>内存策略</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">An object allocator for Python.</span><br><span class="line">   Here is an introduction to the layers of the Python memory architecture,</span><br><span class="line">   showing where the object allocator is actually used (layer +2), It is</span><br><span class="line">   called for every object allocation and deallocation (PyObject_New/Del).</span><br><span class="line">   This is also the place where the cyclic garbage collector operates</span><br><span class="line">   selectively on container objects.</span><br><span class="line">    _____   ______   ______       ________</span><br><span class="line">   [ int ] [ dict ] [ list ] ... [ string ]       Python core         |</span><br><span class="line">+3 | &lt;----- Object-specific memory -----&gt; | &lt;-- Non-object memory --&gt; |</span><br><span class="line">    _______________________________       |                           |</span><br><span class="line">   [   Python&apos;s object allocator   ]      |                           |</span><br><span class="line">+2 | ####### Object memory ####### | &lt;------ Internal buffers ------&gt; |</span><br><span class="line">    ______________________________________________________________    |</span><br><span class="line">   [          Python&apos;s raw memory allocator (PyMem_ API)          ]   |</span><br><span class="line">+1 | &lt;----- Python memory (under PyMem manager&apos;s control) ------&gt; |   |</span><br><span class="line">    __________________________________________________________________</span><br><span class="line">   [    Underlying general-purpose allocator (ex: C library malloc)   ]</span><br><span class="line"> 0 | &lt;------ Virtual memory allocated for the python process -------&gt; |</span><br><span class="line"></span><br><span class="line">   =========================================================================</span><br><span class="line">    _______________________________________________________________________</span><br><span class="line">   [                OS-specific Virtual Memory Manager (VMM)               ]</span><br><span class="line">-1 | &lt;--- Kernel dynamic storage allocation &amp; management (page-based) ---&gt; |</span><br><span class="line">    __________________________________   __________________________________</span><br><span class="line">   [                                  ] [                                  ]</span><br><span class="line">-2 | &lt;-- Physical memory: ROM/RAM --&gt; | | &lt;-- Secondary storage (swap) --&gt; |</span><br></pre></td></tr></table></figure>
-<p>通过<code>obmalloc.c</code>这段注释，我们可以获取到很多内容：</p>
+<h2 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Flask.__version__ == 1.0.2</span></span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route("/")</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">"Hello World!"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    app.run()</span><br></pre></td></tr></table></figure>
+<h2 id="Flask"><a href="#Flask" class="headerlink" title="Flask"></a>Flask</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Flask</span><span class="params">(_PackageBoundObject)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">wsgi_app</span><span class="params">(self, environ, start_response)</span>:</span></span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self, environ, start_response)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.wsgi_app(environ, start_response)</span><br></pre></td></tr></table></figure>
+<p>Flask实例化后，就是一个符合 WSGI 规定的，可调用对象。再来看看实例化都要干些啥。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/09/12/2.Python Web/2.2.Flask 源码分析/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/2.Python Web/2.5.Django 一些 trick/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/12/2.Python Web/2.5.Django 一些 trick/" itemprop="url">【Python Web 系列】Django 一些 trick</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/2.Python Web/2.5.Django 一些 trick/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/2.Python Web/2.5.Django 一些 trick/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>留坑，待上传</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/3.协程相关/3.3.asyncio 模块介绍/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/12/3.协程相关/3.3.asyncio 模块介绍/" itemprop="url">【Python 协程系列】asyncio 模块介绍</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/3.协程相关/3.3.asyncio 模块介绍/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/3.协程相关/3.3.asyncio 模块介绍/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://docs.python.org/3/library/asyncio.html" target="_blank" rel="noopener">Library:asyncio</a></li>
+<li><a href="https://www.python.org/dev/peps/pep-3156/" target="_blank" rel="noopener">PEP 3156</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>事件驱动主要是将耗时的 I/O 操作转换为待处理的事件，当某个事件触发后会调用相应的回调。</p>
 <ul>
-<li>Python 内存管理，是分层次的</li>
-<li>对象的创建、销毁、 GC 都发生在+2层</li>
-<li>在最顶层，不同的对象有着不同的分配策略</li>
+<li>单线程中处理非常大的并发量</li>
+<li>非同步运行，代码复杂，调试困难</li>
+<li>遇到代码耗时操作/三方库阻塞，会导致整个事件循环阻塞</li>
 </ul>
-<p>从分层机制上看，似乎这个 allocator 不是固定的，那么是不是意味着可以自定义？<br>答案是肯定的，在 3.6 中可以通过环境变量 PYTHONMALLOC 改变分配器，甚至是自定义，<br>参考<a href="https://docs.python.org/3/using/cmdline.html#envvar-PYTHONMALLOC" target="_blank" rel="noopener">Environment variables</a>。<br>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/08/05/1.CPython3.6源码分析/1.14.Python 内存管理/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="He11oLx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lx's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/" itemprop="url">【CPython3.6源码分析】Python 多线程机制</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-04T18:00:00+08:00">
-                2018-08-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Python/" itemprop="url" rel="index">
-                    <span itemprop="name">Python</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Python 的 GIL 可谓“大名鼎鼎”，正是由它控制着字节码解释器的执行权限。跟操作系统的进程调度一样，Python 必然会存在一个调度机制，决定了什么时候该进行线程切换。Python 也通过时间片的方式，挂起当前线程，切换其他线程。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sys.getcheckinterval()、sys.setcheckinterval()</span><br><span class="line">在 Python3.2 中已经被弃用</span><br><span class="line">sys.getswitchinterval()、sys.setswitchinterval()</span><br><span class="line"></span><br><span class="line">/* microseconds (the Python API uses seconds, though) */</span><br><span class="line">#define DEFAULT_INTERVAL 5000</span><br><span class="line">static unsigned long gil_interval = DEFAULT_INTERVAL;</span><br></pre></td></tr></table></figure></p>
-<p>从3.2起，Python 的线程时间片控制，由以前的指令数改为了时间控制，默认0.005秒，可通过API进行更改。线程调度策略，依然是由操作系统决定，解释器仅参与GIL的释放和申请。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/08/04/1.CPython3.6源码分析/1.13.Python 多线程机制/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="He11oLx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lx's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/" itemprop="url">【CPython3.6源码分析】Python 环境初始化</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-04T12:00:00+08:00">
-                2018-08-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Python/" itemprop="url" rel="index">
-                    <span itemprop="name">Python</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a href="https://docs.python.org/3/c-api/init.html" target="_blank" rel="noopener">Before Python Initialization</a></li>
-</ul>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>一步步走来，我们已经了解了 Python对象机制，字节码执行机制，函数调用，类实例创建机制。这些内容都是在 Python 环境已经初始化完成后，才进行的工作。那么是时候看看，运行环境初始化，都干了些什么。</p>
-<p><span id="main"></span></p>
-<h2 id="main"><a href="#main" class="headerlink" title="main"></a>main</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// python.c.18</span></span><br><span class="line"><span class="keyword">int</span></span><br><span class="line">main(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)&#123;</span><br><span class="line">    ...</span><br><span class="line">    res = Py_Main(argc, argv_copy);</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> res</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Modules/main.c.348</span></span><br><span class="line"><span class="keyword">int</span></span><br><span class="line">Py_Main(<span class="keyword">int</span> argc, <span class="keyword">wchar_t</span> **argv)&#123;</span><br><span class="line">    ...</span><br><span class="line">    Py_Initialize();</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">if</span> (command) &#123;</span><br><span class="line">        sts = run_command(command, &amp;cf);</span><br><span class="line">        PyMem_RawFree(command);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">module</span>) &#123;</span><br><span class="line">        sts = (RunModule(<span class="keyword">module</span>, <span class="number">1</span>) != <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">/* 处理 fp、filename */</span></span><br><span class="line">        sts = run_file(fp, filename, &amp;cf);</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> sts <span class="comment">/* 0 正常退出，1 异常退出，2 参数列表不正确 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到，跟普通的 C 程序一样，通过入口 main 进入到 Py_Main，在调用<code>Py_Initialize</code>进行初始化，然后根据参数列表进行分发。</p>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/08/04/1.CPython3.6源码分析/1.12.Python 环境初始化/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="He11oLx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lx's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/" itemprop="url">【CPython3.6源码分析】Python 自定义类</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-28T18:00:00+08:00">
-                2018-07-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Python/" itemprop="url" rel="index">
-                    <span itemprop="name">Python</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a href="https://www.python.org/dev/peps/pep-3115/" target="_blank" rel="noopener">PEP3115 Metaclasses in Python</a></li>
-</ul>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在上一讲，我们谈到了内置类的初始化工作，其中最主要的逻辑落在 PyType_Ready 中。本讲，我们将主要查看用户自定义类及实例化，在 Python 中的实现过程。<br>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/28/1.CPython3.6源码分析/1.10.Python 类机制/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="He11oLx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lx's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/28/1.CPython3.6源码分析/1.10.Python 类机制/" itemprop="url">【CPython3.6源码分析】Python 类机制</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-28T12:00:00+08:00">
-                2018-07-28
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Python/" itemprop="url" rel="index">
-                    <span itemprop="name">Python</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/07/28/1.CPython3.6源码分析/1.10.Python 类机制/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/28/1.CPython3.6源码分析/1.10.Python 类机制/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在<a href="https://he11olx.com/2018/07/14/1.0.PyObject/">PyObject/PyObjectType</a>，我们已经看到过，PyObject、PyTypeObject、PyType_Type、PyBaseObject_Type。</p>
-<p>下面通过几个例子来具体描述关系：</p>
+<p>从 Py3.3 开始，代号 Tulip 的项目开始启动，一直到 Py3.6 才最终成为正式系统库——asyncio。<br>该模块中提供了一些基础设施：</p>
 <ul>
-<li>实例，通过<code>isinstance()</code>方法，检查其 ob_type 是否一致。</li>
-<li>子类，通过<code>issubclass()</code>方法，检查其 bases 是否存在继承关系。
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2018/07/28/1.CPython3.6源码分析/1.10.Python 类机制/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.CPython3.6源码分析/1.9.Python 函数机制/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="He11oLx">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Lx's Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/21/1.CPython3.6源码分析/1.9.Python 函数机制/" itemprop="url">【CPython3.6源码分析】Python 函数机制</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-21T22:00:00+08:00">
-                2018-07-21
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Python/" itemprop="url" rel="index">
-                    <span itemprop="name">Python</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2018/07/21/1.CPython3.6源码分析/1.9.Python 函数机制/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/21/1.CPython3.6源码分析/1.9.Python 函数机制/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
-<li><a href="https://docs.python.org/3.6/c-api/function.html" target="_blank" rel="noopener">Function Objects</a></li>
-<li><a href="https://github.com/python/cpython/blob/3.6/Doc/library/dis.rst" target="_blank" rel="noopener">dis.rst: Disassembler for Python bytecode</a></li>
+<li>event loop</li>
+<li>transport and protocol abstractions</li>
+<li>a higher-level schedule</li>
 </ul>
-<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前面我们已经知道 Python 通过PyInterpreterState 对象模拟进程的状态信息，通过 PyThreadState 对象模拟线程的状态信息，通过PyFrameObject 模拟函数调用时的栈帧信息。FrameObject 通过 f_back 指针，形成函数调用的链式结构。那么要实现函数间的调用，就必然存在多个 Frame。<br>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/21/1.CPython3.6源码分析/1.9.Python 函数机制/#more" rel="contents">
+            <a class="btn" href="/2018/09/12/3.协程相关/3.3.asyncio 模块介绍/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1638,7 +1308,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.CPython3.6源码分析/1.8.Python 异常控制/">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/2.Python Web/2.4.Django 源码分析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
@@ -1657,7 +1327,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/21/1.CPython3.6源码分析/1.8.Python 异常控制/" itemprop="url">【CPython3.6源码分析】Python 异常控制</a></h2>
+                <a class="post-title-link" href="/2018/09/12/2.Python Web/2.4.Django 源码分析/" itemprop="url">【Python Web 系列】Django 源码分析</a></h2>
         
 
         <div class="post-meta">
@@ -1671,8 +1341,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-21T18:00:00+08:00">
-                2018-07-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
               </time>
             
 
@@ -1712,9 +1382,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/21/1.CPython3.6源码分析/1.8.Python 异常控制/#comments" itemprop="discussionUrl">
+                <a href="/2018/09/12/2.Python Web/2.4.Django 源码分析/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/21/1.CPython3.6源码分析/1.8.Python 异常控制/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/09/12/2.Python Web/2.4.Django 源码分析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1743,10 +1413,171 @@
 
       
         
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本章将通过字节码指令，探究 Python 中<code>try-except</code>等异常控制语句的实现及原理。阅读本章前需了解<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a>。<br>
+          
+            <p>留坑，待上传</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/12/3.协程相关/3.2.Python 原生协程/" itemprop="url">【Python 协程系列】Python 原生协程</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/3.协程相关/3.2.Python 原生协程/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/3.协程相关/3.2.Python 原生协程/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://docs.python.org/3/reference/datamodel.html#async-iterators" target="_blank" rel="noopener">Data Model</a></li>
+<li><a href="https://www.python.org/dev/peps/pep-0492/" target="_blank" rel="noopener">PEP492</a></li>
+<li><a href="https://www.python.org/dev/peps/pep-0525/" target="_blank" rel="noopener">PEP525</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">PEP 255 -- Simple Generators</span><br><span class="line">Python-Version:	2.2</span><br><span class="line"></span><br><span class="line">PEP 342 -- Coroutines via Enhanced Generators</span><br><span class="line">Python-Version:	2.5</span><br><span class="line"></span><br><span class="line">PEP 380 -- Syntax for Delegating to a Subgenerator</span><br><span class="line">Python-Version:	3.3</span><br><span class="line"></span><br><span class="line">PEP 492 -- Coroutines with async and await syntax</span><br><span class="line">Python-Version:	3.5</span><br><span class="line"></span><br><span class="line">PEP 525 -- Asynchronous Generators</span><br><span class="line">Python-Version:	3.6</span><br></pre></td></tr></table></figure>
+<p>emm…上面算是 Python 中 Coroutines 的发展史了，具体内容可以参考 PEP。</p>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/21/1.CPython3.6源码分析/1.8.Python 异常控制/#more" rel="contents">
+            <a class="btn" href="/2018/09/12/3.协程相关/3.2.Python 原生协程/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1797,7 +1628,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/07/21/1.CPython3.6源码分析/1.7.Python 控制字节码/">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="He11oLx">
@@ -1816,7 +1647,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/21/1.CPython3.6源码分析/1.7.Python 控制字节码/" itemprop="url">【CPython3.6源码分析】Python 控制字节码执行</a></h2>
+                <a class="post-title-link" href="/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/" itemprop="url">【Python 协程系列】Gevent 源码分析</a></h2>
         
 
         <div class="post-meta">
@@ -1830,8 +1661,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-21T16:00:00+08:00">
-                2018-07-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
               </time>
             
 
@@ -1871,9 +1702,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/21/1.CPython3.6源码分析/1.7.Python 控制字节码/#comments" itemprop="discussionUrl">
+                <a href="/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/21/1.CPython3.6源码分析/1.7.Python 控制字节码/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/09/12/3.协程相关/3.2.Gevnt 源码分析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1902,10 +1733,193 @@
 
       
         
-          <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本章将通过几个字节码指令，探究 Python 中<code>if</code>及<code>for</code>语句的实现及原理，<br>阅读本章前需了解<a href="https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/">PyCodeObject/PyFrameObject</a>。</p>
+          <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="http://www.gevent.org/" target="_blank" rel="noopener">gevent.org</a></li>
+<li><a href="https://github.com/gevent/gevent/tree/1.3.6" target="_blank" rel="noopener">GitHub:1.3.6</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+<p>gevent is a coroutine -based Python networking library that uses greenlet to provide a high-level<br>synchronous API on top of the libev or libuv event loop.</p>
+</blockquote>
+<p>Features include:</p>
+<ul>
+<li>Fast event loop based on libev or libuv.</li>
+<li>Lightweight execution units based on greenlets.</li>
+<li>API that re-uses concepts from the Python standard library (for examples there are events and queues).</li>
+<li>Cooperative sockets with SSL support</li>
+<li>Cooperative DNS queries performed through a threadpool, dnspython, or c-ares.</li>
+<li>Monkey patching utility to get 3rd party modules to become cooperative</li>
+<li>TCP/UDP/HTTP servers</li>
+<li>Subprocess support (through gevent.subprocess)</li>
+<li>Thread pools</li>
+</ul>
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/21/1.CPython3.6源码分析/1.7.Python 控制字节码/#more" rel="contents">
+            <a class="btn" href="/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/" itemprop="url">【Python 协程系列】greenlet 源码分析</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/3.协程相关/3.1.Greenlet 源码分析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://greenlet.readthedocs.io/en/latest/" target="_blank" rel="noopener">greenlet:Lightweight concurrent programming</a></li>
+<li><a href="https://github.com/python-greenlet/greenlet/tree/0.4.14" target="_blank" rel="noopener">github:0.4.14</a></li>
+<li><a href="https://blog.csdn.net/fjslovejhl/article/details/38824963" target="_blank" rel="noopener">CSDN:fjs_cloud</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。<br>Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。<br>greenlet 就是利用 C 栈和 PyFrameObject，这两个特性，实现了协程。</p>
+<p><img src="_images/C栈帧结构.png" alt="C栈帧结构"></p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1947,7 +1961,7 @@
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1997,7 +2011,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">18</span>
+                  <span class="site-state-item-count">28</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2019,7 +2033,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-count">24</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

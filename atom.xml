@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://he11olx.com/"/>
-  <updated>2018-08-05T08:43:31.990Z</updated>
+  <updated>2018-09-12T13:20:47.131Z</updated>
   <id>http://he11olx.com/</id>
   
   <author>
@@ -15,6 +15,300 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>【Python Web 系列】Tornado 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.6.Tornado%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.6.Tornado 源码分析/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:20:47.131Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.tornadoweb.org/en/stable/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Tornado&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/tornadoweb/tornado/tree/v5.1.0&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;GitHub: 5.1&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt;Tornado is a Python web framework and asynchronous networking library。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;包含以下几个方面：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A web framework，继承 RequestHandler 创建 application&lt;/li&gt;
+&lt;li&gt;Client- and server-side implementions of HTTP (HTTPServer and AsyncHTTPClient).&lt;/li&gt;
+&lt;li&gt;An asynchronous networking library including the classes IOLoop and IOStream&lt;/li&gt;
+&lt;li&gt;A coroutine library (tornado.gen)，现已经推荐使用 Native Cocoutine。&lt;/li&gt;
+&lt;li&gt;虽然兼容其他WSGI server/client，但无法发挥 Tornado 的高并发、长连接特点&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="web" scheme="http://he11olx.com/tags/web/"/>
+    
+      <category term="tornado" scheme="http://he11olx.com/tags/tornado/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python 协程系列】asyncio 模块介绍</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.3.asyncio%20%E6%A8%A1%E5%9D%97%E4%BB%8B%E7%BB%8D/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.3.asyncio 模块介绍/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:15:01.123Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/library/asyncio.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Library:asyncio&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-3156/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP 3156&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;事件驱动主要是将耗时的 I/O 操作转换为待处理的事件，当某个事件触发后会调用相应的回调。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;单线程中处理非常大的并发量&lt;/li&gt;
+&lt;li&gt;非同步运行，代码复杂，调试困难&lt;/li&gt;
+&lt;li&gt;遇到代码耗时操作/三方库阻塞，会导致整个事件循环阻塞&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;从 Py3.3 开始，代号 Tulip 的项目开始启动，一直到 Py3.6 才最终成为正式系统库——asyncio。&lt;br&gt;该模块中提供了一些基础设施：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;event loop&lt;/li&gt;
+&lt;li&gt;transport and protocol abstractions&lt;/li&gt;
+&lt;li&gt;a higher-level schedule&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
+    
+      <category term="asyncio" scheme="http://he11olx.com/tags/asyncio/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python Web 系列】Flask 一些 trick</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.3.Flask%20%E4%B8%80%E4%BA%9B%20trick/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.3.Flask 一些 trick/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:20:58.179Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;
+        
+      
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="Flask" scheme="http://he11olx.com/tags/Flask/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python Web 系列】Flask 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.2.Flask%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.2.Flask 源码分析/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:20:20.276Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://flask.pocoo.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Flask 官网&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://werkzeug.pocoo.org/docs/0.14/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;werkzeug 官网&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;Demo&quot;&gt;&lt;a href=&quot;#Demo&quot; class=&quot;headerlink&quot; title=&quot;Demo&quot;&gt;&lt;/a&gt;Demo&lt;/h2&gt;&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;# Flask.__version__ == 1.0.2&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;from&lt;/span&gt; flask &lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; Flask&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;app = Flask(__name__)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;meta&quot;&gt;@app.route(&quot;/&quot;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;()&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;Hello World!&quot;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; __name__ == &lt;span class=&quot;string&quot;&gt;&#39;__main__&#39;&lt;/span&gt;:&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    app.run()&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;h2 id=&quot;Flask&quot;&gt;&lt;a href=&quot;#Flask&quot; class=&quot;headerlink&quot; title=&quot;Flask&quot;&gt;&lt;/a&gt;Flask&lt;/h2&gt;&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;Flask&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(_PackageBoundObject)&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;wsgi_app&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self, environ, start_response)&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        ...&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;__call__&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self, environ, start_response)&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;return&lt;/span&gt; self.wsgi_app(environ, start_response)&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;Flask实例化后，就是一个符合 WSGI 规定的，可调用对象。再来看看实例化都要干些啥。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="Flask" scheme="http://he11olx.com/tags/Flask/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python Web 系列】Django 一些 trick</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.5.Django%20%E4%B8%80%E4%BA%9B%20trick/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.5.Django 一些 trick/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:20:41.496Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;
+        
+      
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="Django" scheme="http://he11olx.com/tags/Django/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python Web 系列】WSGI</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.1.WSGI/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.1.WSGI/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:20:27.125Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;对一个 Python Web 开发者来说，PEP333/PEP3333，是必须熟悉的。都什么年代了，我们自然直接看 3333。&lt;/p&gt;
+&lt;h2 id=&quot;PEP-3333&quot;&gt;&lt;a href=&quot;#PEP-3333&quot; class=&quot;headerlink&quot; title=&quot;PEP 3333&quot;&gt;&lt;/a&gt;PEP 3333&lt;/h2&gt;&lt;p&gt;PEP3333，描述了 Web 服务器与 Python Web 应用程序或框架之间的建议标准接口，&lt;br&gt;以促进跨各种 Web 服务器的应用程序的可移植性，形成类似于Java 的 “servlet” API。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CGI：Common Gateway Interface，&lt;a href=&quot;https://tools.ietf.org/html/draft-coar-cgi-v11-03&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;通用网关接口&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;WSGI：(Python)Web Server Gateway Interface，&lt;a href=&quot;https://www.python.org/dev/peps/pep-3333/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Python服务器网关接口&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="WSGI" scheme="http://he11olx.com/tags/WSGI/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python Web 系列】Django 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.4.Django%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.4.Django 源码分析/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:20:37.616Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;
+        
+      
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="Django" scheme="http://he11olx.com/tags/Django/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python 协程系列】Python 原生协程</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.2.Python%20%E5%8E%9F%E7%94%9F%E5%8D%8F%E7%A8%8B/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:15:13.124Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/reference/datamodel.html#async-iterators&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Data Model&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0492/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP492&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0525/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP525&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;PEP 255 -- Simple Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 342 -- Coroutines via Enhanced Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 380 -- Syntax for Delegating to a Subgenerator&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 492 -- Coroutines with async and await syntax&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 525 -- Asynchronous Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.6&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;emm…上面算是 Python 中 Coroutines 的发展史了，具体内容可以参考 PEP。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python 协程系列】Gevent 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.2.Gevnt%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:14:49.123Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.gevent.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;gevent.org&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/gevent/gevent/tree/1.3.6&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;GitHub:1.3.6&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt;gevent is a coroutine -based Python networking library that uses greenlet to provide a high-level&lt;br&gt;synchronous API on top of the libev or libuv event loop.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Features include:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Fast event loop based on libev or libuv.&lt;/li&gt;
+&lt;li&gt;Lightweight execution units based on greenlets.&lt;/li&gt;
+&lt;li&gt;API that re-uses concepts from the Python standard library (for examples there are events and queues).&lt;/li&gt;
+&lt;li&gt;Cooperative sockets with SSL support&lt;/li&gt;
+&lt;li&gt;Cooperative DNS queries performed through a threadpool, dnspython, or c-ares.&lt;/li&gt;
+&lt;li&gt;Monkey patching utility to get 3rd party modules to become cooperative&lt;/li&gt;
+&lt;li&gt;TCP/UDP/HTTP servers&lt;/li&gt;
+&lt;li&gt;Subprocess support (through gevent.subprocess)&lt;/li&gt;
+&lt;li&gt;Thread pools&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="gevent" scheme="http://he11olx.com/tags/gevent/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python 协程系列】greenlet 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.1.Greenlet%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:15:19.218Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://greenlet.readthedocs.io/en/latest/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;greenlet:Lightweight concurrent programming&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/python-greenlet/greenlet/tree/0.4.14&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;github:0.4.14&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://blog.csdn.net/fjslovejhl/article/details/38824963&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;CSDN:fjs_cloud&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。&lt;br&gt;Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。&lt;br&gt;greenlet 就是利用 C 栈和 PyFrameObject，这两个特性，实现了协程。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;_images/C栈帧结构.png&quot; alt=&quot;C栈帧结构&quot;&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="greenlet" scheme="http://he11olx.com/tags/greenlet/"/>
+    
+      <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
+    
+  </entry>
   
   <entry>
     <title>CPython3.6源码分析——系列文章目录及介绍</title>
@@ -159,7 +453,7 @@
     <link href="http://he11olx.com/2018/07/28/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.11.Python%20%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB/"/>
     <id>http://he11olx.com/2018/07/28/1.CPython3.6源码分析/1.11.Python 自定义类/</id>
     <published>2018-07-28T10:00:00.000Z</published>
-    <updated>2018-08-05T07:09:35.457Z</updated>
+    <updated>2018-08-21T15:52:00.437Z</updated>
     
     <summary type="html">
     
@@ -210,7 +504,7 @@
     <link href="http://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.9.Python%20%E5%87%BD%E6%95%B0%E6%9C%BA%E5%88%B6/"/>
     <id>http://he11olx.com/2018/07/21/1.CPython3.6源码分析/1.9.Python 函数机制/</id>
     <published>2018-07-21T14:00:00.000Z</published>
-    <updated>2018-08-05T07:10:15.487Z</updated>
+    <updated>2018-08-25T09:36:24.021Z</updated>
     
     <summary type="html">
     
@@ -274,228 +568,6 @@
       <category term="PyCodeObject" scheme="http://he11olx.com/tags/PyCodeObject/"/>
     
       <category term="EvalFrame" scheme="http://he11olx.com/tags/EvalFrame/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【CPython3.6源码分析】Python 一般字节码执行</title>
-    <link href="http://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.6.Python%20%E4%B8%80%E8%88%AC%E5%AD%97%E8%8A%82%E7%A0%81/"/>
-    <id>http://he11olx.com/2018/07/21/1.CPython3.6源码分析/1.6.Python 一般字节码/</id>
-    <published>2018-07-21T04:00:00.000Z</published>
-    <updated>2018-08-05T07:10:47.512Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/python/cpython/blob/3.6/Doc/library/dis.rst&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;dis.rst: Disassembler for Python bytecode&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;前情提要&quot;&gt;&lt;a href=&quot;#前情提要&quot; class=&quot;headerlink&quot; title=&quot;前情提要&quot;&gt;&lt;/a&gt;前情提要&lt;/h2&gt;&lt;figure class=&quot;highlight c&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;_PyEval_EvalFrameDefault(PyFrameObject *f, &lt;span class=&quot;keyword&quot;&gt;int&lt;/span&gt; throwflag)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;comment&quot;&gt;// ceval.c.1144&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;for&lt;/span&gt; (;;) &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;comment&quot;&gt;// ceval.c.1267&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;switch&lt;/span&gt; (opcode) &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;            TARGET(LOAD_FAST)  &amp;#123; ... &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;            TARGET(LOAD_CONST) &amp;#123; ... &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;            ...&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&amp;#125;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;在前面我们提到，解释器会在 &lt;code&gt;_PyEval_EvalFrameDefault&lt;/code&gt;进入&lt;code&gt;for(;;)&lt;/code&gt;死循环，不断加载字节码指令，并执行。本章将通过几个常用的字节码指令，来了解 Python 字节码指令执行的逻辑。阅读本章前需了解&lt;a href=&quot;https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/&quot;&gt;PyCodeObject/PyFrameObject&lt;/a&gt;。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
-    
-      <category term="PyCodeObject" scheme="http://he11olx.com/tags/PyCodeObject/"/>
-    
-      <category term="EvalFrame" scheme="http://he11olx.com/tags/EvalFrame/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【CPython3.6源码分析】PyCodeObject/PyFrameObject</title>
-    <link href="http://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.5.Python%20Code%20Frame/"/>
-    <id>http://he11olx.com/2018/07/21/1.CPython3.6源码分析/1.5.Python Code Frame/</id>
-    <published>2018-07-21T00:00:00.000Z</published>
-    <updated>2018-08-05T07:36:24.464Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-3147/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP3147 PYC Repository Directories&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;事实上，Python虽然是解释型语言，但也需要经过 源文件 -&amp;gt;  编译 -&amp;gt;  可执行文件  -&amp;gt;  执行整个过程。&lt;br&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;javac Example.java  -&amp;gt; Example.class&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;java Example.class   -&amp;gt; 输出&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;python Example.py    -&amp;gt;  创建或加载 PyCodeObject    -&amp;gt;    输出&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;保存PyCodeObject到    -&amp;gt;  Example.pyc&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;/p&gt;
-&lt;p&gt;如上，编译器在编译产生 code 后由虚拟机执行。Python 与 Java 不同之处在于 Python 的虚拟机是一种抽象层次更高的虚拟机。 在 编译结束后，Python 会将 code 对象所包含的的信息存储在 pyc 文件内，下次运行直接加载 pyc 里的 code 对象到内存。&lt;/p&gt;
-&lt;p&gt;Python 解释器(interpreter)，同时拥有编译器和虚拟机的身份。具体流程参见&lt;img src=&quot;https://www.python.org/m/dev/peps/pep-3147/pep-3147-1.png&quot; alt=&quot;PEP3147&quot;&gt;PyCodeObject 包含 Python 虚拟机所需要的信息，而 pyc 就是其在硬盘实体化后的载体。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
-    
-      <category term="PyCodeObject" scheme="http://he11olx.com/tags/PyCodeObject/"/>
-    
-      <category term="PyFrameObject" scheme="http://he11olx.com/tags/PyFrameObject/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【CPython3.6源码分析】PyDictObject</title>
-    <link href="http://he11olx.com/2018/07/15/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.4.Python%E5%AD%97%E5%85%B8%E5%AF%B9%E8%B1%A1/"/>
-    <id>http://he11olx.com/2018/07/15/1.CPython3.6源码分析/1.4.Python字典对象/</id>
-    <published>2018-07-15T14:00:00.000Z</published>
-    <updated>2018-08-05T07:11:33.634Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3.6/c-api/dict.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Dictionary Objects&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0412/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP412 Key-Sharing Dictionary&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;Python官网把 PyDictObject 归类与 &lt;code&gt;Concrete Objects Layer&lt;/code&gt;，享受同样待遇的还有&lt;code&gt;PySetObject&lt;/code&gt;。在前面 PythonUnicodeObject 中，我们已经见到了 PythonDict 的运用，即共享机制 interned。在 Python 世界里，字典被用于建立字节码的运行环境，用来存放变量名和变量值，意味着做任何操作几乎都要设计到 PythonDict，&lt;/p&gt;
-&lt;p&gt;因此，对搜索的效率要求及其苛刻。因而采用的 HashTable(散列表)，在最优情况下能达到O(1)。散列表的基本思想是，将键映射为一个整数，把整数作为索引访问内存。主要逻辑是：查询键值 ——散列函数 hash function —— 散列值 hash value —— 内存区域 —— 查询结果——散列冲突。Python 处理散列冲突的问题，采用的是 开放定址法。删除探测链上元素，采用的是伪删除。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
-    
-      <category term="PyDictObject" scheme="http://he11olx.com/tags/PyDictObject/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【CPython3.6源码分析】PyListObject</title>
-    <link href="http://he11olx.com/2018/07/15/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.3.Python%E5%88%97%E8%A1%A8%E5%AF%B9%E8%B1%A1/"/>
-    <id>http://he11olx.com/2018/07/15/1.CPython3.6源码分析/1.3.Python列表对象/</id>
-    <published>2018-07-15T04:00:00.000Z</published>
-    <updated>2018-08-05T07:11:46.706Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3.6/c-api/list.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;List Objects&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;Another generally useful object type is a list of object pointers.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;This is a mutable type: the list items can be changed, and items can be&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;added or removed.  Out-of-range indices or non-list objects are ignored.&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;老套路，开局一段注释：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;对象指针列表&lt;/li&gt;
-&lt;li&gt;可以增删改查&lt;/li&gt;
-&lt;li&gt;具有索引容错功能&lt;/li&gt;
-&lt;/ul&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
-    
-      <category term="PyListObject" scheme="http://he11olx.com/tags/PyListObject/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【CPython3.6源码分析】PyBytesObject/PyUnicodeObject</title>
-    <link href="http://he11olx.com/2018/07/15/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.2.Python%E5%AD%97%E7%AC%A6%E5%AF%B9%E8%B1%A1/"/>
-    <id>http://he11olx.com/2018/07/15/1.CPython3.6源码分析/1.2.Python字符对象/</id>
-    <published>2018-07-14T16:00:00.000Z</published>
-    <updated>2018-08-05T07:01:53.515Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;众所周知，Python2 中存在 str、bytes、unicode，Python3中只存在 str、bytes，然而却并不表示相同的含义，Python3中的 str 即Python2中的 unicode。&lt;/p&gt;
-&lt;p&gt;按照 CPython3的&lt;a href=&quot;https://docs.python.org/3/c-api/concrete.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;文档&lt;/a&gt;显示：Sequence Objects下辖 Bytes Objects、Unicode Objects。自&lt;a href=&quot;https://www.python.org/dev/peps/pep-0393/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP393&lt;/a&gt;之后，Unicode Type 变成了层次化的结构，用以减少内存占用。&lt;br&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
-    
-      <category term="PyBytesObject" scheme="http://he11olx.com/tags/PyBytesObject/"/>
-    
-      <category term="PyUnicodeObject" scheme="http://he11olx.com/tags/PyUnicodeObject/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【CPython3.6源码分析】PyLongObject</title>
-    <link href="http://he11olx.com/2018/07/14/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.1.Python%E6%95%B4%E6%95%B0%E5%AF%B9%E8%B1%A1/"/>
-    <id>http://he11olx.com/2018/07/14/1.CPython3.6源码分析/1.1.Python整数对象/</id>
-    <published>2018-07-14T09:00:00.000Z</published>
-    <updated>2018-08-05T07:12:02.496Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/c-api/long.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Integer Objects&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;PyLongObject&quot;&gt;&lt;a href=&quot;#PyLongObject&quot; class=&quot;headerlink&quot; title=&quot;PyLongObject&quot;&gt;&lt;/a&gt;PyLongObject&lt;/h2&gt;&lt;p&gt;在 Python2 中，存在 PyIntObject 和 PyLongObject 两种类型。前者是一个定长对象，后者是一个变长对象。Python3中 只存在后者。在 Python2 的结构体中 定义的是 long ob_ival，而 Python3 中定义的是只有1个元素的数组。&lt;br&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
-    
-      <category term="PyLongObject" scheme="http://he11olx.com/tags/PyLongObject/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【CPython3.6源码分析】PyObject/PyObjectType</title>
-    <link href="http://he11olx.com/2018/07/14/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.0.PyObject/"/>
-    <id>http://he11olx.com/2018/07/14/1.CPython3.6源码分析/1.0.PyObject/</id>
-    <published>2018-07-14T04:00:00.000Z</published>
-    <updated>2018-08-05T07:17:54.288Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3.6/c-api/index.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Python/C API Reference Manual&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;15&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;16&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;17&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;18&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;19&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;20&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;21&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;22&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;23&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;24&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;25&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;26&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;27&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;# object.h.8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;/* Object and type object interface */&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Objects are structures allocated on the heap.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Objects are never allocated statically or on the stack;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;An object has a &amp;apos;reference count&amp;apos; that is increased or decreased when a&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;pointer to the object is copied or deleted;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;when the reference count reaches zero there are no references to the object left&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;and it can be removed from the heap.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;An object has a &amp;apos;type&amp;apos; that determines what it represents and what kind&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;of data it contains.  An object&amp;apos;s type is fixed when it is created.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Types themselves are represented as objects; an object contains a&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;pointer to the corresponding type object.  The type itself has a type&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;pointer pointing to the object representing the type &amp;apos;type&amp;apos;, which&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;contains a pointer to itself!).&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;once allocated an object keeps the same size and address.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Objects that must hold variable-size data can contain pointers to&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;variable-size parts of the object.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Objects are always accessed through pointers of the type &amp;apos;PyObject *&amp;apos;.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;The type &amp;apos;PyObject&amp;apos; is a structure that only contains the reference count&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;and the type pointer.&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;A standard interface exists for objects that contain an array of items&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;whose size is determined when the object is allocated.&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;开篇一段注释，从注释中能提取到很多要点：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;对象堆分配、从不栈分配&lt;/li&gt;
-&lt;li&gt;垃圾回收之引用计数&lt;/li&gt;
-&lt;li&gt;对象、类型对象、type&lt;/li&gt;
-&lt;li&gt;容器对象可变依据：持有指针&lt;/li&gt;
-&lt;li&gt;基石对象 PyObject 与类型转换&lt;/li&gt;
-&lt;/ul&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>博客开通啦</title>
-    <link href="http://he11olx.com/2018/07/12/hello-world/"/>
-    <id>http://he11olx.com/2018/07/12/hello-world/</id>
-    <published>2018-07-11T16:00:00.000Z</published>
-    <updated>2018-07-14T08:24:17.239Z</updated>
-    
-    <summary type="html">
-    
-      
-      
-        
-        
-          &lt;
-        
-      
-    
-    </summary>
-    
-      <category term="日常" scheme="http://he11olx.com/categories/%E6%97%A5%E5%B8%B8/"/>
-    
-    
-      <category term="起风了" scheme="http://he11olx.com/tags/%E8%B5%B7%E9%A3%8E%E4%BA%86/"/>
     
   </entry>
   

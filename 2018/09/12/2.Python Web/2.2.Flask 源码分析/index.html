@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Flask," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="参考 Flask 官网 werkzeug 官网  Demo12345678910# Flask.__version__ == 1.0.2from flask import Flaskapp = Flask(__name__)@app.route(&quot;/&quot;)def hello():    return &quot;Hello World!&quot;if __name__ == &apos;__main__&apos;:    app.ru">
+<meta name="keywords" content="Flask">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Python Web 系列】Flask 源码分析">
+<meta property="og:url" content="http://he11olx.com/2018/09/12/2.Python Web/2.2.Flask 源码分析/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考 Flask 官网 werkzeug 官网  Demo12345678910# Flask.__version__ == 1.0.2from flask import Flaskapp = Flask(__name__)@app.route(&quot;/&quot;)def hello():    return &quot;Hello World!&quot;if __name__ == &apos;__main__&apos;:    app.ru">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-09-12T13:20:20.276Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Python Web 系列】Flask 源码分析">
+<meta name="twitter:description" content="参考 Flask 官网 werkzeug 官网  Demo12345678910# Flask.__version__ == 1.0.2from flask import Flaskapp = Flask(__name__)@app.route(&quot;/&quot;)def hello():    return &quot;Hello World!&quot;if __name__ == &apos;__main__&apos;:    app.ru">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/09/12/2.Python Web/2.2.Flask 源码分析/"/>
+
+
+
+
+
+  <title>【Python Web 系列】Flask 源码分析 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/2.Python Web/2.2.Flask 源码分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【Python Web 系列】Flask 源码分析</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/2.Python Web/2.2.Flask 源码分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/2.Python Web/2.2.Flask 源码分析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv">
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="http://flask.pocoo.org/" target="_blank" rel="noopener">Flask 官网</a></li>
+<li><a href="http://werkzeug.pocoo.org/docs/0.14/" target="_blank" rel="noopener">werkzeug 官网</a></li>
+</ul>
+<h2 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Flask.__version__ == 1.0.2</span></span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route("/")</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">"Hello World!"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    app.run()</span><br></pre></td></tr></table></figure>
+<h2 id="Flask"><a href="#Flask" class="headerlink" title="Flask"></a>Flask</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Flask</span><span class="params">(_PackageBoundObject)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">wsgi_app</span><span class="params">(self, environ, start_response)</span>:</span></span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self, environ, start_response)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.wsgi_app(environ, start_response)</span><br></pre></td></tr></table></figure>
+<p>Flask实例化后，就是一个符合 WSGI 规定的，可调用对象。再来看看实例化都要干些啥。</p>
+<a id="more"></a>
+<h3 id="init"><a href="#init" class="headerlink" title="init"></a>init</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(...)</span>:</span></span><br><span class="line">    self.config = self.make_config()</span><br><span class="line">    self.view_functions = &#123;&#125;</span><br><span class="line">    self.error_handler_spec = &#123;&#125;</span><br><span class="line">    self.before_request_funcs = &#123;&#125;</span><br><span class="line">    self.before_first_request_funcs = []</span><br><span class="line">    self.after_request_funcs = &#123;&#125;</span><br><span class="line">    self.teardown_request_funcs = &#123;&#125;</span><br><span class="line">    self.teardown_appcontext_funcs = []</span><br><span class="line">    self.url_value_preprocessors = &#123;&#125;</span><br><span class="line">    self.url_default_functions = &#123;&#125;</span><br><span class="line">    self.url_map = Map()</span><br><span class="line">    self.blueprints = &#123;&#125;</span><br><span class="line">    self._blueprint_order = []</span><br><span class="line">    self.extensions = &#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>看名字就知道，主要是对每次请求，创建一个处理通道。</p>
+<h3 id="app-route"><a href="#app-route" class="headerlink" title="@app.route"></a>@app.route</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">route</span><span class="params">(self, rule, **options)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">decorator</span><span class="params">(f)</span>:</span></span><br><span class="line">        endpoint = options.pop(<span class="string">'endpoint'</span>, <span class="keyword">None</span>)</span><br><span class="line">        self.add_url_rule(rule, endpoint, f, **options)</span><br><span class="line">        <span class="keyword">return</span> f</span><br><span class="line">    <span class="keyword">return</span> decorator</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_url_rule</span><span class="params">(self, rule, endpoint=None, view_func=None,</span></span></span><br><span class="line"><span class="function"><span class="params">                     provide_automatic_options=None, **options)</span>:</span></span><br><span class="line">    ...</span><br><span class="line">    rule = Rule(rule, methods=methods, **options)</span><br><span class="line">    self.url_map.add(rule)</span><br><span class="line">    self.view_functions[endpoint] = view_func</span><br></pre></td></tr></table></figure>
+<p>把路由 rule，加到 url_map 里；把 rule 对应的 endpint 跟 view_func，通过字典 view_functions 进行关联。</p>
+<h3 id="app-run"><a href="#app-run" class="headerlink" title="app.run"></a>app.run</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 自行脑补</span></span><br></pre></td></tr></table></figure>
+<p>run 仅仅在开发环境使用。我们可以自行脑补出代码：”创建一个符合 WSGI 的服务器，从浏览器接收 HTTP 请求，封装 environ，调用 app.<strong>call</strong>“。<br>生产环境一般都通过配置文件，指定 WSGI app 所在位置。我们直接来看，这种情况下怎么运行。</p>
+<p><span id="wsgi_app"></span></p>
+<h3 id="wsgi-app"><a href="#wsgi-app" class="headerlink" title="wsgi_app"></a>wsgi_app</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">wsgi_app</span><span class="params">(self, environ, start_response)</span>:</span></span><br><span class="line">    ctx = RequestContext(self, environ) <span class="comment"># flask.ctx.RequestContext</span></span><br><span class="line">    error = <span class="keyword">None</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            ctx.push() <span class="comment"># Binds the request context to the current context."</span></span><br><span class="line">            response = self.full_dispatch_request()</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            error = e</span><br><span class="line">            response = self.handle_exception(e)</span><br><span class="line">        <span class="keyword">except</span>:</span><br><span class="line">            error = sys.exc_info()[<span class="number">1</span>]</span><br><span class="line">            <span class="keyword">raise</span></span><br><span class="line">        <span class="keyword">return</span> response(environ, start_response)</span><br><span class="line">    <span class="keyword">finally</span>:</span><br><span class="line">        <span class="keyword">if</span> self.should_ignore_error(error):</span><br><span class="line">            error = <span class="keyword">None</span></span><br><span class="line">        ctx.auto_pop(error)</span><br></pre></td></tr></table></figure>
+<p>整个请求都在这部分完成：请求上下文的压栈，请求路由分发，错误处理，返回内容，上下文出栈。</p>
+<p>接下来就到了Flask 的精华部分，Context！</p>
+<h2 id="Context"><a href="#Context" class="headerlink" title="Context"></a>Context</h2><h3 id="RequestContext"><a href="#RequestContext" class="headerlink" title="RequestContext"></a>RequestContext</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RequestContext</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="string">"""The request context contains all request relevant information.  It is</span></span><br><span class="line"><span class="string">    created at the beginning of the request and pushed to the</span></span><br><span class="line"><span class="string">    `_request_ctx_stack` and removed at the end of it.  It will create the</span></span><br><span class="line"><span class="string">    URL adapter and request object for the WSGI environment provided.</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, app, environ, request=None)</span>:</span></span><br><span class="line">        self.app = app</span><br><span class="line">        self.request = Request(environ)</span><br><span class="line">        self.url_adapter = app.create_url_adapter(self.request)</span><br><span class="line">        self.flashes = <span class="keyword">None</span></span><br><span class="line">        self.session = <span class="keyword">None</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 请求上下文可以 Push 多次</span></span><br><span class="line">        <span class="comment"># 如果缺少 application context，会为每层都添加一个</span></span><br><span class="line">        self._implicit_app_ctx_stack = []</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 请求结束后，'after_request'执行前，执行</span></span><br><span class="line">        self._after_request_functions = []</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 调用 werkzeug.routing.MapAdapter().match</span></span><br><span class="line">        <span class="comment"># 对 request.url_rule/view_args，进行赋值</span></span><br><span class="line">        self.match_request()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># _app_ctx_stack.top.g 处理</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">push</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">"""Binds the request context to the current context."""</span></span><br><span class="line">        top = _request_ctx_stack.top</span><br><span class="line">        app_ctx = _app_ctx_stack.top</span><br><span class="line">        <span class="keyword">if</span> app_ctx <span class="keyword">is</span> <span class="keyword">None</span> <span class="keyword">or</span> app_ctx.app != self.app:</span><br><span class="line">            app_ctx = self.app.app_context()</span><br><span class="line">            app_ctx.push()</span><br><span class="line">            self._implicit_app_ctx_stack.append(app_ctx)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            self._implicit_app_ctx_stack.append(<span class="keyword">None</span>)</span><br><span class="line"></span><br><span class="line">        _request_ctx_stack.push(self)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 处理 self.session</span></span><br><span class="line">        <span class="comment"># 从 self.request.cookies 加载，没有则创建一个 NullSession</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">pop</span><span class="params">(self, exc=_sentinel)</span>:</span></span><br><span class="line">        <span class="comment"># exc 处理</span></span><br><span class="line">        <span class="comment"># self.app.do_teardown_request(exc)</span></span><br><span class="line">        rv = _request_ctx_stack.pop()</span><br><span class="line">        <span class="keyword">assert</span> rv <span class="keyword">is</span> self, ...</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">auto_pop</span><span class="params">(self, exc)</span>:</span></span><br><span class="line">        self.pop(exc)</span><br></pre></td></tr></table></figure>
+<p>说的好有道理，<code>RequestContext(app, env)</code>，包含了请求需要的全部信息。在请求前创建，并 push 到<code>_request_ctx_stack</code>，请求结束后，弹出。从代码中，还能看见另一个上下文<code>_app_ctx_stack</code>，即应用上下文。在创建请求上下文的同时，若<code>_app_ctx_stack.top</code>不存在，会先把<code>self.app</code>入栈。</p>
+<p>那么，是时候看看这个<code>ctx_stack</code>是个什么东西。</p>
+<h3 id="Local"><a href="#Local" class="headerlink" title="Local"></a>Local</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    <span class="keyword">from</span> greenlet <span class="keyword">import</span> getcurrent <span class="keyword">as</span> get_ident</span><br><span class="line"><span class="keyword">except</span> ImportError:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">from</span> thread <span class="keyword">import</span> get_ident</span><br><span class="line">    <span class="keyword">except</span> ImportError:</span><br><span class="line">        <span class="keyword">from</span> _thread <span class="keyword">import</span> get_ident</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Local</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        self.__storage__ = &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__setattr__</span><span class="params">(self, name, value)</span>:</span></span><br><span class="line">        ident = get_ident()</span><br><span class="line">        storage = self.__storage__</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            storage[ident][name] = value</span><br><span class="line">        <span class="keyword">except</span> KeyError:</span><br><span class="line">            storage[ident] = &#123;name: value&#125;</span><br></pre></td></tr></table></figure>
+<p>利用<code>get_ident</code>获取到协程/线程号，通过这个唯一id，在字典中实现线程安全。</p>
+<h3 id="LocalStack"><a href="#LocalStack" class="headerlink" title="LocalStack"></a>LocalStack</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">LocalStack</span><span class="params">(object)</span>:</span></span><br><span class="line">    <span class="string">""" from werkzeug.local import LocalStack</span></span><br><span class="line"><span class="string">        &gt;&gt;&gt; ls = LocalStack()</span></span><br><span class="line"><span class="string">        &gt;&gt;&gt; ls.push(42)</span></span><br><span class="line"><span class="string">        &gt;&gt;&gt; ls.top</span></span><br><span class="line"><span class="string">        42</span></span><br><span class="line"><span class="string">        &gt;&gt;&gt; ls.push(23)</span></span><br><span class="line"><span class="string">        &gt;&gt;&gt; ls.top</span></span><br><span class="line"><span class="string">        23</span></span><br><span class="line"><span class="string">        &gt;&gt;&gt; ls.pop()</span></span><br><span class="line"><span class="string">        23</span></span><br><span class="line"><span class="string">        &gt;&gt;&gt; ls.top</span></span><br><span class="line"><span class="string">        42</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        self._local = Local()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">push</span><span class="params">(self, obj)</span>:</span></span><br><span class="line">        rv = getattr(self._local, <span class="string">'stack'</span>, <span class="keyword">None</span>)</span><br><span class="line">        <span class="keyword">if</span> rv <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">            self._local.stack = rv = []</span><br><span class="line">        rv.append(obj)</span><br><span class="line">        <span class="keyword">return</span> rv</span><br></pre></td></tr></table></figure>
+<p>在线程安全的基础上，用列表，实现栈操作。</p>
+<h3 id="ctx-stack"><a href="#ctx-stack" class="headerlink" title="ctx_stack"></a>ctx_stack</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># flask.globals</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_lookup_req_object</span><span class="params">(name)</span>:</span></span><br><span class="line">    top = _request_ctx_stack.top</span><br><span class="line">    <span class="keyword">if</span> top <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">        <span class="keyword">raise</span> RuntimeError(_request_ctx_err_msg)</span><br><span class="line">    <span class="keyword">return</span> getattr(top, name)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">_find_app</span><span class="params">()</span>:</span></span><br><span class="line">    top = _app_ctx_stack.top</span><br><span class="line">    <span class="keyword">if</span> top <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">        <span class="keyword">raise</span> RuntimeError(_app_ctx_err_msg)</span><br><span class="line">    <span class="keyword">return</span> top.app</span><br><span class="line"></span><br><span class="line">_request_ctx_stack = LocalStack()</span><br><span class="line">_app_ctx_stack = LocalStack()</span><br><span class="line">current_app = LocalProxy(_find_app)</span><br><span class="line">request = LocalProxy(partial(_lookup_req_object, <span class="string">'request'</span>))</span><br><span class="line">session = LocalProxy(partial(_lookup_req_object, <span class="string">'session'</span>))</span><br><span class="line">g = LocalProxy(partial(_lookup_app_object, <span class="string">'g'</span>))</span><br><span class="line"></span><br><span class="line"><span class="comment"># LocalProxy 就是对象访问的代理封装</span></span><br></pre></td></tr></table></figure>
+<p>可见，经常使用的 request/session，都是线程安全的。并且，都是从最顶层请求上下文中获取到。</p>
+<p>获取到上下文之后，自然继续执行<a href="#wsgi_app"><code>wsgi_app()</code></a><br><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">response = self.full_dispatch_request()</span><br><span class="line"><span class="keyword">return</span> response(environ, start_response)</span><br></pre></td></tr></table></figure></p>
+<h2 id="full-dispatch-request"><a href="#full-dispatch-request" class="headerlink" title="full_dispatch_request"></a>full_dispatch_request</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">full_dispatch_request</span><span class="params">(self)</span>:</span></span><br><span class="line">    <span class="comment"># 处理第一个请求前置 func</span></span><br><span class="line">    self.try_trigger_before_first_request_functions()</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 发送信号 request-started</span></span><br><span class="line">        request_started.send(self)</span><br><span class="line">        <span class="comment"># 调用 request 处理函数</span></span><br><span class="line">        rv = self.preprocess_request()</span><br><span class="line">        <span class="keyword">if</span> rv <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">            <span class="comment"># 根据 url_map，找到定义的 url 处理函数</span></span><br><span class="line">            rv = self.dispatch_request()</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        rv = self.handle_user_exception(e)</span><br><span class="line">    <span class="comment"># 调用 make_response &amp; process_response</span></span><br><span class="line">    <span class="keyword">return</span> self.finalize_request(rv)</span><br></pre></td></tr></table></figure>
+<p>嗯，这个地方就是 Flask 的视图执行逻辑了。路由以及对应的装饰器函数，都在此处被执行。<br>很明显，只要<code>preprocess_request</code>有返回结果，就会跳过定义的视图函数。<br>整个运行期间，只要有错误，就会调用注册的错误处理函数。</p>
+<p>注意，错中错在此处并没有捕捉，在最外层的 wsgi_app() 中进行了捕捉，然后会尝试调用注册的 500 错误处理过程。</p>
+<h3 id="preprocess-request"><a href="#preprocess-request" class="headerlink" title="preprocess_request"></a>preprocess_request</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">preprocess_request</span><span class="params">(self)</span>:</span></span><br><span class="line">    bp = _request_ctx_stack.top.request.blueprint</span><br><span class="line"></span><br><span class="line">    <span class="comment"># @url_value_preprocessor -&gt; &#123;None:[], bp:[]&#125;</span></span><br><span class="line">    funcs = self.url_value_preprocessors.get(<span class="keyword">None</span>, ())</span><br><span class="line">    <span class="keyword">if</span> bp <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span> bp <span class="keyword">in</span> self.url_value_preprocessors:</span><br><span class="line">        funcs = chain(funcs, self.url_value_preprocessors[bp])</span><br><span class="line">    <span class="keyword">for</span> func <span class="keyword">in</span> funcs:</span><br><span class="line">        func(request.endpoint, request.view_args)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># @before_request -&gt; &#123;None:[], bp:[]&#125;</span></span><br><span class="line">    funcs = self.before_request_funcs.get(<span class="keyword">None</span>, ())</span><br><span class="line">    <span class="keyword">if</span> bp <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span> bp <span class="keyword">in</span> self.before_request_funcs:</span><br><span class="line">        funcs = chain(funcs, self.before_request_funcs[bp])</span><br><span class="line">    <span class="keyword">for</span> func <span class="keyword">in</span> funcs:</span><br><span class="line">        rv = func()</span><br><span class="line">        <span class="keyword">if</span> rv <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">            <span class="keyword">return</span> rv</span><br></pre></td></tr></table></figure>
+<p>嗯，通过两个装饰器，在 view_func 之前运行指定函数。需要注意的是：</p>
+<ul>
+<li>两个装饰器都以 blueprint 为单位，None 为所有 bp 共享</li>
+<li><code>@url_value_preprocessor</code>装饰的  func，接收两个参数，并且忽略返回值。通常用于对 url args 进行处理</li>
+<li><code>@before_request</code>装饰的  func，不接收参数，且只要有返回值，就直接 return。通常用于获取 db 连接，获取 session info</li>
+</ul>
+<p>装饰器处理完，自然就开始执行真正匹配到的 view_func。</p>
+<h3 id="dispatch-request"><a href="#dispatch-request" class="headerlink" title="dispatch_request"></a>dispatch_request</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">dispatch_request</span><span class="params">(self)</span>:</span></span><br><span class="line">    req = _request_ctx_stack.top.request</span><br><span class="line">    <span class="keyword">if</span> req.routing_exception <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</span><br><span class="line">        self.raise_routing_exception(req)</span><br><span class="line">    rule = req.url_rule    <span class="comment"># 在 RequestContext 初始化时 创建</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> getattr(rule, <span class="string">'provide_automatic_options'</span>, <span class="keyword">False</span>) \</span><br><span class="line">       <span class="keyword">and</span> req.method == <span class="string">'OPTIONS'</span>:</span><br><span class="line">        <span class="keyword">return</span> self.make_default_options_response()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 在 add_url_rule 填充 view_functions</span></span><br><span class="line">    <span class="keyword">return</span> self.view_functions[rule.endpoint](**req.view_args)</span><br></pre></td></tr></table></figure>
+<p>一目了然，通过 endpoint 获取到可调用对象，以关键字形式，传入 url 参数，返回结果。</p>
+<p>接下来自然是 错误处理/返回结果。</p>
+<h3 id="handle-user-exception"><a href="#handle-user-exception" class="headerlink" title="handle_user_exception"></a>handle_user_exception</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">handle_user_exception</span><span class="params">(self, e)</span>:</span></span><br><span class="line">    <span class="string">""" _find_error_handler(self, e).__doc__</span></span><br><span class="line"><span class="string">    Return a registered error handler for an exception in this order:</span></span><br><span class="line"><span class="string">    blueprint handler for a specific code, app handler for a specific code,</span></span><br><span class="line"><span class="string">    blueprint handler for an exception class, app handler for an exception</span></span><br><span class="line"><span class="string">    class, or ``None`` if a suitable handler is not found.</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line">    exc_type, exc_value, tb = sys.exc_info()</span><br><span class="line"></span><br><span class="line">    <span class="comment"># @errorhandler -&gt; error_handler_spec -&gt; &#123;bp:&#123;code:&#123;cls:func,..&#125;&#125;&#125;</span></span><br><span class="line">    handler = self._find_error_handler(e)</span><br><span class="line">    <span class="keyword">if</span> handler <span class="keyword">is</span> <span class="keyword">None</span>:</span><br><span class="line">        reraise(exc_type, exc_value, tb)</span><br><span class="line">    <span class="keyword">return</span> handler(e)</span><br></pre></td></tr></table></figure>
+<p>错误处理，会按照 code 优先，bp 优先的顺序寻找注册的错误处理函数，得到一个 rv。</p>
+<h3 id="finalize-request"><a href="#finalize-request" class="headerlink" title="finalize_request"></a>finalize_request</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">finalize_request</span><span class="params">(self, rv, from_error_handler=False)</span>:</span></span><br><span class="line">    <span class="comment"># 封装 Response()</span></span><br><span class="line">    response = self.make_response(rv)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># 调用 @after_request</span></span><br><span class="line">        response = self.process_response(response)</span><br><span class="line">        <span class="comment"># 发送信号</span></span><br><span class="line">        request_finished.send(self, response=response)</span><br><span class="line">    <span class="keyword">except</span> Exception:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> from_error_handler:</span><br><span class="line">            <span class="keyword">raise</span></span><br><span class="line">        self.logger.exception(<span class="string">'Request finalizing failed with an '</span></span><br><span class="line">                              <span class="string">'error while handling an error'</span>)</span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+<p>这个函数，会在两个地方被调用：</p>
+<ol>
+<li>正常处理完，会被 full_dispatch_request 调用</li>
+<li>执行 full_dispatch_request 报错，会被 wsgi_app 捕捉到，然后执行 handle_exception(内部错误)，被调用</li>
+</ol>
+<h3 id="process-response"><a href="#process-response" class="headerlink" title="process_response"></a>process_response</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">process_response</span><span class="params">(self, response)</span>:</span></span><br><span class="line">    ctx = _request_ctx_stack.top</span><br><span class="line">    bp = ctx.request.blueprint</span><br><span class="line"></span><br><span class="line">    <span class="comment"># @after_this_request -&gt; _after_request_functions -&gt; []</span></span><br><span class="line">    funcs = ctx._after_request_functions</span><br><span class="line"></span><br><span class="line">    <span class="comment"># @after_request -&gt; after_request_funcs -&gt; &#123;bp:&#123;&#125;, None:&#123;&#125;&#125;</span></span><br><span class="line">    <span class="keyword">if</span> bp <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span> <span class="keyword">and</span> bp <span class="keyword">in</span> self.after_request_funcs:</span><br><span class="line">        funcs = chain(funcs, reversed(self.after_request_funcs[bp]))</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">None</span> <span class="keyword">in</span> self.after_request_funcs:</span><br><span class="line">        funcs = chain(funcs, reversed(self.after_request_funcs[<span class="keyword">None</span>]))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 链式处理 response</span></span><br><span class="line">    <span class="keyword">for</span> handler <span class="keyword">in</span> funcs:</span><br><span class="line">        response = handler(response)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 处理 session</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> self.session_interface.is_null_session(ctx.session):</span><br><span class="line">        self.session_interface.save_session(self, ctx.session, response)</span><br><span class="line">    <span class="keyword">return</span> response</span><br></pre></td></tr></table></figure>
+<p>这里又有两个装饰器，其中一个很少用的是<code>@after_this_request</code>，它在 view_func 内部使用。</p>
+<p>返回一个 Response 实例对象，回到<a href="#wsgi_app"> wsgi_app </a>中继续执行 <code>return response(environ, start_response)</code>。</p>
+<h2 id="Response"><a href="#Response" class="headerlink" title="Response"></a>Response</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> response(environ, start_response)</span><br></pre></td></tr></table></figure>
+<p>我们已经知道，WSGI 规定 app 必须保证在 return iterable 之前，必须调用 start_response。<br>那么，必然在 Response 中定义了 <strong>call</strong> 方法，并且会在其中调用 start_response。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseResponse</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_wsgi_response</span><span class="params">(self, environ)</span>:</span></span><br><span class="line">        headers = self.get_wsgi_headers(environ)</span><br><span class="line">        app_iter = self.get_app_iter(environ)</span><br><span class="line">        <span class="keyword">return</span> app_iter, self.status, headers.to_wsgi_list()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self, environ, start_response)</span>:</span></span><br><span class="line">        app_iter, status, headers = self.get_wsgi_response(environ)</span><br><span class="line">        start_response(status, headers)</span><br><span class="line">        <span class="keyword">return</span> app_iter</span><br></pre></td></tr></table></figure>
+<p>至此，Flask 作为 WSGI app 的整个流程已经走完。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">@app.route(&apos;/&apos;)</span><br><span class="line">    调用 add_url_rule()，填充 view_functions[endpoint] = view_func</span><br><span class="line"></span><br><span class="line">@app.errorhandler(404)</span><br><span class="line">@bp.errorhandler(ExceptionClass)</span><br><span class="line">    根据 code/cls，填充 error_handler_spec[None/bp] = &#123;code: &#123;cls: func&#125;&#125;</span><br><span class="line"></span><br><span class="line">@app.before_first_request</span><br><span class="line">    before_first_request_funcs.append(f)</span><br><span class="line">    特点：不接收参数，且忽略返回值</span><br><span class="line"></span><br><span class="line">@app.url_value_preprocessor</span><br><span class="line">@bp.url_value_preprocessor</span><br><span class="line">    url_value_preprocessors.setdefault(None/bp, []).append(func)</span><br><span class="line">    特点：func(request.endpoint, request.view_args)，忽略返回值</span><br><span class="line"></span><br><span class="line">@app.before_request</span><br><span class="line">@bp.before_request</span><br><span class="line">    before_request_funcs.setdefault(None/bp, []).append(f)</span><br><span class="line">    特点：func()，具有 截取特性</span><br><span class="line"></span><br><span class="line">@app.after_request</span><br><span class="line">@bp.after_request</span><br><span class="line">    after_request_funcs.setdefault(None/bp, []).append(f)</span><br><span class="line">    特点：response = handler(response)，具有叠加特性</span><br><span class="line"></span><br><span class="line">@app.teardown_request</span><br><span class="line">@bp.teardown_request</span><br><span class="line">    teardown_request_funcs.setdefault(None/bp, []).append(f)</span><br><span class="line">    特点：called after each request, even if an exception has occurred.</span><br><span class="line">    在 RequestContext.pop() 时被调用，执行完后会发送信号`request_tearing_down`</span><br><span class="line"></span><br><span class="line">@app.teardown_appcontext</span><br><span class="line">    teardown_appcontext_funcs.append(f)</span><br><span class="line">    特点：Called right before the application context is popped.</span><br><span class="line">    在 AppContext.pop() 是被调用，执行完后发送信号`appcontext_tearing_down`</span><br></pre></td></tr></table></figure>
+<p>Flask is a microframework. 在内部大量使用装饰器，作为整个处理流程的中间环节。</p>
+<p>利用 werkzeug 的 Request/Response，作为一进一出，配上一堆装饰器构成中间处理流程，这就是 Flask。微小，但包容。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Flask/" rel="tag"># Flask</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/12/2.Python Web/2.5.Django 一些 trick/" rel="next" title="【Python Web 系列】Django 一些 trick">
+                <i class="fa fa-chevron-left"></i> 【Python Web 系列】Django 一些 trick
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/12/2.Python Web/2.3.Flask 一些 trick/" rel="prev" title="【Python Web 系列】Flask 一些 trick">
+                【Python Web 系列】Flask 一些 trick <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Demo"><span class="nav-number">2.</span> <span class="nav-text">Demo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flask"><span class="nav-number">3.</span> <span class="nav-text">Flask</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#init"><span class="nav-number">3.1.</span> <span class="nav-text">init</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#app-route"><span class="nav-number">3.2.</span> <span class="nav-text">@app.route</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#app-run"><span class="nav-number">3.3.</span> <span class="nav-text">app.run</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wsgi-app"><span class="nav-number">3.4.</span> <span class="nav-text">wsgi_app</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Context"><span class="nav-number">4.</span> <span class="nav-text">Context</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RequestContext"><span class="nav-number">4.1.</span> <span class="nav-text">RequestContext</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Local"><span class="nav-number">4.2.</span> <span class="nav-text">Local</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LocalStack"><span class="nav-number">4.3.</span> <span class="nav-text">LocalStack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ctx-stack"><span class="nav-number">4.4.</span> <span class="nav-text">ctx_stack</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#full-dispatch-request"><span class="nav-number">5.</span> <span class="nav-text">full_dispatch_request</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#preprocess-request"><span class="nav-number">5.1.</span> <span class="nav-text">preprocess_request</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dispatch-request"><span class="nav-number">5.2.</span> <span class="nav-text">dispatch_request</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#handle-user-exception"><span class="nav-number">5.3.</span> <span class="nav-text">handle_user_exception</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#finalize-request"><span class="nav-number">5.4.</span> <span class="nav-text">finalize_request</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#process-response"><span class="nav-number">5.5.</span> <span class="nav-text">process_response</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Response"><span class="nav-number">6.</span> <span class="nav-text">Response</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小结"><span class="nav-number">7.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <!--
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>  
+  <span class="with-love">Hello,world!</span>
+  <span class="author" itemprop="copyrightHolder">I'm He11oLx</span>
+
+  
+</div>
+-->
+
+<div class="copyright">
+  <span class='with-love'>
+    Hello,world!
+    <i class="fa fa-user"></i>
+    I'm Lx.
+    </span>
+UV: <span id="busuanzi_value_site_pv"></span>
+PV: <span id="busuanzi_value_site_uv"></span>
+</div>
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/09/12/2.Python Web/2.2.Flask 源码分析/';
+          this.page.identifier = '2018/09/12/2.Python Web/2.2.Flask 源码分析/';
+          this.page.title = '【Python Web 系列】Flask 源码分析';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

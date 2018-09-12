@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+  <link href="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+  
+
+<link href="https://cdn.bootcss.com/font-awesome/4.6.2/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="greenlet,coroutine," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Lx's Blog" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="参考资料 greenlet:Lightweight concurrent programming github:0.4.14 CSDN:fjs_cloud  前言C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。greenlet 就是利用 C 栈和 PyFra">
+<meta name="keywords" content="greenlet,coroutine">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Python 协程系列】greenlet 源码分析">
+<meta property="og:url" content="http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/index.html">
+<meta property="og:site_name" content="Lx&#39;s Blog">
+<meta property="og:description" content="参考资料 greenlet:Lightweight concurrent programming github:0.4.14 CSDN:fjs_cloud  前言C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。greenlet 就是利用 C 栈和 PyFra">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet%20源码分析/_images/C栈帧结构.png">
+<meta property="og:updated_time" content="2018-09-12T13:15:19.218Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="【Python 协程系列】greenlet 源码分析">
+<meta name="twitter:description" content="参考资料 greenlet:Lightweight concurrent programming github:0.4.14 CSDN:fjs_cloud  前言C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。greenlet 就是利用 C 栈和 PyFra">
+<meta name="twitter:image" content="http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet%20源码分析/_images/C栈帧结构.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/"/>
+
+
+
+
+
+  <title>【Python 协程系列】greenlet 源码分析 | Lx's Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Lx's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Hello world!</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="He11oLx">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lx's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">【Python 协程系列】greenlet 源码分析</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-12T12:00:00+08:00">
+                2018-09-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index">
+                    <span itemprop="name">Python</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/09/12/3.协程相关/3.1.Greenlet 源码分析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv">
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://greenlet.readthedocs.io/en/latest/" target="_blank" rel="noopener">greenlet:Lightweight concurrent programming</a></li>
+<li><a href="https://github.com/python-greenlet/greenlet/tree/0.4.14" target="_blank" rel="noopener">github:0.4.14</a></li>
+<li><a href="https://blog.csdn.net/fjslovejhl/article/details/38824963" target="_blank" rel="noopener">CSDN:fjs_cloud</a></li>
+</ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。<br>Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。<br>greenlet 就是利用 C 栈和 PyFrameObject，这两个特性，实现了协程。</p>
+<p><img src="_images/C栈帧结构.png" alt="C栈帧结构"></p>
+<a id="more"></a>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> greenlet <span class="keyword">import</span> greenlet</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test1</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="number">12</span>)</span><br><span class="line">    gr2.switch()</span><br><span class="line">    print(<span class="number">56</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test2</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="number">34</span>)</span><br><span class="line">    gr1.switch()</span><br><span class="line">    print(<span class="string">"Never"</span>)</span><br><span class="line"></span><br><span class="line">gr1 = greenlet(test1)</span><br><span class="line">gr2 = greenlet(test2)</span><br><span class="line">gr1.switch()</span><br></pre></td></tr></table></figure>
+<p>greenlet 实现了在一个系统线程中伪并发的运行多个任务流程。<br>之所以是伪并发，是因为同时运行的始终只有一个，不同的任务可以不断的切换。<br>换句换说，greenlet 实现的是一种 micro-threads/coroutines，并且 greenlet 本身并不提供调度功能。</p>
+<p>通过 gr.switch() 主动切换到不同协程，需要注意的是仅支持同线程内切换。协程要切换，必然也要组织成链式结构。greenlet 给每个协程都赋予了 parent 参数，执行完成后，自动返回到 parent 继续执行。</p>
+<h2 id="Python-用法"><a href="#Python-用法" class="headerlink" title="Python 用法"></a>Python 用法</h2><p>Instantiation:</p>
+<ul>
+<li>greenlet(run=None, parent=None)   run is callable</li>
+<li>greenlet.getcurrent()</li>
+<li>greenlet.GreenletExit 不传递给 parent，可以用来 kill greenlet</li>
+<li>可以通过继承 greenlet ，调用 run 方法。</li>
+</ul>
+<p>Switching：</p>
+<ul>
+<li>x = gr.switch(y) will send the object y to g, 并且将从 任意的协程 接收参数给 x</li>
+<li>注意，切换进入的是在，曾经切出的位置</li>
+<li>如果没有启动，将从头开始执行</li>
+</ul>
+<p>Attributes：</p>
+<ul>
+<li>g.parent      This is writeable, 但不能 循环</li>
+<li>g.gr_frame   The current top frame, or None.</li>
+<li>g.dead         True if g is dead (i.e. it finished its execution).</li>
+<li>bool(g)        True if g is active, False if it is dead or not yet started.</li>
+<li>g.throw([typ, [val, [tb]]])<ul>
+<li>Switches execution to the greenlet g，defaults greenlet.GreenletExit</li>
+</ul>
+</li>
+</ul>
+<h2 id="PyGreenlet"><a href="#PyGreenlet" class="headerlink" title="PyGreenlet"></a>PyGreenlet</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">              |     ^^^       |</span><br><span class="line">              |  older data   |</span><br><span class="line">   高地址处    |               |</span><br><span class="line"> stack_stop . |_______________|</span><br><span class="line">       .      |               |</span><br><span class="line">       .      | greenlet data |</span><br><span class="line">       .      |   in stack    |</span><br><span class="line">       .    * |_______________| . .  _____________  stack_copy + stack_saved</span><br><span class="line">       .      |               |     |             |</span><br><span class="line">       .      |     data      |     |greenlet data|</span><br><span class="line">       .      |   unrelated   |     |    saved    |</span><br><span class="line">       .      |      to       |     |   in heap   |</span><br><span class="line">stack_start . |     this      | . . |_____________| stack_copy</span><br><span class="line">   低地址处    |   greenlet    |</span><br><span class="line">              |               |</span><br><span class="line">              |  newer data   |</span><br><span class="line">              |     vvv       |</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">greenlet</span> &#123;</span></span><br><span class="line">    PyObject_HEAD</span><br><span class="line">    <span class="keyword">char</span>* stack_start;    <span class="comment">// 栈顶</span></span><br><span class="line">    <span class="keyword">char</span>* stack_stop;     <span class="comment">// 栈底</span></span><br><span class="line">    <span class="keyword">char</span>* stack_copy;           <span class="comment">// heap 数据地址</span></span><br><span class="line">    <span class="keyword">intptr_t</span> stack_saved;       <span class="comment">// heap 数据大小</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">greenlet</span>* <span class="title">stack_prev</span>;</span>   <span class="comment">// gr 链， The main (initial) gr 是最后一个</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">greenlet</span>* <span class="title">parent</span>;</span>       <span class="comment">// parent 指针</span></span><br><span class="line">    PyObject* run_info;         <span class="comment">// 运行信息，PyThreadState_GET()-&gt;dict</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">frame</span>* <span class="title">top_frame</span>;</span></span><br><span class="line">    <span class="keyword">int</span> recursion_depth;        <span class="comment">// 栈深度</span></span><br><span class="line">    PyObject* weakreflist;</span><br><span class="line">    PyObject* exc_type;</span><br><span class="line">    PyObject* exc_value;</span><br><span class="line">    PyObject* exc_traceback;</span><br><span class="line">    PyObject* dict;</span><br><span class="line">&#125; PyGreenlet;</span><br></pre></td></tr></table></figure>
+<p>Data：</p>
+<ul>
+<li>部分在堆、部分在栈、都可能为空</li>
+<li>stack_stop == NULL &amp;&amp; stack_start == NULL:  did not start yet</li>
+<li>stack_stop !=  NULL &amp;&amp; stack_start == NULL:  already finished</li>
+<li>stack_stop !=  NULL &amp;&amp; stack_start !=  NULL:  active</li>
+</ul>
+<p>初始对象：</p>
+<ul>
+<li>栈底，高地址：<code>gmain-&gt;stack_stop = (char *) -1</code></li>
+<li>栈顶，低地址：<code>gmain-&gt;stack_start = (char *) 1</code></li>
+</ul>
+<p>注意要点：</p>
+<ol>
+<li>greenlet 将每个 gr 都保存在堆上，调用链上的 gr 各自都有栈帧。</li>
+<li>switch 涉及到 C栈 的备份恢复，以及 Python 环境的备份恢复。</li>
+<li>执行 swtch 时，将 %rbp %rbx %rsp 等寄存器以及当前 gr 的栈帧数据，保存到堆上。</li>
+<li>将 ts_target 的堆数据恢复到栈帧，并且恢复寄存器的值，让程序切出处执行。</li>
+<li>Python 环境通过实现备份恢复 PyThreadState_GET()  实现。</li>
+</ol>
+<p>其他：</p>
+<ul>
+<li>gr 的 return 以及报错，都是上抛给 parent</li>
+<li>gr 的 parent 默认是 ts_current，可以更改</li>
+<li>gr 的 switch 是通过全局变量 ts_current, ts_target 等实现</li>
+<li>gr 的 switch 无法发生在不同线程之间</li>
+</ul>
+<h2 id="PyMODINIT-FUNC"><a href="#PyMODINIT-FUNC" class="headerlink" title="PyMODINIT_FUNC"></a>PyMODINIT_FUNC</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">struct</span> <span class="title">PyModuleDef</span> <span class="title">greenlet_module_def</span> = &#123;</span></span><br><span class="line">	PyModuleDef_HEAD_INIT,</span><br><span class="line">	<span class="string">"greenlet"</span>,</span><br><span class="line">	<span class="literal">NULL</span>,</span><br><span class="line">	<span class="number">-1</span>,</span><br><span class="line">	GreenMethods,   <span class="comment">// 定义了 getcurrent、settrace、gettrace</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">PyMODINIT_FUNC</span><br><span class="line">PyInit_greenlet(<span class="keyword">void</span>)</span><br><span class="line">&#123;</span><br><span class="line">	PyObject* m = <span class="literal">NULL</span>;</span><br><span class="line">	<span class="keyword">char</span>** p = <span class="literal">NULL</span>;</span><br><span class="line">	PyObject *c_api_object;</span><br><span class="line">	<span class="keyword">static</span> <span class="keyword">void</span> *_PyGreenlet_API[PyGreenlet_API_pointers]; <span class="comment">// [8]</span></span><br><span class="line"></span><br><span class="line">	GREENLET_NOINLINE_INIT(); <span class="comment">// 宏：阻止编译器对部分函数 inline 优化</span></span><br><span class="line">	<span class="comment">// 创建 module</span></span><br><span class="line">	m = PyModule_Create(&amp;greenlet_module_def);</span><br><span class="line">  PyType_Ready(&amp;PyGreenlet_Type)</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 创建共享字符串，并赋值全局变量全局变量 static PyObject*</span></span><br><span class="line">	ts_curkey = PyUnicode_InternFromString(<span class="string">"__greenlet_ts_curkey"</span>);</span><br><span class="line">	ts_delkey = PyUnicode_InternFromString(<span class="string">"__greenlet_ts_delkey"</span>);</span><br><span class="line">	ts_tracekey = PyUnicode_InternFromString(<span class="string">"__greenlet_ts_tracekey"</span>);</span><br><span class="line">	ts_event_switch = PyUnicode_InternFromString(<span class="string">"switch"</span>);</span><br><span class="line">	ts_event_throw = PyUnicode_InternFromString(<span class="string">"throw"</span>);</span><br><span class="line"></span><br><span class="line">	PyType_Ready(&amp;PyGreenlet_Type)</span><br><span class="line">	PyExc_GreenletError = PyErr_NewException(<span class="string">"greenlet.error"</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">	PyExc_GreenletExit = PyErr_NewException(<span class="string">"greenlet.GreenletExit"</span>,</span><br><span class="line">	                                        PyExc_BaseException, <span class="literal">NULL</span>);</span><br><span class="line">	<span class="comment">// 创建 (),&#123;&#125; 并赋值全局变量</span></span><br><span class="line">	ts_empty_tuple = PyTuple_New(<span class="number">0</span>);</span><br><span class="line">	ts_empty_dict = PyDict_New();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 只要导入模块，就创建了 main 协程</span></span><br><span class="line">	<span class="comment">// static PyGreenlet* volatile ts_current = NULL</span></span><br><span class="line">	ts_current = green_create_main();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 添加 module 属性</span></span><br><span class="line">	PyModule_AddObject(m, <span class="string">"greenlet"</span>, (PyObject*) &amp;PyGreenlet_Type);</span><br><span class="line">	PyModule_AddObject(m, <span class="string">"error"</span>, PyExc_GreenletError);</span><br><span class="line">	PyModule_AddObject(m, <span class="string">"GreenletExit"</span>, PyExc_GreenletExit);</span><br><span class="line">	PyModule_AddObject(m, <span class="string">"GREENLET_USE_GC"</span>, PyBool_FromLong(GREENLET_USE_GC));</span><br><span class="line">	PyModule_AddObject(m, <span class="string">"GREENLET_USE_TRACING"</span>,</span><br><span class="line">                        PyBool_FromLong(GREENLET_USE_TRACING));</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* 同时添加到 PyGreenlet_Type.__dict__ */</span></span><br><span class="line">	<span class="keyword">for</span> (p=copy_on_greentype; *p; p++) &#123;</span><br><span class="line">		PyObject* o = PyObject_GetAttrString(m, *p);</span><br><span class="line">		<span class="keyword">if</span> (!o) <span class="keyword">continue</span>;</span><br><span class="line">		PyDict_SetItemString(PyGreenlet_Type.tp_dict, *p, o);</span><br><span class="line">		Py_DECREF(o);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Expose C API	 */</span></span><br><span class="line">	_PyGreenlet_API[PyGreenlet_Type_NUM] = (<span class="keyword">void</span> *) &amp;PyGreenlet_Type;</span><br><span class="line">	_PyGreenlet_API[PyExc_GreenletError_NUM] = (<span class="keyword">void</span> *) PyExc_GreenletError;</span><br><span class="line">	_PyGreenlet_API[PyExc_GreenletExit_NUM] = (<span class="keyword">void</span> *) PyExc_GreenletExit;</span><br><span class="line">	_PyGreenlet_API[PyGreenlet_New_NUM] = (<span class="keyword">void</span> *) PyGreenlet_New;</span><br><span class="line">	_PyGreenlet_API[PyGreenlet_GetCurrent_NUM] =</span><br><span class="line">		(<span class="keyword">void</span> *) PyGreenlet_GetCurrent;</span><br><span class="line">	_PyGreenlet_API[PyGreenlet_Throw_NUM] = (<span class="keyword">void</span> *) PyGreenlet_Throw;</span><br><span class="line">	_PyGreenlet_API[PyGreenlet_Switch_NUM] = (<span class="keyword">void</span> *) PyGreenlet_Switch;</span><br><span class="line">	_PyGreenlet_API[PyGreenlet_SetParent_NUM] =</span><br><span class="line">		(<span class="keyword">void</span> *) PyGreenlet_SetParent;</span><br><span class="line"></span><br><span class="line">	c_api_object = PyCapsule_New((<span class="keyword">void</span> *) _PyGreenlet_API, <span class="string">"greenlet._C_API"</span>, <span class="literal">NULL</span>);</span><br><span class="line">	PyModule_AddObject(m, <span class="string">"_C_API"</span>, c_api_object);</span><br><span class="line">	<span class="keyword">return</span> m;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，module init，主要是创建属性、暴露API。<br>从中能看出，greenlet 大量利用 static 全局变量，保存当前状态。<br>其中很重要的一点是对 <code>ts_current</code>的赋值 <code>green_create_main()</code>。</p>
+<h3 id="green-create-main"><a href="#green-create-main" class="headerlink" title="green_create_main"></a>green_create_main</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> PyGreenlet* <span class="title">green_create_main</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	PyGreenlet* gmain;</span><br><span class="line">	PyObject* dict = PyThreadState_GetDict();</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* create the main greenlet for this thread */</span></span><br><span class="line">	gmain = (PyGreenlet*) PyType_GenericAlloc(&amp;PyGreenlet_Type, <span class="number">0</span>);</span><br><span class="line">	gmain-&gt;stack_start = (<span class="keyword">char</span>*) <span class="number">1</span>;    <span class="comment">// 栈顶为 1</span></span><br><span class="line">	gmain-&gt;stack_stop = (<span class="keyword">char</span>*) <span class="number">-1</span>;    <span class="comment">// 栈底为 -1，即最大地址处</span></span><br><span class="line">	gmain-&gt;run_info = dict;            <span class="comment">// 当前线程状态信息</span></span><br><span class="line">	Py_INCREF(dict);</span><br><span class="line">	<span class="keyword">return</span> gmain;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上，初始创建 gr 对象 gmain，并且对栈地址、run_info 进行初始化。</p>
+<h2 id="实例化"><a href="#实例化" class="headerlink" title="实例化"></a>实例化</h2><h3 id="green-new"><a href="#green-new" class="headerlink" title="green_new"></a>green_new</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">PyTypeObject PyGreenlet_Type = &#123;</span><br><span class="line">	PyVarObject_HEAD_INIT(<span class="literal">NULL</span>, <span class="number">0</span>)</span><br><span class="line">	<span class="string">"greenlet.greenlet"</span>,                    <span class="comment">/* tp_name */</span></span><br><span class="line">	(destructor)green_dealloc,              <span class="comment">/* tp_dealloc */</span></span><br><span class="line">	&amp;green_as_number,                       <span class="comment">/* tp_as _number*/</span></span><br><span class="line">	green_methods,                          <span class="comment">/* tp_methods */</span></span><br><span class="line">	(initproc)green_init,                   <span class="comment">/* tp_init */</span></span><br><span class="line">	GREENLET_tp_alloc,                      <span class="comment">/* tp_alloc */</span></span><br><span class="line">	green_new,                              <span class="comment">/* tp_new */</span></span><br><span class="line">	GREENLET_tp_free,                       <span class="comment">/* tp_free */</span></span><br><span class="line">	(inquiry)GREENLET_tp_is_gc,             <span class="comment">/* tp_is_gc */</span></span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>初始化完成后<code>greenlet.greenlet</code>对应 PyGreenlet_Type。<br>当执行<code>greenlet(test1)</code>，就是在调用<code>green_new</code>方法。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> STATE_OK    (ts_current-&gt;run_info == PyThreadState_GET()-&gt;dict \</span></span><br><span class="line">                     || !green_updatecurrent())</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> PyObject* <span class="title">green_new</span><span class="params">(PyTypeObject *type, PyObject *args, PyObject *kwds)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	PyObject* o = PyBaseObject_Type.tp_new(type, ts_empty_tuple, ts_empty_dict);</span><br><span class="line">	<span class="keyword">if</span> (o != <span class="literal">NULL</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span> (!STATE_OK) &#123;    <span class="comment">// 确保同一线程</span></span><br><span class="line">			Py_DECREF(o);</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		Py_INCREF(ts_current);</span><br><span class="line">		((PyGreenlet*) o)-&gt;parent = ts_current;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> o;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>创建对象，将 gr-&gt;parent 指向当前 ts_current。<br>可见，parent 默认是与 gr 的创建位置有关，与启动位置无关。<br>接着自然是执行 tp_init。</p>
+<h3 id="green-init"><a href="#green-init" class="headerlink" title="green_init"></a>green_init</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">green_init</span><span class="params">(PyGreenlet *self, PyObject *args, PyObject *kwargs)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	PyObject *run = <span class="literal">NULL</span>;</span><br><span class="line">	PyObject* nparent = <span class="literal">NULL</span>;</span><br><span class="line">	<span class="keyword">static</span> <span class="keyword">char</span> *kwlist[] = &#123;<span class="string">"run"</span>, <span class="string">"parent"</span>, <span class="number">0</span>&#125;;</span><br><span class="line">	<span class="keyword">if</span> (!PyArg_ParseTupleAndKeywords(args, kwargs, <span class="string">"|OO:green"</span>, kwlist,</span><br><span class="line">	                                 &amp;run, &amp;nparent))</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (run != <span class="literal">NULL</span>) &#123;</span><br><span class="line">     <span class="comment">// self-&gt;run_info = nrun;</span></span><br><span class="line">		<span class="keyword">if</span> (green_setrun(self, run, <span class="literal">NULL</span>))</span><br><span class="line">			<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (nparent != <span class="literal">NULL</span> &amp;&amp; nparent != Py_None)</span><br><span class="line">	  <span class="comment">// assert nparent != NULL &amp;&amp; PyGreenlet_Check(nparent)</span></span><br><span class="line">	  <span class="comment">// 不能产生循环链(self != nparent-&gt;parent-&gt;... )</span></span><br><span class="line">	  <span class="comment">// assert self-&gt;run_info == run_info</span></span><br><span class="line">	  <span class="comment">// 最终 self-&gt;parent = nparent</span></span><br><span class="line">		<span class="keyword">return</span> green_setparent(self, nparent, <span class="literal">NULL</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>main greenlet 的 run_info 初始化为 线程状态信息。<br>而实例化后的 gr，run_info 被赋值为 callable 对象。<br>至此，生成的 gr，依然保持未启动状态，stack_stop==stack_start==NULL。</p>
+<h2 id="切换"><a href="#切换" class="headerlink" title="切换"></a>切换</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">def test1():</span><br><span class="line">    print(12)</span><br><span class="line">    gr2.switch()</span><br><span class="line">    print(56)</span><br><span class="line"></span><br><span class="line">def test2():</span><br><span class="line">    print(34)</span><br><span class="line">    gr1.switch()</span><br><span class="line">    print(&quot;Never&quot;)</span><br><span class="line"></span><br><span class="line">gr1 = greenlet(test1)</span><br><span class="line">gr2 = greenlet(test2)</span><br></pre></td></tr></table></figure>
+<p>上面的 Python 代码，切换链可以简化为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">main -&gt; gr1 -&gt; gr2 -&gt; gr1  ---return----&gt; to main</span><br></pre></td></tr></table></figure></p>
+<p>根据源码可以看出，在 Python 中调用<code>gr.switch()</code>，将执行<code>g_switch</code>。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 	green_methods,                          /* tp_methods */</span></span><br><span class="line"><span class="keyword">static</span> PyMethodDef green_methods[] = &#123;</span><br><span class="line">	&#123;<span class="string">"switch"</span>, (PyCFunction)green_switch,</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> PyObject*</span><br><span class="line">green_switch(PyGreenlet* self,	PyObject* args, PyObject* kwargs)</span><br><span class="line">&#123;</span><br><span class="line">	Py_INCREF(args);</span><br><span class="line">	Py_XINCREF(kwargs);</span><br><span class="line">	<span class="comment">// result = item if result ==(item,) else result</span></span><br><span class="line">	<span class="keyword">return</span> single_result(g_switch(self, args, kwargs));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h3 id="g-switch"><a href="#g-switch" class="headerlink" title="g_switch"></a>g_switch</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> PyObject *</span><br><span class="line">g_switch(PyGreenlet* target, PyObject* args, PyObject* kwargs)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">int</span> err = <span class="number">0</span>;</span><br><span class="line">    PyObject* run_info;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 1.1 确保 ts_current-&gt;run_info 为线程状态信息</span></span><br><span class="line">	<span class="keyword">if</span> (!STATE_OK) &#123;</span><br><span class="line">		Py_XDECREF(args);</span><br><span class="line">		Py_XDECREF(kwargs);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 1.2.1 遍历 g-&gt;parent chain，直到找到 STARTED(g) 的 run_info</span></span><br><span class="line">	run_info = green_statedict(target);</span><br><span class="line">	<span class="comment">// 1.2.2 确保 paretn-&gt;run_info 跟当前线程一样</span></span><br><span class="line">	<span class="keyword">if</span> (run_info == <span class="literal">NULL</span> || run_info != ts_current-&gt;run_info) &#123;</span><br><span class="line">		Py_XDECREF(args);</span><br><span class="line">		Py_XDECREF(kwargs);</span><br><span class="line">		PyErr_SetString(PyExc_GreenletError, run_info</span><br><span class="line">		                ? <span class="string">"cannot switch to a different thread"</span></span><br><span class="line">		                : <span class="string">"cannot switch to a garbage collected greenlet"</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">	&#125;</span><br><span class="line">  <span class="comment">// 2. 改变全局变量，传递参数</span></span><br><span class="line">	ts_passaround_args = args;</span><br><span class="line">	ts_passaround_kwargs = kwargs;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 3. 执行切换</span></span><br><span class="line">	<span class="keyword">while</span> (target) &#123;</span><br><span class="line">	  <span class="comment">// gr 已经 启动</span></span><br><span class="line">	  <span class="comment">// gr2 -&gt; gr1 会进入到这部分</span></span><br><span class="line">		<span class="keyword">if</span> (PyGreenlet_ACTIVE(target)) &#123;</span><br><span class="line">			ts_target = target;</span><br><span class="line">			err = g_switchstack();</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">// 启动 gr</span></span><br><span class="line">		<span class="comment">// main-&gt; gr1 -&gt; gr2 都将进入到这部分</span></span><br><span class="line">		<span class="keyword">if</span> (!PyGreenlet_STARTED(target)) &#123;</span><br><span class="line">			<span class="keyword">void</span>* dummymarker;</span><br><span class="line">			ts_target = target;</span><br><span class="line">			err = g_initialstub(&amp;dummymarker);</span><br><span class="line">			<span class="keyword">if</span> (err == <span class="number">1</span>) &#123;</span><br><span class="line">				<span class="keyword">continue</span>; <span class="comment">/* retry the switch */</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		target = target-&gt;parent;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 4. 将切换回来的 全局变量 保存起来</span></span><br><span class="line">	args = ts_passaround_args;</span><br><span class="line">	ts_passaround_args = <span class="literal">NULL</span>;</span><br><span class="line">	kwargs = ts_passaround_kwargs;</span><br><span class="line">	ts_passaround_kwargs = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">  PyGreenlet *origin;</span><br><span class="line">  origin = ts_origin;</span><br><span class="line">	ts_origin = <span class="literal">NULL</span>;</span><br><span class="line">	Py_DECREF(origin);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5. 处理返回值</span></span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	    if kwargs is None or kwargs is &#123;&#125;:</span></span><br><span class="line"><span class="comment">        return args</span></span><br><span class="line"><span class="comment">      elif args is ():</span></span><br><span class="line"><span class="comment">        return kwargs</span></span><br><span class="line"><span class="comment">      else:</span></span><br><span class="line"><span class="comment">        return (args, kwargs)</span></span><br><span class="line"><span class="comment">	*/</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如上：</p>
+<ul>
+<li>首先，确保 ts_current/ts_target 线程状态 run_info 跟当前线程状态一致</li>
+<li>其次，改变全局变量，传递参数</li>
+<li>然后，g_switchstack 到已经启动的 gr，或者 g_initialstub 初始化 gr</li>
+<li>最后，从全局变量，获取 switch() 得到的返回值，并处理后返回到调用位置</li>
+</ul>
+<p>从<code>main-&gt;g1-&gt;g2</code>切换对象都是未启动的，必然是走第二条分支<code>g_initialstub</code>。若返回值为为0，会进入<code>return</code>流程。</p>
+<p>从<code>g2-&gt;g1</code>，切换对象 g1 已经启动过，那么就直接进入<code>g_switchstack</code>分支。不管返回值如何，都将进入到<code>return</code>流程。</p>
+<h3 id="g-initialstub"><a href="#g-initialstub" class="headerlink" title="g_initialstub"></a>g_initialstub</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!PyGreenlet_STARTED(target)) &#123;</span><br><span class="line">	<span class="keyword">void</span>* dummymarker;   <span class="comment">// 注意这个东西，一个临时变量指针</span></span><br><span class="line">	ts_target = target;  <span class="comment">// 同时注意这个 全局变量</span></span><br><span class="line">	err = g_initialstub(&amp;dummymarker);</span><br><span class="line">	<span class="keyword">if</span> (err == <span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">continue</span>; <span class="comment">/* retry the switch */</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行中申请变量，<code>dummymarker</code>其实就是当前的 C栈 指针位置！</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">GREENLET_NOINLINE</span><span class="params">(g_initialstub)</span><span class="params">(<span class="keyword">void</span>* mark)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> err;</span><br><span class="line">	PyGreenlet* self = ts_target;        <span class="comment">// 注意，self 其实是要初始化的 gr</span></span><br><span class="line">	PyObject* args = ts_passaround_args; <span class="comment">// 全局变量，switch() 时，传递的参数</span></span><br><span class="line">	PyObject* kwargs = ts_passaround_kwargs;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* save exception in case getattr clears it */</span></span><br><span class="line">	<span class="comment">/* self.run is the object to call in the new greenlet */</span></span><br><span class="line">	<span class="comment">/* restore saved exception */</span></span><br><span class="line">	<span class="comment">/* recheck the state in case getattr caused thread switches */</span></span><br><span class="line">	<span class="comment">/* recheck run_info in case greenlet reparented anywhere above */</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">/* start the greenlet */</span></span><br><span class="line">	self-&gt;stack_start = <span class="literal">NULL</span>;         <span class="comment">// 栈顶为 NULL，暂时 finished</span></span><br><span class="line">	self-&gt;stack_stop = (<span class="keyword">char</span>*) mark;  <span class="comment">// 栈底为 &amp;dummymarker，表明 actice</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 构建 gr 链</span></span><br><span class="line">	<span class="keyword">if</span> (ts_current-&gt;stack_start == <span class="literal">NULL</span>) &#123;</span><br><span class="line">		<span class="comment">/* ts_current is dying */</span></span><br><span class="line">		self-&gt;stack_prev = ts_current-&gt;stack_prev;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		self-&gt;stack_prev = ts_current;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	self-&gt;top_frame = <span class="literal">NULL</span>;</span><br><span class="line">	green_clear_exc(self);</span><br><span class="line">	self-&gt;recursion_depth = PyThreadState_GET()-&gt;recursion_depth;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* restore arguments in case they are clobbered */</span></span><br><span class="line">	ts_target = self;</span><br><span class="line">	ts_passaround_args = args;</span><br><span class="line">	ts_passaround_kwargs = kwargs;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* perform the initial switch</span></span><br><span class="line"><span class="comment">	    还记得 g_switch()中，遇到已经启动的 gr，会直接调用 g_switchstack</span></span><br><span class="line"><span class="comment">	    那么，此处同样调用，就意味着，gr 已经初始化完毕</span></span><br><span class="line"><span class="comment">	    注意，当前的全局变量参数</span></span><br><span class="line"><span class="comment">	*/</span></span><br><span class="line">	err = g_switchstack();  <span class="comment">// 切换栈，等待返回</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">/* returns twice!</span></span><br><span class="line"><span class="comment">	   The 1st time with err=1: we are in the new greenlet</span></span><br><span class="line"><span class="comment">	   The 2nd time with err=0: back in the caller's greenlet</span></span><br><span class="line"><span class="comment">	*/</span></span><br><span class="line">  <span class="keyword">if</span> (err == <span class="number">1</span>) &#123;</span><br><span class="line">  		<span class="comment">/* in the new greenlet */</span></span><br><span class="line">		self-&gt;stack_start = (<span class="keyword">char</span>*) <span class="number">1</span>;  <span class="comment">/* running */</span></span><br><span class="line"></span><br><span class="line">		<span class="comment">/* now use run_info to store the statedict */</span></span><br><span class="line">		self-&gt;run_info = green_statedict(self-&gt;parent);</span><br><span class="line"></span><br><span class="line">		<span class="comment">/* call g.run(*args, **kwargs) */</span></span><br><span class="line">		run = PyObject_GetAttrString((PyObject*) self, <span class="string">"run"</span>);</span><br><span class="line">		result = PyEval_CallObjectWithKeywords(</span><br><span class="line">                			run, args, kwargs);</span><br><span class="line">		result = g_handle_exit(result);</span><br><span class="line"></span><br><span class="line">		<span class="comment">/* jump back to parent */</span></span><br><span class="line">		self-&gt;stack_start = <span class="literal">NULL</span>;  <span class="comment">/* dead */</span></span><br><span class="line">		<span class="keyword">for</span> (parent = self-&gt;parent; parent != <span class="literal">NULL</span>; parent = parent-&gt;parent) &#123;</span><br><span class="line">		  <span class="comment">// 注意，这里 switch 目标是 parent</span></span><br><span class="line">		  <span class="comment">// 并且把返回值作为了参数 args</span></span><br><span class="line">			result = g_switch(parent, result, <span class="literal">NULL</span>);</span><br><span class="line">			assert(result == <span class="literal">NULL</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">  <span class="keyword">if</span> (err &lt; <span class="number">0</span>) &#123; ... &#125;    <span class="comment">// 切换出错</span></span><br><span class="line">	<span class="keyword">return</span> err;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码很长，绝大部分都在进行容错处理</p>
+<ul>
+<li>run 不能为 NULL</li>
+<li>确保同一线程</li>
+<li>若已经被启动，则返回</li>
+</ul>
+<p>真正执行部分，对 self 进行赋值，然后再次恢复全局变量，调用<code>g_switchstack()</code>，切换栈。<br>注释中也提到，<code>g_switchstack()</code>执行完成后，会返回两次。<br>一次是在 new gr 中，一次是从任意 gr 返回到 caller 中。</p>
+<p>err=1，进入到 new gr 的代码执行阶段，调用<code>PyEval_CallObjectWithKeywords</code>开始执行用户指定的 python callable。<br>注意，执行完成后，跳转到的是 parent，而并非自身的 caller。</p>
+<h3 id="g-switchstack"><a href="#g-switchstack" class="headerlink" title="g_switchstack"></a>g_switchstack</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Perform a stack switch according to some global variables</span></span><br><span class="line"><span class="comment">   that must be set before:</span></span><br><span class="line"><span class="comment">   - ts_current: current greenlet (holds a reference)</span></span><br><span class="line"><span class="comment">   - ts_target: greenlet to switch to (weak reference)</span></span><br><span class="line"><span class="comment">   - ts_passaround_args: NULL if PyErr_Occurred(),</span></span><br><span class="line"><span class="comment">       else a tuple of args sent to ts_target (holds a reference)</span></span><br><span class="line"><span class="comment">   - ts_passaround_kwargs: switch kwargs (holds a reference)</span></span><br><span class="line"><span class="comment">   On return results are passed via global variables as well:</span></span><br><span class="line"><span class="comment">   - ts_origin: originating greenlet (holds a reference)</span></span><br><span class="line"><span class="comment">   - ts_current: current greenlet (holds a reference)</span></span><br><span class="line"><span class="comment">   - ts_passaround_args: NULL if PyErr_Occurred(),</span></span><br><span class="line"><span class="comment">       else a tuple of args sent to ts_current (holds a reference)</span></span><br><span class="line"><span class="comment">   - ts_passaround_kwargs: switch kwargs (holds a reference)</span></span><br><span class="line"><span class="comment">   It is very important that stack switch is 'atomic', i.e. no</span></span><br><span class="line"><span class="comment">   calls into other Python code allowed (except very few that</span></span><br><span class="line"><span class="comment">   are safe), because global variables are very fragile.</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<p>先来看段注释，显然，栈切换是通过全局变量 ts_* 实现。那么，执行代码前的全局变量是什么样子的?<br>执行<code>main -&gt; gr1</code>，会从 <code>g_switch -&gt; g_initialstub -&gt; g_switchstack</code>。</p>
+<p>在 Module init 中：</p>
+<ul>
+<li>ts_current = main</li>
+</ul>
+<p>在 g_initialstub 中：</p>
+<ul>
+<li>ts_target = self = ts_target = gr.switch() 的 gr</li>
+<li>ts_passaround_args = args = g_switch 参数</li>
+<li>ts_passaround_kwargs = kwargs = g_switch 参数</li>
+</ul>
+<p>同时还有一个神奇变量 dummymarker</p>
+<ul>
+<li>在<code>g_switch</code>中创建，<code>void* dummymarker</code></li>
+<li>作为参数 mark 传入，<code>g_initialstub(&amp;dummymarker)</code></li>
+<li>在<code>g_initialstub</code>中，赋值给栈底，self-&gt;stack_stop = (char*) mark</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">g_switchstack</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> err;</span><br><span class="line">	&#123;   <span class="comment">/* 保存 当前信息 */</span></span><br><span class="line">		PyGreenlet* current = ts_current;</span><br><span class="line">		PyThreadState* tstate = PyThreadState_GET();</span><br><span class="line">		current-&gt;recursion_depth = tstate-&gt;recursion_depth;</span><br><span class="line">		current-&gt;top_frame = tstate-&gt;frame;</span><br><span class="line">		current-&gt;exc_type = tstate-&gt;exc_type;</span><br><span class="line">		current-&gt;exc_value = tstate-&gt;exc_value;</span><br><span class="line">		current-&gt;exc_traceback = tstate-&gt;exc_traceback;</span><br><span class="line">	&#125;</span><br><span class="line">	err = slp_switch();</span><br><span class="line">	<span class="comment">// 执行切换</span></span><br><span class="line">	<span class="comment">// ts_target 没有 active: err=1</span></span><br><span class="line">	<span class="comment">// ts_target 已经 active：从 heap 恢复数据，恢复寄存器，err=0</span></span><br><span class="line">  <span class="keyword">if</span> (err &lt; <span class="number">0</span>) &#123;</span><br><span class="line">         ... <span class="comment">// 错误处理</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        PyGreenlet* target = ts_target;</span><br><span class="line">        PyGreenlet* origin = ts_current;</span><br><span class="line">        PyThreadState* tstate = PyThreadState_GET();</span><br><span class="line">        tstate-&gt;recursion_depth = target-&gt;recursion_depth;</span><br><span class="line">        tstate-&gt;frame = target-&gt;top_frame;</span><br><span class="line">        target-&gt;top_frame = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">        tstate-&gt;exc_type = target-&gt;exc_type;</span><br><span class="line">        tstate-&gt;exc_value = target-&gt;exc_value;</span><br><span class="line">        tstate-&gt;exc_traceback = target-&gt;exc_traceback;</span><br><span class="line"></span><br><span class="line">        green_clear_exc(target);</span><br><span class="line"></span><br><span class="line">        assert(ts_origin == <span class="literal">NULL</span>);</span><br><span class="line">        Py_INCREF(target);</span><br><span class="line">        ts_current = target;</span><br><span class="line">        ts_origin = origin;</span><br><span class="line">        ts_target = <span class="literal">NULL</span>;</span><br><span class="line">  &#125;</span><br><span class="line">	<span class="keyword">return</span> err;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在<code>g_switchstack</code>中，首先将当前线程的的状态信息，frame/exc 保存到 main 里。<br>然后调用<code>slp_switch()</code>，这个函数，是一个区分平台的函数，利用内嵌汇编完成真正的切换。</p>
+<p>如果调用链是<code>some_gr.switch() -&gt; g_switch -&gt; g_initialstub -&gt; g_switchstack -&gt; slp_switch</code>：</p>
+<ul>
+<li>新 gr 返回值<code>err=1</code></li>
+<li>在<code>g_initialstub</code>中匹配到<code>if(err==1): EvalCode...</code></li>
+<li>直接就开始执行<code>target.run()</code></li>
+<li>执行完成后，切换到<code>target.parent</code>，而并非回到<code>some_gr</code></li>
+</ul>
+<h3 id="slp-switch"><a href="#slp-switch" class="headerlink" title="slp_switch"></a>slp_switch</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 我们只看`gcc on X86`。</span></span><br><span class="line"><span class="comment">// 使用内联汇编代码，</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">slp_switch</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> err;</span><br><span class="line">    <span class="keyword">void</span> *ebp, *ebx;</span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">short</span> cw;</span><br><span class="line">    <span class="keyword">register</span> <span class="keyword">int</span> *stackref, stsizediff;</span><br><span class="line">    __<span class="function">asm__ <span class="title">volatile</span> <span class="params">(<span class="string">""</span> : : : <span class="string">"esi"</span>, <span class="string">"edi"</span>)</span></span>;</span><br><span class="line">    __asm__ volatile ("fstcw %0" : "=m" (cw));</span><br><span class="line">    <span class="comment">// 被调用者保存寄存器 ebx/ebp</span></span><br><span class="line">    <span class="comment">// 将寄存器 %ebp 的值保存到内存位置 ebp 处</span></span><br><span class="line">    __asm__ volatile ("movl %%ebp, %0" : "=m" (ebp));</span><br><span class="line">    __asm__ volatile ("movl %%ebx, %0" : "=m" (ebx));</span><br><span class="line">    <span class="comment">// 将 栈指针 保存到寄存器 stackref 处</span></span><br><span class="line">    __asm__ (<span class="string">"movl %%esp, %0"</span> : <span class="string">"=g"</span> (stackref));</span><br><span class="line">    &#123;</span><br><span class="line">         <span class="comment">// 调整栈之间的偏移</span></span><br><span class="line">        	stackref += STACK_MAGIC;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将 target gr 之前的所有栈都保存到 heap 中</span></span><br><span class="line">        <span class="comment">// 常返回0，错误返回 -1</span></span><br><span class="line">        	<span class="keyword">if</span> (slp_save_state((<span class="keyword">char</span>*)stackref))</span><br><span class="line">        	    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    	    <span class="comment">// 注意这句！！如果 ts_target 没有 active，return 1</span></span><br><span class="line">        	<span class="keyword">if</span> (!PyGreenlet_ACTIVE(ts_target))</span><br><span class="line">        	    <span class="keyword">return</span> <span class="number">1</span>;  <span class="comment">// 第一次切换，就直接 返回 1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* -------- 如果 ts_target 已经启动过，才执行下面的语句 ----------- */</span></span><br><span class="line"></span><br><span class="line">         <span class="comment">// 获取 ts_target 切换之前的 栈指针</span></span><br><span class="line">        	stsizediff = ts_target-&gt;stack_start - (<span class="keyword">char</span>*)stackref</span><br><span class="line">        <span class="comment">// 修改寄存器，将指针指向 ts_target 当时的位置</span></span><br><span class="line">        __asm__ <span class="keyword">volatile</span> (</span><br><span class="line">            <span class="string">"addl %0, %%esp\n"</span></span><br><span class="line">            <span class="string">"addl %0, %%ebp\n"</span></span><br><span class="line">            :</span><br><span class="line">            : <span class="string">"r"</span> (stsizediff)</span><br><span class="line">            );</span><br><span class="line">        <span class="comment">/* -------- 现在 已经是在 ts_target 中执行 ----------- */</span></span><br><span class="line">        <span class="comment">// 从 heap 恢复数据到栈上</span></span><br><span class="line">        slp_restore_state()</span><br><span class="line">        <span class="comment">// 异或清零 err=0</span></span><br><span class="line">        __asm__ volatile ("xorl %%eax, %%eax" : "=a" (err));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 恢复之前保存的寄存器</span></span><br><span class="line">    __asm__ volatile ("movl %0, %%ebx" : : "m" (ebx));</span><br><span class="line">    __asm__ volatile ("movl %0, %%ebp" : : "m" (ebp));</span><br><span class="line">    __asm__ volatile ("fldcw %0" : : "m" (cw));</span><br><span class="line">    __<span class="function">asm__ <span class="title">volatile</span> <span class="params">(<span class="string">""</span> : : : <span class="string">"esi"</span>, <span class="string">"edi"</span>)</span></span>;</span><br><span class="line">    <span class="keyword">return</span> err;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="slp-save-state"><a href="#slp-save-state" class="headerlink" title="slp_save_state"></a>slp_save_state</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将 target gr 之前的所有栈都保存到 heap 中</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">GREENLET_NOINLINE</span><span class="params">(slp_save_state)</span><span class="params">(<span class="keyword">char</span>* stackref)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">/* must free all the C stack up to target_stop */</span></span><br><span class="line">	<span class="keyword">char</span>* target_stop = ts_target-&gt;stack_stop; <span class="comment">// 获取到 目标栈底</span></span><br><span class="line">	PyGreenlet* owner = ts_current;    <span class="comment">// 当前 gr</span></span><br><span class="line">	assert(owner-&gt;stack_saved == <span class="number">0</span>);   <span class="comment">// 当前 gr 并未保存数据</span></span><br><span class="line">	<span class="keyword">if</span> (owner-&gt;stack_start == <span class="literal">NULL</span>)    <span class="comment">// already finished, main=1</span></span><br><span class="line">		owner = owner-&gt;stack_prev;  <span class="comment">/* not saved if dying */</span></span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">		owner-&gt;stack_start = stackref;  <span class="comment">// 更新当前 gr 最终栈指针</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 循环，将目标栈下方的，所有 gr 全保存到 heap 中</span></span><br><span class="line">	<span class="keyword">while</span> (owner-&gt;stack_stop &lt; target_stop) &#123;</span><br><span class="line">		<span class="keyword">if</span> (g_save(owner, owner-&gt;stack_stop))</span><br><span class="line">			<span class="keyword">return</span> <span class="number">-1</span>;  <span class="comment">/* XXX */</span></span><br><span class="line">		owner = owner-&gt;stack_prev;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (owner != ts_target) &#123;</span><br><span class="line">		<span class="keyword">if</span> (g_save(owner, target_stop))</span><br><span class="line">			<span class="keyword">return</span> <span class="number">-1</span>;  <span class="comment">/* XXX */</span></span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="g-save"><a href="#g-save" class="headerlink" title="g_save"></a>g_save</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 真正完成将栈中数据保存到 heap</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">g_save</span><span class="params">(PyGreenlet* g, <span class="keyword">char</span>* stop)</span> </span>&#123;</span><br><span class="line">    <span class="comment">/* Save more of g's stack into the heap -- at least up to 'stop'</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    高 g-&gt;stack_stop |________|</span></span><br><span class="line"><span class="comment">                     |        |</span></span><br><span class="line"><span class="comment">                     |    __ stop       . . . . .</span></span><br><span class="line"><span class="comment">                     |        |    ==&gt;  .       .</span></span><br><span class="line"><span class="comment">                     |________|          _______</span></span><br><span class="line"><span class="comment">                     |        |         |       |</span></span><br><span class="line"><span class="comment">                     |        |         |       |</span></span><br><span class="line"><span class="comment">   低 g-&gt;stack_start |        |         |_______| g-&gt;stack_copy</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">intptr_t</span> sz1 = g-&gt;stack_saved;    <span class="comment">// 已经在 heap 上的大小</span></span><br><span class="line">    <span class="keyword">intptr_t</span> sz2 = stop - g-&gt;stack_start;   <span class="comment">// 实际栈大小</span></span><br><span class="line">    assert(g-&gt;stack_start != <span class="literal">NULL</span>);    <span class="comment">// g 并未结束</span></span><br><span class="line">    <span class="keyword">if</span> (sz2 &gt; sz1) &#123;                        <span class="comment">// 栈地址 增大了</span></span><br><span class="line">        <span class="comment">// 栈增大，需要扩充空间，从 stack_copy -&gt; sz2</span></span><br><span class="line">        <span class="keyword">char</span>* c = (<span class="keyword">char</span>*)PyMem_Realloc(g-&gt;stack_copy, sz2);</span><br><span class="line"></span><br><span class="line">        <span class="built_in">memcpy</span>(c+sz1, g-&gt;stack_start+sz1, sz2-sz1);</span><br><span class="line">        g-&gt;stack_copy = c;          <span class="comment">// 更新 heap 地址</span></span><br><span class="line">        g-&gt;stack_saved = sz2;       <span class="comment">// 更新 heap 大小</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="slp-restore-state"><a href="#slp-restore-state" class="headerlink" title="slp_restore_state"></a>slp_restore_state</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 剪切 heap 数据到 C 栈，找到还在栈中的 prev gr</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">GREENLET_NOINLINE</span><span class="params">(slp_restore_state)</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">    PyGreenlet* g = ts_target;</span><br><span class="line">    PyGreenlet* owner = ts_current;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Restore the heap copy back into the C stack */</span></span><br><span class="line">    <span class="keyword">if</span> (g-&gt;stack_saved != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">memcpy</span>(g-&gt;stack_start, g-&gt;stack_copy, g-&gt;stack_saved);</span><br><span class="line">        PyMem_Free(g-&gt;stack_copy);</span><br><span class="line">        g-&gt;stack_copy = <span class="literal">NULL</span>;</span><br><span class="line">        g-&gt;stack_saved = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (owner-&gt;stack_start == <span class="literal">NULL</span>)</span><br><span class="line">        owner = owner-&gt;stack_prev; <span class="comment">/* greenlet is dying, skip it */</span></span><br><span class="line">    <span class="keyword">while</span> (owner &amp;&amp; owner-&gt;stack_stop &lt;= g-&gt;stack_stop)</span><br><span class="line">        <span class="comment">// 比 stack_stop 小的 都已经被保存到 heap 上了</span></span><br><span class="line">        <span class="comment">// 只有找到在目标上方的，作为 prev</span></span><br><span class="line">        owner = owner-&gt;stack_prev;</span><br><span class="line">    g-&gt;stack_prev = owner;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">main -&gt; gr1 -&gt; gr2 -&gt; gr1  ---return----&gt; to main</span><br></pre></td></tr></table></figure>
+<ol>
+<li>切换是调用 g_switch</li>
+<li><p>g_switch中有个 while 循环，会根据目标的走不同的分支</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">while (target) &#123;</span><br><span class="line">	if (PyGreenlet_ACTIVE(target)) &#123;</span><br><span class="line">		err = g_switchstack();</span><br><span class="line">		break;</span><br><span class="line">	&#125;</span><br><span class="line">	if (!PyGreenlet_STARTED(target)) &#123;</span><br><span class="line">		err = g_initialstub(&amp;dummymarker);</span><br><span class="line">		if (err == 1) &#123;</span><br><span class="line">			continue;</span><br><span class="line">		&#125;</span><br><span class="line">		break;</span><br><span class="line">	&#125;</span><br><span class="line">	target = target-&gt;parent;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>main -&gt; gr1 -&gt; gr2</code>，目标都是未启动的，都走<code>g_initialstub</code>分支</p>
+</li>
+<li><p>在<code>g_initialstub</code>分支中，如果是未启动的，会直接开始执行 Python 代码</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">err = g_switchstack();  // 切换栈，等待返回</span><br><span class="line"></span><br><span class="line">if (err == 1) &#123;</span><br><span class="line">	result = PyEval_CallObjectWithKeywords(</span><br><span class="line">            			run, args, kwargs);</span><br><span class="line"></span><br><span class="line">  g_switch(parent, result, NULL);</span><br><span class="line">&#125;</span><br><span class="line">return err;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>所以<code>main -&gt; gr1 -&gt; gr2</code>会在<code>PyEval</code>中一直嵌套，直到 gr2 中执行到<code>gr1.swtich()</code></p>
+</li>
+<li>注意，此时 gr1 的数据保存在 heap 上，C调用链处于<code>g_switch -&gt; g_initialstub-&gt; g_switchstack -&gt; slp_switch</code>状态</li>
+<li>此时，gr1 已经 Active。产生调用链<code>gr2.run() -&gt; g_switch(gr1) -&gt; g_switchstack -&gt; slp_switch</code></li>
+<li><p>在 slp_switch 中，因为 gr1.Active，会开始恢复 gr1 的数据，恢复到 gr1 的执行序列中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if (!PyGreenlet_ACTIVE(ts_target))</span><br><span class="line">    return 1;          # 第一次切换，就直接 返回 1</span><br><span class="line">slp_restore_state()    # 恢复 栈</span><br><span class="line"> __asm__ volatile ...  # 恢复 寄存器</span><br><span class="line">retrun 0;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>根据第 6 步，会产生返回链<code>slp_switch.return 0 -&gt; g_switchstack -&gt; g_initialstub -&gt; g_switch</code></p>
+</li>
+<li>在<code>g_switch</code>中因为 err=0，break 循环，处理结果并返回，完成整个流程</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/greenlet/" rel="tag"># greenlet</a>
+          
+            <a href="/tags/coroutine/" rel="tag"># coroutine</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/05/1.CPython3.6源码分析/1. 目录/" rel="next" title="CPython3.6源码分析——系列文章目录及介绍">
+                <i class="fa fa-chevron-left"></i> CPython3.6源码分析——系列文章目录及介绍
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/" rel="prev" title="【Python 协程系列】Gevent 源码分析">
+                【Python 协程系列】Gevent 源码分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="https://s1.ax1x.com/2018/07/21/P8XwFI.jpg"
+                alt="He11oLx" />
+            
+              <p class="site-author-name" itemprop="name">He11oLx</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/He11oLx" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i></a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:he11o76120@gmail.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i></a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">1.</span> <span class="nav-text">参考资料</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">2.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Python-用法"><span class="nav-number">3.</span> <span class="nav-text">Python 用法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyGreenlet"><span class="nav-number">4.</span> <span class="nav-text">PyGreenlet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PyMODINIT-FUNC"><span class="nav-number">5.</span> <span class="nav-text">PyMODINIT_FUNC</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#green-create-main"><span class="nav-number">5.1.</span> <span class="nav-text">green_create_main</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实例化"><span class="nav-number">6.</span> <span class="nav-text">实例化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#green-new"><span class="nav-number">6.1.</span> <span class="nav-text">green_new</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#green-init"><span class="nav-number">6.2.</span> <span class="nav-text">green_init</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#切换"><span class="nav-number">7.</span> <span class="nav-text">切换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#g-switch"><span class="nav-number">7.1.</span> <span class="nav-text">g_switch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#g-initialstub"><span class="nav-number">7.2.</span> <span class="nav-text">g_initialstub</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#g-switchstack"><span class="nav-number">7.3.</span> <span class="nav-text">g_switchstack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#slp-switch"><span class="nav-number">7.4.</span> <span class="nav-text">slp_switch</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#slp-save-state"><span class="nav-number">7.4.1.</span> <span class="nav-text">slp_save_state</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#g-save"><span class="nav-number">7.4.2.</span> <span class="nav-text">g_save</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#slp-restore-state"><span class="nav-number">7.4.3.</span> <span class="nav-text">slp_restore_state</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">7.5.</span> <span class="nav-text">小结</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <!--
+<div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>  
+  <span class="with-love">Hello,world!</span>
+  <span class="author" itemprop="copyrightHolder">I'm He11oLx</span>
+
+  
+</div>
+-->
+
+<div class="copyright">
+  <span class='with-love'>
+    Hello,world!
+    <i class="fa fa-user"></i>
+    I'm Lx.
+    </span>
+UV: <span id="busuanzi_value_site_pv"></span>
+PV: <span id="busuanzi_value_site_uv"></span>
+</div>
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.3/jquery.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery_lazyload/1.9.7/jquery.lazyload.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/velocity/1.2.1/velocity.ui.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="https://cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://he11olx.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/';
+          this.page.identifier = '2018/09/12/3.协程相关/3.1.Greenlet 源码分析/';
+          this.page.title = '【Python 协程系列】greenlet 源码分析';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://he11olx.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
