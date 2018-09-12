@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://he11olx.com/"/>
-  <updated>2018-09-12T13:14:49.123Z</updated>
+  <updated>2018-09-12T13:34:04.968Z</updated>
   <id>http://he11olx.com/</id>
   
   <author>
@@ -15,44 +15,6 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
-  
-  <entry>
-    <title>【Python 协程系列】Gevent 源码分析</title>
-    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.2.Gevnt%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
-    <id>http://he11olx.com/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/</id>
-    <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:14:49.123Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://www.gevent.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;gevent.org&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/gevent/gevent/tree/1.3.6&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;GitHub:1.3.6&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;blockquote&gt;
-&lt;p&gt;gevent is a coroutine -based Python networking library that uses greenlet to provide a high-level&lt;br&gt;synchronous API on top of the libev or libuv event loop.&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;Features include:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Fast event loop based on libev or libuv.&lt;/li&gt;
-&lt;li&gt;Lightweight execution units based on greenlets.&lt;/li&gt;
-&lt;li&gt;API that re-uses concepts from the Python standard library (for examples there are events and queues).&lt;/li&gt;
-&lt;li&gt;Cooperative sockets with SSL support&lt;/li&gt;
-&lt;li&gt;Cooperative DNS queries performed through a threadpool, dnspython, or c-ares.&lt;/li&gt;
-&lt;li&gt;Monkey patching utility to get 3rd party modules to become cooperative&lt;/li&gt;
-&lt;li&gt;TCP/UDP/HTTP servers&lt;/li&gt;
-&lt;li&gt;Subprocess support (through gevent.subprocess)&lt;/li&gt;
-&lt;li&gt;Thread pools&lt;/li&gt;
-&lt;/ul&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="gevent" scheme="http://he11olx.com/tags/gevent/"/>
-    
-  </entry>
   
   <entry>
     <title>【Python 协程系列】asyncio 源码分析</title>
@@ -92,6 +54,57 @@
   </entry>
   
   <entry>
+    <title>【Python 协程系列】Python 原生协程</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.2.Python%20%E5%8E%9F%E7%94%9F%E5%8D%8F%E7%A8%8B/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:15:13.124Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/reference/datamodel.html#async-iterators&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Data Model&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0492/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP492&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0525/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP525&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;PEP 255 -- Simple Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 342 -- Coroutines via Enhanced Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 380 -- Syntax for Delegating to a Subgenerator&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 492 -- Coroutines with async and await syntax&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 525 -- Asynchronous Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.6&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;emm…上面算是 Python 中 Coroutines 的发展史了，具体内容可以参考 PEP。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python Web 系列】WSGI</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.1.WSGI/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.1.WSGI/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:20:27.125Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;对一个 Python Web 开发者来说，PEP333/PEP3333，是必须熟悉的。都什么年代了，我们自然直接看 3333。&lt;/p&gt;
+&lt;h2 id=&quot;PEP-3333&quot;&gt;&lt;a href=&quot;#PEP-3333&quot; class=&quot;headerlink&quot; title=&quot;PEP 3333&quot;&gt;&lt;/a&gt;PEP 3333&lt;/h2&gt;&lt;p&gt;PEP3333，描述了 Web 服务器与 Python Web 应用程序或框架之间的建议标准接口，&lt;br&gt;以促进跨各种 Web 服务器的应用程序的可移植性，形成类似于Java 的 “servlet” API。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;CGI：Common Gateway Interface，&lt;a href=&quot;https://tools.ietf.org/html/draft-coar-cgi-v11-03&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;通用网关接口&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;WSGI：(Python)Web Server Gateway Interface，&lt;a href=&quot;https://www.python.org/dev/peps/pep-3333/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Python服务器网关接口&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="WSGI" scheme="http://he11olx.com/tags/WSGI/"/>
+    
+  </entry>
+  
+  <entry>
     <title>【Python 协程系列】greenlet 源码分析</title>
     <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.1.Greenlet%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
     <id>http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/</id>
@@ -113,9 +126,9 @@
       <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
     
     
-      <category term="greenlet" scheme="http://he11olx.com/tags/greenlet/"/>
-    
       <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
+    
+      <category term="greenlet" scheme="http://he11olx.com/tags/greenlet/"/>
     
   </entry>
   
@@ -142,31 +155,6 @@
     
     
       <category term="Django" scheme="http://he11olx.com/tags/Django/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【Python Web 系列】WSGI</title>
-    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.1.WSGI/"/>
-    <id>http://he11olx.com/2018/09/12/2.Python Web/2.1.WSGI/</id>
-    <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:20:27.125Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;对一个 Python Web 开发者来说，PEP333/PEP3333，是必须熟悉的。都什么年代了，我们自然直接看 3333。&lt;/p&gt;
-&lt;h2 id=&quot;PEP-3333&quot;&gt;&lt;a href=&quot;#PEP-3333&quot; class=&quot;headerlink&quot; title=&quot;PEP 3333&quot;&gt;&lt;/a&gt;PEP 3333&lt;/h2&gt;&lt;p&gt;PEP3333，描述了 Web 服务器与 Python Web 应用程序或框架之间的建议标准接口，&lt;br&gt;以促进跨各种 Web 服务器的应用程序的可移植性，形成类似于Java 的 “servlet” API。&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;CGI：Common Gateway Interface，&lt;a href=&quot;https://tools.ietf.org/html/draft-coar-cgi-v11-03&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;通用网关接口&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;WSGI：(Python)Web Server Gateway Interface，&lt;a href=&quot;https://www.python.org/dev/peps/pep-3333/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Python服务器网关接口&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="WSGI" scheme="http://he11olx.com/tags/WSGI/"/>
     
   </entry>
   
@@ -199,32 +187,6 @@
   </entry>
   
   <entry>
-    <title>【Python Web 系列】Flask 源码分析</title>
-    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.2.Flask%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
-    <id>http://he11olx.com/2018/09/12/2.Python Web/2.2.Flask 源码分析/</id>
-    <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:20:20.276Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://flask.pocoo.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Flask 官网&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;http://werkzeug.pocoo.org/docs/0.14/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;werkzeug 官网&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;Demo&quot;&gt;&lt;a href=&quot;#Demo&quot; class=&quot;headerlink&quot; title=&quot;Demo&quot;&gt;&lt;/a&gt;Demo&lt;/h2&gt;&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;# Flask.__version__ == 1.0.2&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;from&lt;/span&gt; flask &lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; Flask&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;app = Flask(__name__)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;meta&quot;&gt;@app.route(&quot;/&quot;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;()&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;Hello World!&quot;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; __name__ == &lt;span class=&quot;string&quot;&gt;&#39;__main__&#39;&lt;/span&gt;:&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    app.run()&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;h2 id=&quot;Flask&quot;&gt;&lt;a href=&quot;#Flask&quot; class=&quot;headerlink&quot; title=&quot;Flask&quot;&gt;&lt;/a&gt;Flask&lt;/h2&gt;&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;Flask&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(_PackageBoundObject)&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;wsgi_app&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self, environ, start_response)&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        ...&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;__call__&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self, environ, start_response)&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;return&lt;/span&gt; self.wsgi_app(environ, start_response)&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;Flask实例化后，就是一个符合 WSGI 规定的，可调用对象。再来看看实例化都要干些啥。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="Flask" scheme="http://he11olx.com/tags/Flask/"/>
-    
-  </entry>
-  
-  <entry>
     <title>【Python Web 系列】Django 一些 trick</title>
     <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.5.Django%20%E4%B8%80%E4%BA%9B%20trick/"/>
     <id>http://he11olx.com/2018/09/12/2.Python Web/2.5.Django 一些 trick/</id>
@@ -251,30 +213,28 @@
   </entry>
   
   <entry>
-    <title>Python 协程系列 —— 系列文章目录及介绍</title>
-    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.0.Python%20%E5%8D%8F%E7%A8%8B%E7%B3%BB%E5%88%97/"/>
-    <id>http://he11olx.com/2018/09/12/3.协程相关/3.0.Python 协程系列/</id>
+    <title>【Python Web 系列】Flask 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.2.Flask%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.2.Flask 源码分析/</id>
     <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:48:31.916Z</updated>
+    <updated>2018-09-12T13:20:20.276Z</updated>
     
     <summary type="html">
     
-      
-      
-        
-        
-          &lt;
-        
-      
+      &lt;h2 id=&quot;参考&quot;&gt;&lt;a href=&quot;#参考&quot; class=&quot;headerlink&quot; title=&quot;参考&quot;&gt;&lt;/a&gt;参考&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://flask.pocoo.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Flask 官网&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://werkzeug.pocoo.org/docs/0.14/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;werkzeug 官网&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;Demo&quot;&gt;&lt;a href=&quot;#Demo&quot; class=&quot;headerlink&quot; title=&quot;Demo&quot;&gt;&lt;/a&gt;Demo&lt;/h2&gt;&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;# Flask.__version__ == 1.0.2&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;from&lt;/span&gt; flask &lt;span class=&quot;keyword&quot;&gt;import&lt;/span&gt; Flask&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;app = Flask(__name__)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;meta&quot;&gt;@app.route(&quot;/&quot;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;()&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;Hello World!&quot;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; __name__ == &lt;span class=&quot;string&quot;&gt;&#39;__main__&#39;&lt;/span&gt;:&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    app.run()&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;h2 id=&quot;Flask&quot;&gt;&lt;a href=&quot;#Flask&quot; class=&quot;headerlink&quot; title=&quot;Flask&quot;&gt;&lt;/a&gt;Flask&lt;/h2&gt;&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;Flask&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(_PackageBoundObject)&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;wsgi_app&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self, environ, start_response)&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        ...&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;__call__&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self, environ, start_response)&lt;/span&gt;:&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;return&lt;/span&gt; self.wsgi_app(environ, start_response)&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;Flask实例化后，就是一个符合 WSGI 规定的，可调用对象。再来看看实例化都要干些啥。&lt;/p&gt;
     
     </summary>
     
       <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
     
-      <category term="目录" scheme="http://he11olx.com/categories/Python/%E7%9B%AE%E5%BD%95/"/>
     
-    
-      <category term="目录" scheme="http://he11olx.com/tags/%E7%9B%AE%E5%BD%95/"/>
+      <category term="Flask" scheme="http://he11olx.com/tags/Flask/"/>
     
   </entry>
   
@@ -315,28 +275,68 @@
   </entry>
   
   <entry>
-    <title>【Python 协程系列】Python 原生协程</title>
-    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.2.Python%20%E5%8E%9F%E7%94%9F%E5%8D%8F%E7%A8%8B/"/>
-    <id>http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/</id>
+    <title>Python 协程系列 —— 系列文章目录及介绍</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.0.Python%20%E5%8D%8F%E7%A8%8B%E7%B3%BB%E5%88%97/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.0.Python 协程系列/</id>
     <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:15:13.124Z</updated>
+    <updated>2018-09-12T13:49:34.854Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;
+        
+      
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+      <category term="目录" scheme="http://he11olx.com/categories/Python/%E7%9B%AE%E5%BD%95/"/>
+    
+    
+      <category term="目录" scheme="http://he11olx.com/tags/%E7%9B%AE%E5%BD%95/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python 协程系列】Gevent 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.2.Gevnt%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:14:49.123Z</updated>
     
     <summary type="html">
     
       &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/reference/datamodel.html#async-iterators&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Data Model&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0492/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP492&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0525/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP525&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.gevent.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;gevent.org&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/gevent/gevent/tree/1.3.6&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;GitHub:1.3.6&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;PEP 255 -- Simple Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 342 -- Coroutines via Enhanced Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 380 -- Syntax for Delegating to a Subgenerator&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 492 -- Coroutines with async and await syntax&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 525 -- Asynchronous Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.6&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;emm…上面算是 Python 中 Coroutines 的发展史了，具体内容可以参考 PEP。&lt;/p&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt;gevent is a coroutine -based Python networking library that uses greenlet to provide a high-level&lt;br&gt;synchronous API on top of the libev or libuv event loop.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Features include:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Fast event loop based on libev or libuv.&lt;/li&gt;
+&lt;li&gt;Lightweight execution units based on greenlets.&lt;/li&gt;
+&lt;li&gt;API that re-uses concepts from the Python standard library (for examples there are events and queues).&lt;/li&gt;
+&lt;li&gt;Cooperative sockets with SSL support&lt;/li&gt;
+&lt;li&gt;Cooperative DNS queries performed through a threadpool, dnspython, or c-ares.&lt;/li&gt;
+&lt;li&gt;Monkey patching utility to get 3rd party modules to become cooperative&lt;/li&gt;
+&lt;li&gt;TCP/UDP/HTTP servers&lt;/li&gt;
+&lt;li&gt;Subprocess support (through gevent.subprocess)&lt;/li&gt;
+&lt;li&gt;Thread pools&lt;/li&gt;
+&lt;/ul&gt;
     
     </summary>
     
       <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
     
     
-      <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
+      <category term="gevent" scheme="http://he11olx.com/tags/gevent/"/>
     
   </entry>
   
@@ -371,7 +371,7 @@
     <link href="http://he11olx.com/2018/08/05/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.%20%E7%9B%AE%E5%BD%95/"/>
     <id>http://he11olx.com/2018/08/05/1.CPython3.6源码分析/1. 目录/</id>
     <published>2018-08-05T14:00:00.000Z</published>
-    <updated>2018-08-05T08:43:31.990Z</updated>
+    <updated>2018-09-12T14:42:08.005Z</updated>
     
     <summary type="html">
     
@@ -386,6 +386,8 @@
     </summary>
     
       <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+      <category term="目录" scheme="http://he11olx.com/categories/Python/%E7%9B%AE%E5%BD%95/"/>
     
     
       <category term="目录" scheme="http://he11olx.com/tags/%E7%9B%AE%E5%BD%95/"/>
