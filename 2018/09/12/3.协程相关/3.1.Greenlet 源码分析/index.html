@@ -91,12 +91,12 @@
 <meta property="og:site_name" content="Lx&#39;s Blog">
 <meta property="og:description" content="参考资料 greenlet:Lightweight concurrent programming github:0.4.14 CSDN:fjs_cloud  前言C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。greenlet 就是利用 C 栈和 PyFra">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:image" content="http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet%20源码分析/_images/C栈帧结构.png">
-<meta property="og:updated_time" content="2018-09-12T13:15:19.218Z">
+<meta property="og:image" content="http://t1.aixinxi.net/o_1cn707dkr2o611us1ek2r0s95ia.png-w.jpg">
+<meta property="og:updated_time" content="2018-09-12T13:41:39.230Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="【Python 协程系列】greenlet 源码分析">
 <meta name="twitter:description" content="参考资料 greenlet:Lightweight concurrent programming github:0.4.14 CSDN:fjs_cloud  前言C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。greenlet 就是利用 C 栈和 PyFra">
-<meta name="twitter:image" content="http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet%20源码分析/_images/C栈帧结构.png">
+<meta name="twitter:image" content="http://t1.aixinxi.net/o_1cn707dkr2o611us1ek2r0s95ia.png-w.jpg">
 
 
 
@@ -416,7 +416,7 @@
 <li><a href="https://blog.csdn.net/fjslovejhl/article/details/38824963" target="_blank" rel="noopener">CSDN:fjs_cloud</a></li>
 </ul>
 <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。<br>Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。<br>greenlet 就是利用 C 栈和 PyFrameObject，这两个特性，实现了协程。</p>
-<p><img src="_images/C栈帧结构.png" alt="C栈帧结构"></p>
+<p><img src="http://t1.aixinxi.net/o_1cn707dkr2o611us1ek2r0s95ia.png-w.jpg" alt="C栈帧结构"></p>
 <a id="more"></a>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> greenlet <span class="keyword">import</span> greenlet</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test1</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="number">12</span>)</span><br><span class="line">    gr2.switch()</span><br><span class="line">    print(<span class="number">56</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test2</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="number">34</span>)</span><br><span class="line">    gr1.switch()</span><br><span class="line">    print(<span class="string">"Never"</span>)</span><br><span class="line"></span><br><span class="line">gr1 = greenlet(test1)</span><br><span class="line">gr2 = greenlet(test2)</span><br><span class="line">gr1.switch()</span><br></pre></td></tr></table></figure>
 <p>greenlet 实现了在一个系统线程中伪并发的运行多个任务流程。<br>之所以是伪并发，是因为同时运行的始终只有一个，不同的任务可以不断的切换。<br>换句换说，greenlet 实现的是一种 micro-threads/coroutines，并且 greenlet 本身并不提供调度功能。</p>
@@ -593,8 +593,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/08/05/1.CPython3.6源码分析/1. 目录/" rel="next" title="CPython3.6源码分析——系列文章目录及介绍">
-                <i class="fa fa-chevron-left"></i> CPython3.6源码分析——系列文章目录及介绍
+              <a href="/2018/09/12/2.Python Web/2.5.Django 一些 trick/" rel="next" title="【Python Web 系列】Django 一些 trick">
+                <i class="fa fa-chevron-left"></i> 【Python Web 系列】Django 一些 trick
               </a>
             
           </div>
@@ -603,8 +603,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/09/12/3.协程相关/3.2.Gevnt 源码分析/" rel="prev" title="【Python 协程系列】Gevent 源码分析">
-                【Python 协程系列】Gevent 源码分析 <i class="fa fa-chevron-right"></i>
+              <a href="/2018/09/12/2.Python Web/2.6.Tornado 源码分析/" rel="prev" title="【Python Web 系列】Tornado 源码分析">
+                【Python Web 系列】Tornado 源码分析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -696,7 +696,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">28</span>
+                  <span class="site-state-item-count">30</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

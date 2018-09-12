@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://he11olx.com/"/>
-  <updated>2018-09-12T13:20:47.131Z</updated>
+  <updated>2018-09-12T13:35:44.792Z</updated>
   <id>http://he11olx.com/</id>
   
   <author>
@@ -17,47 +17,37 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>【Python Web 系列】Tornado 源码分析</title>
-    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.6.Tornado%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
-    <id>http://he11olx.com/2018/09/12/2.Python Web/2.6.Tornado 源码分析/</id>
+    <title>Python 协程系列 —— 系列文章目录及介绍</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.0.Python%20%E5%8D%8F%E7%A8%8B%E7%B3%BB%E5%88%97/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.0.Python 协程系列/</id>
     <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:20:47.131Z</updated>
+    <updated>2018-09-12T13:35:44.792Z</updated>
     
     <summary type="html">
     
-      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://www.tornadoweb.org/en/stable/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Tornado&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/tornadoweb/tornado/tree/v5.1.0&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;GitHub: 5.1&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;blockquote&gt;
-&lt;p&gt;Tornado is a Python web framework and asynchronous networking library。&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;包含以下几个方面：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;A web framework，继承 RequestHandler 创建 application&lt;/li&gt;
-&lt;li&gt;Client- and server-side implementions of HTTP (HTTPServer and AsyncHTTPClient).&lt;/li&gt;
-&lt;li&gt;An asynchronous networking library including the classes IOLoop and IOStream&lt;/li&gt;
-&lt;li&gt;A coroutine library (tornado.gen)，现已经推荐使用 Native Cocoutine。&lt;/li&gt;
-&lt;li&gt;虽然兼容其他WSGI server/client，但无法发挥 Tornado 的高并发、长连接特点&lt;/li&gt;
-&lt;/ul&gt;
+      
+      
+        
+        
+          &lt;
+        
+      
     
     </summary>
     
       <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
     
     
-      <category term="web" scheme="http://he11olx.com/tags/web/"/>
-    
-      <category term="tornado" scheme="http://he11olx.com/tags/tornado/"/>
+      <category term="目录" scheme="http://he11olx.com/tags/%E7%9B%AE%E5%BD%95/"/>
     
   </entry>
   
   <entry>
-    <title>【Python 协程系列】asyncio 模块介绍</title>
-    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.3.asyncio%20%E6%A8%A1%E5%9D%97%E4%BB%8B%E7%BB%8D/"/>
-    <id>http://he11olx.com/2018/09/12/3.协程相关/3.3.asyncio 模块介绍/</id>
+    <title>【Python 协程系列】asyncio 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.3.asyncio%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.3.asyncio 源码分析/</id>
     <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:15:01.123Z</updated>
+    <updated>2018-09-12T13:34:04.968Z</updated>
     
     <summary type="html">
     
@@ -90,28 +80,28 @@
   </entry>
   
   <entry>
-    <title>【Python Web 系列】Flask 一些 trick</title>
-    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.3.Flask%20%E4%B8%80%E4%BA%9B%20trick/"/>
-    <id>http://he11olx.com/2018/09/12/2.Python Web/2.3.Flask 一些 trick/</id>
+    <title>【Python 协程系列】Python 原生协程</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.2.Python%20%E5%8E%9F%E7%94%9F%E5%8D%8F%E7%A8%8B/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/</id>
     <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:20:58.179Z</updated>
+    <updated>2018-09-12T13:15:13.124Z</updated>
     
     <summary type="html">
     
-      
-      
-        
-        
-          &lt;
-        
-      
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/reference/datamodel.html#async-iterators&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Data Model&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0492/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP492&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0525/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP525&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;PEP 255 -- Simple Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 342 -- Coroutines via Enhanced Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 380 -- Syntax for Delegating to a Subgenerator&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 492 -- Coroutines with async and await syntax&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 525 -- Asynchronous Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.6&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;emm…上面算是 Python 中 Coroutines 的发展史了，具体内容可以参考 PEP。&lt;/p&gt;
     
     </summary>
     
       <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
     
     
-      <category term="Flask" scheme="http://he11olx.com/tags/Flask/"/>
+      <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
     
   </entry>
   
@@ -142,11 +132,11 @@
   </entry>
   
   <entry>
-    <title>【Python Web 系列】Django 一些 trick</title>
-    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.5.Django%20%E4%B8%80%E4%BA%9B%20trick/"/>
-    <id>http://he11olx.com/2018/09/12/2.Python Web/2.5.Django 一些 trick/</id>
+    <title>【Python Web 系列】Django 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.4.Django%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.4.Django 源码分析/</id>
     <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:20:41.496Z</updated>
+    <updated>2018-09-12T13:20:37.616Z</updated>
     
     <summary type="html">
     
@@ -193,11 +183,101 @@
   </entry>
   
   <entry>
-    <title>【Python Web 系列】Django 源码分析</title>
-    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.4.Django%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
-    <id>http://he11olx.com/2018/09/12/2.Python Web/2.4.Django 源码分析/</id>
+    <title>【Python Web 系列】—— 系列文章目录及介绍</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.0.Python%20Web%20%E7%9B%AE%E5%BD%95/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.0.Python Web 目录/</id>
     <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:20:37.616Z</updated>
+    <updated>2018-09-12T13:35:48.098Z</updated>
+    
+    <summary type="html">
+    
+      
+      
+        
+        
+          &lt;
+        
+      
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="目录" scheme="http://he11olx.com/tags/%E7%9B%AE%E5%BD%95/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python Web 系列】Tornado 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.6.Tornado%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.6.Tornado 源码分析/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:40:19.235Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.tornadoweb.org/en/stable/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Tornado&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/tornadoweb/tornado/tree/v5.1.0&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;GitHub: 5.1&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;blockquote&gt;
+&lt;p&gt;Tornado is a Python web framework and asynchronous networking library。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;包含以下几个方面：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A web framework，继承 RequestHandler 创建 application&lt;/li&gt;
+&lt;li&gt;Client- and server-side implementions of HTTP (HTTPServer and AsyncHTTPClient).&lt;/li&gt;
+&lt;li&gt;An asynchronous networking library including the classes IOLoop and IOStream&lt;/li&gt;
+&lt;li&gt;A coroutine library (tornado.gen)，现已经推荐使用 Native Cocoutine。&lt;/li&gt;
+&lt;li&gt;虽然兼容其他WSGI server/client，但无法发挥 Tornado 的高并发、长连接特点&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="web" scheme="http://he11olx.com/tags/web/"/>
+    
+      <category term="tornado" scheme="http://he11olx.com/tags/tornado/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python 协程系列】greenlet 源码分析</title>
+    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.1.Greenlet%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
+    <id>http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:41:39.230Z</updated>
+    
+    <summary type="html">
+    
+      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://greenlet.readthedocs.io/en/latest/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;greenlet:Lightweight concurrent programming&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/python-greenlet/greenlet/tree/0.4.14&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;github:0.4.14&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://blog.csdn.net/fjslovejhl/article/details/38824963&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;CSDN:fjs_cloud&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。&lt;br&gt;Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。&lt;br&gt;greenlet 就是利用 C 栈和 PyFrameObject，这两个特性，实现了协程。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://t1.aixinxi.net/o_1cn707dkr2o611us1ek2r0s95ia.png-w.jpg&quot; alt=&quot;C栈帧结构&quot;&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
+    
+    
+      <category term="greenlet" scheme="http://he11olx.com/tags/greenlet/"/>
+    
+      <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>【Python Web 系列】Django 一些 trick</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.5.Django%20%E4%B8%80%E4%BA%9B%20trick/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.5.Django 一些 trick/</id>
+    <published>2018-09-12T04:00:00.000Z</published>
+    <updated>2018-09-12T13:20:41.496Z</updated>
     
     <summary type="html">
     
@@ -215,32 +295,6 @@
     
     
       <category term="Django" scheme="http://he11olx.com/tags/Django/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【Python 协程系列】Python 原生协程</title>
-    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.2.Python%20%E5%8E%9F%E7%94%9F%E5%8D%8F%E7%A8%8B/"/>
-    <id>http://he11olx.com/2018/09/12/3.协程相关/3.2.Python 原生协程/</id>
-    <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:15:13.124Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://docs.python.org/3/reference/datamodel.html#async-iterators&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Data Model&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0492/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP492&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://www.python.org/dev/peps/pep-0525/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;PEP525&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;PEP 255 -- Simple Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 342 -- Coroutines via Enhanced Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	2.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 380 -- Syntax for Delegating to a Subgenerator&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 492 -- Coroutines with async and await syntax&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;PEP 525 -- Asynchronous Generators&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Python-Version:	3.6&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;emm…上面算是 Python 中 Coroutines 的发展史了，具体内容可以参考 PEP。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
     
   </entry>
   
@@ -283,30 +337,28 @@
   </entry>
   
   <entry>
-    <title>【Python 协程系列】greenlet 源码分析</title>
-    <link href="http://he11olx.com/2018/09/12/3.%E5%8D%8F%E7%A8%8B%E7%9B%B8%E5%85%B3/3.1.Greenlet%20%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
-    <id>http://he11olx.com/2018/09/12/3.协程相关/3.1.Greenlet 源码分析/</id>
+    <title>【Python Web 系列】Flask 一些 trick</title>
+    <link href="http://he11olx.com/2018/09/12/2.Python%20Web/2.3.Flask%20%E4%B8%80%E4%BA%9B%20trick/"/>
+    <id>http://he11olx.com/2018/09/12/2.Python Web/2.3.Flask 一些 trick/</id>
     <published>2018-09-12T04:00:00.000Z</published>
-    <updated>2018-09-12T13:15:19.218Z</updated>
+    <updated>2018-09-12T13:20:58.179Z</updated>
     
     <summary type="html">
     
-      &lt;h2 id=&quot;参考资料&quot;&gt;&lt;a href=&quot;#参考资料&quot; class=&quot;headerlink&quot; title=&quot;参考资料&quot;&gt;&lt;/a&gt;参考资料&lt;/h2&gt;&lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://greenlet.readthedocs.io/en/latest/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;greenlet:Lightweight concurrent programming&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://github.com/python-greenlet/greenlet/tree/0.4.14&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;github:0.4.14&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://blog.csdn.net/fjslovejhl/article/details/38824963&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;CSDN:fjs_cloud&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;C在过程调用时，使用栈帧来传递参数、存储返回信息、保存寄存器，以及局部存储。&lt;br&gt;Python 在执行的时，以 PyFrameObject 作为环境，不断加载 PyCodeObject 进行执行。&lt;br&gt;greenlet 就是利用 C 栈和 PyFrameObject，这两个特性，实现了协程。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;_images/C栈帧结构.png&quot; alt=&quot;C栈帧结构&quot;&gt;&lt;/p&gt;
+      
+      
+        
+        
+          &lt;
+        
+      
     
     </summary>
     
       <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
     
     
-      <category term="greenlet" scheme="http://he11olx.com/tags/greenlet/"/>
-    
-      <category term="coroutine" scheme="http://he11olx.com/tags/coroutine/"/>
+      <category term="Flask" scheme="http://he11olx.com/tags/Flask/"/>
     
   </entry>
   
@@ -522,52 +574,6 @@
       <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
     
       <category term="PyFunctionObject" scheme="http://he11olx.com/tags/PyFunctionObject/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【CPython3.6源码分析】Python 异常控制</title>
-    <link href="http://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.8.Python%20%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6/"/>
-    <id>http://he11olx.com/2018/07/21/1.CPython3.6源码分析/1.8.Python 异常控制/</id>
-    <published>2018-07-21T10:00:00.000Z</published>
-    <updated>2018-08-05T07:06:37.509Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;本章将通过字节码指令，探究 Python 中&lt;code&gt;try-except&lt;/code&gt;等异常控制语句的实现及原理。阅读本章前需了解&lt;a href=&quot;https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/&quot;&gt;PyCodeObject/PyFrameObject&lt;/a&gt;。&lt;br&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
-    
-      <category term="try-except" scheme="http://he11olx.com/tags/try-except/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>【CPython3.6源码分析】Python 控制字节码执行</title>
-    <link href="http://he11olx.com/2018/07/21/1.CPython3.6%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.7.Python%20%E6%8E%A7%E5%88%B6%E5%AD%97%E8%8A%82%E7%A0%81/"/>
-    <id>http://he11olx.com/2018/07/21/1.CPython3.6源码分析/1.7.Python 控制字节码/</id>
-    <published>2018-07-21T08:00:00.000Z</published>
-    <updated>2018-08-05T07:15:43.620Z</updated>
-    
-    <summary type="html">
-    
-      &lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;本章将通过几个字节码指令，探究 Python 中&lt;code&gt;if&lt;/code&gt;及&lt;code&gt;for&lt;/code&gt;语句的实现及原理，&lt;br&gt;阅读本章前需了解&lt;a href=&quot;https://he11olx.com/2018/07/21/1.5.Python%20Code%20Frame/&quot;&gt;PyCodeObject/PyFrameObject&lt;/a&gt;。&lt;/p&gt;
-    
-    </summary>
-    
-      <category term="Python" scheme="http://he11olx.com/categories/Python/"/>
-    
-    
-      <category term="CPython3.6源码" scheme="http://he11olx.com/tags/CPython3-6%E6%BA%90%E7%A0%81/"/>
-    
-      <category term="PyCodeObject" scheme="http://he11olx.com/tags/PyCodeObject/"/>
-    
-      <category term="EvalFrame" scheme="http://he11olx.com/tags/EvalFrame/"/>
     
   </entry>
   
